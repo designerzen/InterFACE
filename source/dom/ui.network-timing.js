@@ -3,6 +3,7 @@ import { getPathRoomId } from '../network/room-url.js'
 import { decodeBundle, getPairingURL, PAIRING_PREFIX } from '../network/room-invite.js'
 import { createSVGQRCodeFromURL } from '../utils/barcodes.js'
 import { setupTabs } from './tabs.js'
+import { getLocationParam } from '../utils/state-encoding.js'
 
 // Capture before application settings rebuild the URL during boot.
 const initialURL = new URL(window.location.href)
@@ -65,7 +66,7 @@ export const setupNetworkTiming = (clock, stateMachine, onTransport, statusAPI) 
 		}))
 	}
 	const room = new TimingRoom(clock, { onState: display, onTransport })
-	roomInput.value = pathRoomId || initialURL.searchParams.get('room') || ''
+	roomInput.value = pathRoomId || getLocationParam('room', initialURL.search) || ''
 	pairingInput.value = pendingInitialLink
 	const error = reason => display({ ...sessionState, status: 'error', error: reason.message ?? String(reason) })
 	const stopScanning = () => {

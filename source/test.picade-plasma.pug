@@ -295,6 +295,7 @@ block styles
 block scripts
 	script(type="module").
 		import { getPicadeMaxGamepadInfo } from './hardware/gamepad/picade-max-interface.js'
+		import { getLocationParam } from './utils/state-encoding.js'
 		import {
 			getPicadeConfigurationQuery,
 			getPicadeReturnUrl,
@@ -351,7 +352,7 @@ block scripts
 		const machineLightCount = document.querySelector('#machine-light-count')
 		const PICADE_MAPPING_STORAGE_KEY = 'photosynth.picade-plasma.mapping.v1'
 		const query = getPicadeConfigurationQuery(window.location.search, document.referrer)
-		const requestedLightPreset = query.get('lights')
+		const requestedLightPreset = getLocationParam('lights', query.toString())
 		function loadSavedMapping() {
 			try {
 				const saved = JSON.parse(window.localStorage.getItem(PICADE_MAPPING_STORAGE_KEY) ?? 'null')

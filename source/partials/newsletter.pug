@@ -9,12 +9,12 @@ div#mc_embed_shell(aria-labelledby="newsletter-title")
 		)
 			#mc_embed_signup_scroll
 				header.newsletter-header
-					h5#newsletter-title Newsletter
-					p#newsletter-description Occasional PhotoSYNTH updates, straight to your inbox.
+					h4#newsletter-title Stay in the loop
+					p#newsletter-description PhotoSYNTH news, project updates and upcoming events.
 
+				label.newsletter-label(for="mce-EMAIL") Email address
 				.subscribe-fields
 					.mc-field-group
-						label(for="mce-EMAIL") Email address
 						input#mce-EMAIL.required.email(
 							type="email"
 							name="EMAIL"
@@ -22,13 +22,15 @@ div#mc_embed_shell(aria-labelledby="newsletter-title")
 							inputmode="email"
 							enterkeyhint="send"
 							placeholder="you@example.com"
-							aria-describedby="newsletter-required"
+							aria-describedby="newsletter-reassurance newsletter-required"
 							required
 						)
 						#newsletter-required.indicates-required
 							span(aria-hidden="true") *
-							|  Email address is required.
-					input#mc-embedded-subscribe.button(type="submit" name="subscribe" value="Get updates")
+							|  Please enter a valid email address.
+					input#mc-embedded-subscribe.button(type="submit" name="subscribe" value="Subscribe")
+
+				p#newsletter-reassurance Occasional emails. Unsubscribe anytime.
 
 				#mce-responses.clear(aria-live="polite")
 					#mce-error-response.response(style="display: none;")

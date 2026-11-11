@@ -1,0 +1,75 @@
+.theme-time,
+body:has(.time-demo){
+	--time-blue:#005da6;
+	--time-gold:#f1b544;
+	--hue:206;
+	--hue-brand:206;
+	--hue-selected:206;
+	--hue-active:39;
+	--hue-accent:39;
+	--s:100%;
+	--l:33%;
+	--s-selected:100%;
+	--l-selected:33%;
+	--s-active:86%;
+	--l-active:61%;
+	--shade-brand:var(--time-blue);
+	--shade-active:var(--time-gold);
+}
+
+.time-logo{
+	object-fit:contain;
+	max-width:100%;
+	background:#fff;
+	border-radius:12px;
+}
+
+.time-demo{
+	max-width:70rem;
+	margin:1rem auto;
+	padding:clamp(1rem, 3vw, 2rem);
+	background:#fff;
+	color:#12324b;
+	border-top:6px solid #f1b544;
+	border-radius:12px;
+	text-shadow:none;
+	a{ color:#005da6; }
+}
+
+.time-presets{
+	display:grid;
+	grid-template-columns:repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+	gap:1rem;
+	margin-block:1rem;
+	a{
+		display:flex;
+		flex-direction:column;
+		gap:0.5rem;
+		padding:1rem;
+		background:#fff;
+		color:#005da6;
+		border:2px solid #005da6;
+		border-radius:8px;
+		text-shadow:none;
+		&:is(:hover, :focus-visible){
+			background:#fff4da;
+			outline:3px solid #f1b544;
+			outline-offset:3px;
+		}
+	}
+}
+
+.interface.loaded .theme-time{
+	#link-about{
+		background-image:url(./assets/logos/time.png);
+		background-color:#fff;
+		&::after{ visibility:hidden; }
+	}
+	#foot{
+		visibility:visible;
+		z-index:1;
+		color:var(--time-gold);
+		.link-pages{ display:none; }
+		.link-copyright::before{ filter:invert(1); }
+	}
+}

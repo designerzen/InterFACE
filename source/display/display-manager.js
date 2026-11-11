@@ -11,6 +11,23 @@
 import { DISPLAY_TYPES } from './display-types.js'
 
 const DEFAULT_DISPLAY_TYPE = DISPLAY_TYPES.DISPLAY_MEDIA_VISION_2D
+const webGPUAvailability = new WeakMap()
+
+const isWebGPUAvailable = () => {
+	const gpu = globalThis.navigator?.gpu
+	return typeof gpu?.requestAdapter === 'function' && webGPUAvailability.get(gpu) !== false
+}
+
+const probeWebGPU = async () => {
+	const gpu = globalThis.navigator?.gpu
+	if (typeof gpu?.requestAdapter !== 'function') return false
+	let available = false
+	try {
+		available = Boolean(await gpu.requestAdapter())
+	} catch {}
+	webGPUAvailability.set(gpu, available)
+	return available
+}
 
 export const normalizeDisplayType = displayType => {
 	const value = DISPLAY_TYPES[displayType] ?? displayType
@@ -34,10 +51,10 @@ export const isDisplayRuntimeAvailable = (displayType, capabilities = {}) => {
 			return capabilities.webGL ?? isWebGLAvailable()
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU:
 		case DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL:
-			return Boolean(globalThis.navigator?.gpu) || (capabilities.webGL ?? isWebGLAvailable())
+			return (capabilities.webGPU ?? isWebGPUAvailable()) || (capabilities.webGL ?? isWebGLAvailable())
 
 		case DISPLAY_TYPES.DISPLAY_WEB_GPU_3D:
-			return Boolean(globalThis.navigator?.gpu)
+			return capabilities.webGPU ?? isWebGPUAvailable()
 
 		default:
 			return [DISPLAY_TYPES.DISPLAY_CANVAS_2D, DISPLAY_TYPES.DISPLAY_MEDIA_PIPE_2D,
@@ -54,6 +71,31 @@ const isWebGLAvailable = () => {
 		} catch(e) {
 				return false
 		}
+}
+
+// Check before importing a renderer or disturbing the currently running display.
+const assertDisplayAvailable = async (displayType, options = {}) => {
+	const capabilities = {}
+	if (displayType === DISPLAY_TYPES.DISPLAY_WEB_GPU_3D || displayType === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU) {
+		capabilities.webGPU = await probeWebGPU()
+	}
+	if (displayType === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU) {
+		if (options.backend === 'webgpu') capabilities.webGL = false
+		if (options.backend === 'webgl2') capabilities.webGPU = false
+	}
+	if (!isDisplayRuntimeAvailable(displayType, capabilities)) throw new Error(`Display unavailable: ${displayType}`)
+	if (displayType === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU && !options.calibration) {
+		const { howManyHolographicDisplaysAreConnected } = await import('../hardware/looking-glass-portrait.js')
+		if (!(await howManyHolographicDisplaysAreConnected() > 0)) throw new Error(`Display unavailable: ${displayType} (no Portrait connected)`)
+	}
+	if (displayType === DISPLAY_TYPES.DISPLAY_COMPOSITE && options.displays) {
+		if (!Array.isArray(options.displays)) throw new TypeError('Composite displays must be an array')
+		for (const entry of options.displays) {
+			const type = typeof entry === 'string' ? entry : entry?.type
+			if (type !== normalizeDisplayType(type) || type === DISPLAY_TYPES.DISPLAY_COMPOSITE || type === DISPLAY_TYPES.DISPLAY_LOOKING_GLASS_WEBGPU) throw new Error(`Unsupported Composite child: ${type}`)
+			await assertDisplayAvailable(type, { ...options, ...entry?.options, displays: undefined })
+		}
+	}
 }
 
 /**
@@ -113,8 +155,9 @@ const displayClassPromises = new Map()
  * @param {String} type
  * @returns
  */
-export const loadDisplayClass = async( type ) => {
+export const loadDisplayClass = async( type, options = {} ) => {
 	type = normalizeDisplayType(type)
+	await assertDisplayAvailable(type, options)
 	try{
 		const loader = displayClassLoaders[type]
 		if (!loader)
@@ -143,14 +186,13 @@ export const loadDisplayClass = async( type ) => {
  */
 export const createDisplay = async (canvasElement, displayType, options={} ) => {
 	displayType = normalizeDisplayType(displayType)
-	if (!isDisplayRuntimeAvailable(displayType)) throw new Error(`Display unavailable: ${displayType}`)
+	const {default:DisplayClass, before} = await loadDisplayClass(displayType, options)
 
 	// set the canvas to the size of the video / image
 	// display = new Display( webGLElement, inputElement.width, inputElement.height )
 	console.info("DISPLAY:Creating new",displayType,"on", canvasElement, {options}) 
 		
 	canvasElement.setAttribute( "data-display-type",displayType )
-	const {default:DisplayClass, before} = await loadDisplayClass( displayType )
 	const display = new DisplayClass(
 		canvasElement,
 		canvasElement.width,
@@ -272,14 +314,8 @@ export const getDisplaysInformation = async( previousDisplay, defaultDisplay= DI
 		console.info("Holographic display not connected" , error)
 	}
 
-	let available = getAvailableDisplays(holographicDisplayQuantity > 0)
-	if (available.includes(DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)) {
-		try {
-			if (!await navigator.gpu.requestAdapter()) available = available.filter(type => type !== DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)
-		} catch {
-			available = available.filter(type => type !== DISPLAY_TYPES.DISPLAY_WEB_GPU_3D)
-		}
-	}
+	await probeWebGPU()
+	const available = getAvailableDisplays(holographicDisplayQuantity > 0)
 	const shouldPreferLookingGlass = holographicDisplayQuantity > 0
 	const canUseRequestedDisplay = available.includes(requestedDisplay) && isDisplayRuntimeAvailable(requestedDisplay)
 	const canUseFallbackDisplay = available.includes(fallbackDisplay) && isDisplayRuntimeAvailable(fallbackDisplay)
@@ -330,6 +366,7 @@ export const changeDisplay = async(canvasElement, displayType, renderLoop, optio
 	}
 
 	// as a context once set can only be one of 2d or webgl
+	await assertDisplayAvailable(displayType, options)
 	const newCanvasElement = await restartCanvas(canvasElement, -1)
 
 	// async or load direct
@@ -406,6 +443,8 @@ export default class DisplayManager{
 			console.warn("Display test", displayType, DISPLAY_TYPES, DISPLAY_TYPES[displayType])
 			throw Error("Display type "+displayType+" is not supported")
 		}
+
+		await assertDisplayAvailable(displayType, options)
 
 		if (this.#display?.destroy)
 		{

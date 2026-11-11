@@ -1,11 +1,54 @@
 #contact {
-	> h4,
-	> p { margin: 0; }
+	display: grid;
+	grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+	gap: clamp(2.5rem, 5vw, 5rem);
+	padding: clamp(1.5rem, 4vw, 4rem);
+
+	.contact-intro { min-inline-size: 0; }
+
+	.contact-intro h4,
+	#newsletter-title {
+		margin: 0;
+		padding: 0;
+		font-size: clamp(1.75rem, 2.5vw, 2.5rem);
+		font-weight: 500;
+		line-height: 1.15;
+		text-align: start;
+		text-shadow: none;
+	}
+
+	.contact-intro p,
+	#newsletter-description {
+		max-inline-size: 40ch;
+		margin: .875rem 0 0;
+		padding: 0;
+		font-family: system-ui, sans-serif;
+		font-size: 1rem;
+		font-weight: 400;
+		line-height: 1.6;
+		text-align: start;
+		text-shadow: none;
+	}
 
 	.contact-email {
-		inline-size: fit-content;
+		display: inline-block;
+		max-inline-size: 100%;
+		margin-block-start: 1.25rem;
 		color: inherit;
-		font-weight: 800;
+		font-size: 1rem;
+		font-weight: 600;
+		line-height: 1.5;
+		overflow-wrap: anywhere;
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: .3em;
+
+		&:hover { text-decoration-thickness: 2px; }
+		&:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+	}
+
+	@media (width <= 800px) {
+		grid-template-columns: minmax(0, 1fr);
 	}
 }
 
@@ -13,7 +56,9 @@
 	--newsletter-error: #ffb0b0;
 	box-sizing: border-box;
 	inline-size: 100%;
-	margin: calc(var(--pad) / 2) 0 0;
+	max-inline-size: 36rem;
+	min-inline-size: 0;
+	margin: 0;
 	padding: 0;
 	color: inherit;
 
@@ -31,73 +76,54 @@
 		font: inherit;
 	}
 
-	#mc_embed_signup_scroll {
-		display: grid;
-		grid-template-columns: minmax(12rem, .7fr) minmax(20rem, 1.3fr);
-		gap: var(--pad) calc(var(--pad) * 2);
-		align-items: end;
-	}
+	#mc_embed_signup_scroll { display: block; }
+	.newsletter-header { margin-block-end: 1.5rem; }
 
-	.newsletter-header {
-		align-self: center;
-
-		h5,
-		p {
-			inline-size: auto;
-			margin: 0;
-			padding: 0;
-			color: inherit;
-			text-align: start;
-			text-shadow: none;
-		}
-
-		h5 { font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1; }
-		p { margin-block-start: calc(var(--pad) / 3); font-size: 1rem; font-weight: 600; line-height: 1.4; }
+	.newsletter-label {
+		display: block;
+		margin: 0 0 .5rem;
+		padding: 0;
+		color: inherit;
+		font-family: system-ui, sans-serif;
+		font-size: .875rem;
+		font-weight: 600;
+		line-height: 1.5;
+		text-align: start;
+		text-shadow: none;
 	}
 
 	.subscribe-fields {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) auto;
-		gap: calc(var(--pad) / 2);
-		align-items: end;
+		gap: .75rem;
+		align-items: start;
 	}
 
 	.mc-field-group {
-		display: grid;
-		gap: calc(var(--pad) / 4);
 		min-inline-size: 0;
-
-		label {
-			margin: 0;
-			padding: 0;
-			color: inherit;
-			font: inherit;
-			font-size: .875rem;
-			font-weight: 800;
-			line-height: 1.2;
-			text-align: start;
-			text-shadow: none;
-		}
 
 		input[type="email"] {
 			appearance: none;
 			display: block;
 			inline-size: 100%;
 			min-inline-size: 0;
-			min-block-size: 2.75rem;
+			min-block-size: 3.25rem;
 			margin: 0;
-			padding: calc(var(--pad) / 2) var(--pad);
-			border: 2px solid var(--shade-grey);
-			border-radius: calc(var(--curve) / 2);
+			padding: .875rem 1rem;
+			border: 1px solid var(--shade-grey);
+			border-radius: .5rem;
 			background: var(--shade-white);
 			box-shadow: none;
 			color: var(--shade-dark);
-			font: inherit;
+			font-family: system-ui, sans-serif;
 			font-size: 1rem;
-			line-height: 1.2;
+			font-weight: 400;
+			line-height: 1.375;
 			text-align: start;
+			cursor: text;
 
-			&:focus-visible { border-color: var(--shade-brand); outline: 3px solid var(--shade-white); outline-offset: 2px; }
+			&::placeholder { color: #68615e; opacity: 1; }
+			&:focus-visible { outline: 2px solid var(--shade-white); outline-offset: 3px; }
 			&:user-invalid,
 			&.mce_inline_error { border-color: var(--newsletter-error); }
 		}
@@ -106,67 +132,75 @@
 
 		.indicates-required {
 			display: none;
-			margin: 0;
+			margin: .5rem 0 0;
 			padding: 0;
 			color: var(--newsletter-error);
-			font-size: .75rem;
-			font-weight: 800;
-			line-height: 1.2;
+			font-family: system-ui, sans-serif;
+			font-size: .875rem;
+			font-weight: 400;
+			line-height: 1.5;
 		}
 
 		#mce-EMAIL:user-invalid ~ .indicates-required,
 		#mce-EMAIL.mce_inline_error ~ .indicates-required { display: block; }
 	}
 
-	#mce-responses {
-		grid-column: 2;
-		margin: 0;
-		padding: 0;
-	}
-
+	#mce-responses { margin: 0; padding: 0; }
 	.response {
 		margin: 0;
-		padding: calc(var(--pad) / 3) 0;
+		padding: .5rem 0;
 		border: 0;
 		background: none;
 		box-shadow: none;
 		color: var(--newsletter-error);
-		font-size: .75rem;
-		font-weight: 800;
+		font-family: system-ui, sans-serif;
+		font-size: .875rem;
+		font-weight: 400;
+		line-height: 1.5;
 	}
-
 	#mce-success-response { color: inherit; }
 	.mc-honeypot { position: absolute !important; inset-inline-start: -5000px !important; }
 
 	#mc-embedded-subscribe {
+		appearance: none;
 		inline-size: auto;
-		min-block-size: 2.75rem;
+		min-block-size: 3.25rem;
 		margin: 0;
-		padding: calc(var(--pad) / 2) var(--pad);
+		padding: .875rem 1.25rem;
+		border: 1px solid var(--shade-white);
+		border-radius: .5rem;
+		background: var(--shade-white);
+		box-shadow: none;
+		color: var(--shade-dark);
+		font: inherit;
+		font-size: 1rem;
+		font-weight: 700;
+		line-height: 1.375;
+		text-shadow: none;
+		cursor: pointer;
+
+		&:hover { background: transparent; color: var(--shade-white); }
+		&:focus-visible { outline: 2px solid var(--shade-white); outline-offset: 3px; }
 		&::before,
 		&::after { display: none; content: none; }
 	}
 
+	#newsletter-reassurance,
 	.mailchimp-referral {
-		grid-column: 2;
-		justify-self: end;
-		margin: calc(var(--pad) / -2) 0 0;
+		margin: .75rem 0 0;
 		padding: 0;
-		font-size: .65rem;
-		line-height: 1.2;
-
-		a { color: inherit; opacity: .65; }
+		font-family: system-ui, sans-serif;
+		font-size: .8125rem;
+		font-weight: 400;
+		line-height: 1.5;
+		text-align: start;
+		text-shadow: none;
 	}
 
-	@media (width <= 800px) {
-		#mc_embed_signup_scroll { grid-template-columns: 1fr; }
-		#mce-responses,
-		.mailchimp-referral { grid-column: 1; }
-		.mailchimp-referral { justify-self: start; }
-	}
+	.mailchimp-referral a { color: inherit; text-underline-offset: .2em; }
 
 	@media (width <= 520px) {
-		.subscribe-fields { grid-template-columns: 1fr; }
+		.subscribe-fields { grid-template-columns: minmax(0, 1fr); }
 		#mc-embedded-subscribe { inline-size: 100%; }
 	}
 }

@@ -139,7 +139,7 @@
 #settings:focus-visible,
 #settings:focus-within{
 	--y:100%;
-	display: flex;
+	display: grid;
 	visibility: visible;
 	transform: translateY( 0 );
 	// animation:TranslateY var(--ease-q, 40ms) ease-out 0s both;
@@ -151,7 +151,7 @@
 #percussion-settings:focus,
 #percussion-settings:focus-visible,
 #percussion-settings:focus-within{
-	display: flex;
+	display: grid;
 	visibility: visible;
 	transform: translateY( 0 );
 }

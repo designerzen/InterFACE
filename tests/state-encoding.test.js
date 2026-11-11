@@ -111,6 +111,17 @@ describe('versioned state links', () => {
 		expect(encoded.length).toBeLessThan(readable.length / 10)
 	})
 
+	test('reads a single setting from readable, versioned and legacy links', () => {
+		const { getLocationParam } = require('../source/utils/state-encoding.js')
+		const encoded = encodeState(Object.entries({ room:'abcdef', backgroundEffect:'plasma', photoSensitive:true }))
+		expect(getLocationParam('room', `?s=${encoded}`)).toBe('abcdef')
+		expect(getLocationParam('photoSensitive', `?s=${encoded}`)).toBe('true')
+		expect(getLocationParam('backgroundEffect', `?s=${encoded}&backgroundEffect=waves`)).toBe('waves')
+		expect(getLocationParam('missing', `?s=${encoded}`)).toBeNull()
+		expect(getLocationParam('room', `?b=${compressQueryString('room=legacy1')}`)).toBe('legacy1')
+		expect(getLocationParam('room', '?players=2')).toBeNull()
+	})
+
 	test('decodes golden links from released builds', () => {
 		for (const [link, expected] of Object.entries(GOLDEN_V1)) {
 			expect(decodeState(link)).toEqual(expected)

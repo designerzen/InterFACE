@@ -2089,7 +2089,8 @@ export default class Person extends EventTarget{
 					return this.options
 				}
 				const octaveHigh = Math.max(Number(this.options.octaveHigh ?? octaveLow), octaveLow)
-				return this.setOptions({ octaveLow, octaveHigh })
+				this.setOptions({ octaveLow, octaveHigh })
+				return persistPanelOption({ octaveLow, octaveHigh })
 			}
 			case "octaveHigh": {
 				const octaveHigh = Number.parseInt(value, 10)
@@ -2098,7 +2099,8 @@ export default class Person extends EventTarget{
 					return this.options
 				}
 				const octaveLow = Math.min(Number(this.options.octaveLow ?? octaveHigh), octaveHigh)
-				return this.setOptions({ octaveLow, octaveHigh })
+				this.setOptions({ octaveLow, octaveHigh })
+				return persistPanelOption({ octaveLow, octaveHigh })
 			}
 		case "muted":
 				this.setOptions({ muted:value })
@@ -2174,7 +2176,8 @@ export default class Person extends EventTarget{
 				this.setOptions({ noteParticleGraphics:value || NOTE_PARTICLE_GRAPHICS_AMPLITUDE_MUSIC })
 				return persistPanelOption({ noteParticleGraphics:this.options.noteParticleGraphics })
 			default:
-				return this.setOptions({ [option]:value })
+				this.setOptions({ [option]:value })
+				return persistPanelOption({ [option]:value })
 		}
 	}
 

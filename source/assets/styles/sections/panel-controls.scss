@@ -329,22 +329,57 @@
 }
 */
 
-// We slip out of grid when the screen can comortably support
-// them all on a single file - this also has the effect of making
-// certain buttons to be smaller tahn others
-@media screen and (min-width:641px) {
-	.controls{
-		display: flex;
-		// we keep this in case of emergency        
-		flex-wrap: wrap;
-		> *{
-			flex-grow: 1;
-			flex-shrink: 1;
-			flex-basis: 44px;
-		}
+// Each control section is a grid item containing its own equal-column grid.
+// Half tracks keep icon-only actions compact without fixing button widths.
+#control-panel:not(.controls-list-open) > :is(#settings, #shared-controls, #percussion-settings){
+	--grid-column-count: 4;
+	--grid-gap: clamp(1px, .08cqi, 2px);
+	grid-template-columns: repeat(var(--control-tracks, calc(var(--grid-column-count) * 2)), minmax(0, 1fr));
 
-		> .folder-menu{
-			flex: 1 1 44px;
+	> :not(.button-close){
+		grid-area: auto;
+		grid-column: span var(--control-span, 2);
+		grid-row: var(--control-row, auto);
+		min-width: 0;
+		max-width: none;
+	}
+
+	> .hide-text:not(.text-always){ grid-column: span var(--control-span, 1); }
+
+	> :is(label, button):not(.hide-text),
+	> .folder-menu > .folder-link:not(.hide-text){
+		min-width: 0;
+		max-width: none;
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+}
+
+@each $width, $columns in (480px: 8, 640px: 10, 840px: 14){
+	@container control-panel (min-width: #{$width}){
+		#control-panel:not(.controls-list-open) > :is(#settings, #shared-controls, #percussion-settings){ --grid-column-count: #{$columns}; }
+	}
+}
+
+@container control-panel (min-width: 841px){
+	#control-panel:not(.controls-list-open) > :is(#settings, #shared-controls, #percussion-settings){
+		> :is(label, button):not(.hide-text),
+		> .folder-menu > .folder-link:not(.hide-text){
+			// Keep the original icon and label styling without the empty trailing icon track.
+			grid-template-columns: calc(var(--icon-visible, 1) * var(--icon-size) + var(--space, 0px)) minmax(0, 1fr) auto;
+			padding: clamp(3px, .2cqi, 6px);
+			font-size: clamp(.75rem, 1cqi, 1.25rem);
+			--icon-size: clamp(22px, 1.8cqi, 36px);
+		}
+	}
+}
+
+@container control-panel (max-width: 840px){
+	#control-panel:not(.controls-list-open) > :is(#settings, #shared-controls, #percussion-settings){
+		> :is(label, button):not(.hide-text),
+		> .folder-menu > .folder-link:not(.hide-text){
+			@include button.add-icon-text-stack;
+			font-size: 50%;
 		}
 	}
 }

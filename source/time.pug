@@ -1,0 +1,49 @@
+extends index.pug
+
+block title
+	+title('TiME · Technology in Music Education')
+
+block options
+	script.
+		globalThis._synth = {
+			players:1,
+			advancedMode:false,
+			showSettings:true,
+			text:true,
+			autoHide:false,
+			backingTrack:false,
+			metronome:false,
+			photoSensitive:true,
+			disco:false,
+			automationMode:false,
+			muted:false,
+			quantise:true,
+			bpm:90,
+			display:'DisplayMediaVision2D',
+			instrumentPack:'OpenGM24',
+			referer:'time',
+			theme:'theme-time'
+		}
+
+block logo
+	img.time-logo(src="./assets/logos/time.png" width="200" height="200" alt="TiME — Technology in Music Education")
+	h1 PhotoSYNTH for TiME
+
+block tagline
+	| A National Centre of Excellence for Music Technology
+
+block summary
+	| Technology in Music Education UK (TiME) connects educators, industry and researchers to advance music technology in learning, with inclusion and accessibility at its heart.
+	|  Explore accessible music making with PhotoSYNTH, using head movements and facial expressions to play.
+
+block prepend header
+	section.time-demo(aria-labelledby="time-demo-title")
+		h3#time-demo-title Music technology for all
+		p
+			a(href="https://www.timemusicuk.org/" target="_blank" rel="noopener noreferrer") Visit the TiME homepage
+			|  for training, resources and more about their work.
+		include partials/time-presets.pug
+		p Choose a setup, then press Begin and allow camera access. Start with your mouth closed; open it to play and tilt your head to explore notes. Use one camera with everyone in view for group demos.
+
+block smallprint
+	a(href="https://www.timemusicuk.org/" target="_blank" rel="noopener noreferrer") Technology in Music Education

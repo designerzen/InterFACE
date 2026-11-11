@@ -12,6 +12,7 @@ import {createDirectionsFeedback} from './dom/directions-feedback.js'
 import { setupFeedbackControls } from './dom/text.js'
 import { setupCommandPalette } from './dom/command-palette.js'
 import { setupControlsList } from './dom/controls-list.js'
+import { setupControlGrid } from './dom/control-grid.js'
 import { setupEngineInterface } from './dom/ui.engine.js'
 import setupDialogs from './dom/ui.dialog.js'
 import {
@@ -5132,6 +5133,7 @@ export const createInterface = (
 		setupMIDICC({ stateMachine })
 		setupCommandPalette()
 		setupControlsList()
+		setupControlGrid()
 		sessionUI = setupSessionRecordingUI(sessionController, reportSessionRecordingError, doc, inputStatusOverlay)
 
 		// UI:THEME -------------------------------------------------------

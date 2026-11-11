@@ -1,5 +1,6 @@
 // Control-panel grid and player-count layouts.
 #control-panel{
+	container: control-panel / inline-size;
 	--panel-width:45%;
 	margin:0;
 	padding:0;
@@ -35,7 +36,7 @@
 	;
 
 	transition: grid-template-columns 450ms ease-out;
-	grid-template-columns: var(--panel-width) 1fr var(--panel-width);
+	grid-template-columns: var(--panel-width) minmax(0, 1fr) var(--panel-width);
 
 	* {
 		pointer-events: auto;

@@ -109,13 +109,11 @@ block main
 				This application requires javascript to work unfortunately and doesn't do much without it. 
 				You can install 
 				
-	section#contact
-		h4 Contact 
-		p Questions, ideas or feedback? 
-		a.contact-email(href="mailto:radio@awesomething.co.uk") Get in touch (email radio@awesomething.co.uk)
-		| or 
-		label(for="mce-EMAIL").link-secret join the newsletter 
-		| for project news and future events.
+	section#contact(aria-labelledby="contact-title")
+		.contact-intro
+			h4#contact-title Contact
+			p Questions, ideas or feedback? We'd love to hear from you.
+			a.contact-email(href="mailto:radio@awesomething.co.uk") radio@awesomething.co.uk
 
 		include partials/newsletter.pug
 

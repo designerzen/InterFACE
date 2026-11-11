@@ -2,6 +2,7 @@ import { createProceduralWallpaper, readCssPalette } from '../display/procedural
 import { EVENT_VIDEO_STARTED } from '../interface-event.js'
 import { createBackgroundMotion } from '../display/background-motion.js'
 import { getVisitCount } from './session-summary.js'
+import { getLocationParam } from '../utils/state-encoding.js'
 
 export const createProceduralBackground = ({ root = document.documentElement, app = document.getElementById('app'), visitCount = getVisitCount() } = {}) => {
 	const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -51,7 +52,7 @@ export const createProceduralBackground = ({ root = document.documentElement, ap
 		}
 		frame = requestAnimationFrame(draw)
 	}
-	const sensitive = () => app?.classList.contains('flag-photoSensitive') || new URLSearchParams(location.search).get('photoSensitive') === 'true'
+	const sensitive = () => app?.classList.contains('flag-photoSensitive') || getLocationParam('photoSensitive') === 'true'
 	const update = () => {
 		if (disposed) return
 		if (root.classList.contains('a11y-reduce-motion')) { release(); return }

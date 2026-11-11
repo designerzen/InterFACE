@@ -3,6 +3,7 @@ import {
 	vertexSource,
 	fragmentSource,
 } from './shaders/procedural-wallpaper.js'
+import { getLocationParam } from '../utils/state-encoding.js'
 
 const FALLBACK_PALETTE = {
 	c1: [0, 0, 0],
@@ -121,7 +122,7 @@ export const createProceduralWallpaper = (canvas, onFailure) => {
 			'resolution', 'viewport', 'phase', 'offset', 'effect', 'nextEffect', 'blend', 'screenMode', 'tileScale',
 			'cssC1', 'cssC2', 'cssC3', 'cssBase', 'cssAccent', 'cssInk',
 		].map(name => [name, gl.getUniformLocation(program, name)]))
-		const requested = new URLSearchParams(location.search).get('backgroundEffect')
+		const requested = getLocationParam('backgroundEffect')
 		const fixedEffect = WALLPAPER_EFFECTS.indexOf(requested)
 		let selectedEffect = fixedEffect >= 0 ? fixedEffect : null
 		return {

@@ -59,6 +59,7 @@ const person = x => ({ data: { faceLandmarks: [{ x, y: .5, z: 0 }] }, options: {
 
 beforeEach(() => {
 	document.body.innerHTML = ''
+	Object.defineProperty(navigator, 'gpu', { value: undefined, configurable: true })
 	jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(function(type){
 		if (type === 'webgl2') return null
 		return this.context ??= context(this)
@@ -132,6 +133,84 @@ test('display availability excludes missing GPU backends and duplicate compatibi
 	expect(available).not.toContain('DisplayMediaPipe2D')
 	expect(available).not.toContain('DisplayLookingGlass3DWebGPUTSL')
 	expect(available).not.toContain('DisplayLookingGlass3D')
+})
+
+test.each(['DisplayWebGL3D', 'DisplayBabylon3D', 'DisplayThreeWebGPUParticle', 'DisplayWebGPU3D', 'DisplayLookingGlass3D'])(
+	'loading and creating %s reject missing requirements before touching the canvas', async type => {
+		Object.defineProperty(navigator, 'gpu', { value: undefined, configurable: true })
+		const element = canvas()
+		await expect(manager.loadDisplayClass(type)).rejects.toThrow('Display unavailable')
+		await expect(manager.createDisplay(element, type)).rejects.toThrow('Display unavailable')
+		expect(element.hasAttribute('data-display-type')).toBe(false)
+	}
+)
+
+test.each([async () => null, async () => { throw new Error('GPU blocked') }])(
+	'failed adapter discovery excludes native WebGPU everywhere while retaining WebGL fallbacks', async requestAdapter => {
+		Object.defineProperty(navigator, 'gpu', { value: { requestAdapter }, configurable: true })
+		HTMLCanvasElement.prototype.getContext.mockImplementation(type => type === 'webgl2' ? { getExtension: () => null } : null)
+		const result = await manager.getDisplaysInformation('DisplayWebGPU3D', undefined, { holographicDisplayQuantity: 1 })
+		expect(result.available).not.toContain('DisplayWebGPU3D')
+		expect(result.available).toContain('DisplayLookingGlassWebGPU')
+		expect(manager.getCompositeDisplayTypes()).not.toContain('DisplayWebGPU3D')
+		await expect(manager.loadDisplayClass('DisplayWebGPU3D')).rejects.toThrow('Display unavailable')
+	}
+)
+
+test('Looking Glass aliases require connected hardware even when WebGL is available', async () => {
+	Object.defineProperty(navigator, 'gpu', { value: undefined, configurable: true })
+	HTMLCanvasElement.prototype.getContext.mockImplementation(type => type === 'webgl2' ? { getExtension: () => null } : null)
+	for (const type of ['DisplayLookingGlass3D', 'DisplayLookingGlassWebGPU', 'DisplayLookingGlass3DWebGPUTSL']) {
+		await expect(manager.loadDisplayClass(type)).rejects.toThrow('no Portrait connected')
+	}
+})
+
+test('failed WebGPU adapter also excludes Portrait output when there is no WebGL fallback', async () => {
+	Object.defineProperty(navigator, 'gpu', { value: { requestAdapter: async () => null }, configurable: true })
+	const result = await manager.getDisplaysInformation('DisplayLookingGlassWebGPU', undefined, { holographicDisplayQuantity: 1 })
+	expect(result.available).not.toContain('DisplayLookingGlassWebGPU')
+	expect(result.suggested).toBe('DisplayMediaVision2D')
+})
+
+test('unavailable switches preserve the working display and its canvas, including Composite children', async () => {
+	Object.defineProperty(navigator, 'gpu', { value: undefined, configurable: true })
+	const element = canvas()
+	const displays = new manager.default(element, 'DisplayComposite')
+	const active = await displays.switchTo('DisplayComposite', undefined, { displays: [] })
+	const destroy = jest.spyOn(active, 'destroy')
+	for (const [type, options] of [['DisplayWebGL3D', {}], ['DisplayComposite', { displays: ['DisplayWebGPU3D'] }]]) {
+		await expect(displays.switchTo(type, undefined, options)).rejects.toThrow('Display unavailable')
+		expect(displays.display).toBe(active)
+		expect(displays.type).toBe('DisplayComposite')
+		expect(active.canvas.isConnected).toBe(true)
+		expect(destroy).not.toHaveBeenCalled()
+	}
+	await active.destroy()
+})
+
+test('standalone unavailable switches leave the original canvas in place', async () => {
+	const element = canvas()
+	await expect(manager.changeDisplay(element, 'DisplayWebGL3D')).rejects.toThrow('Display unavailable')
+	expect(element.isConnected).toBe(true)
+	expect(document.querySelectorAll('canvas')).toHaveLength(1)
+})
+
+test('a later successful adapter probe makes native WebGPU available again', async () => {
+	const requestAdapter = jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce({})
+	Object.defineProperty(navigator, 'gpu', { value: { requestAdapter }, configurable: true })
+	const first = await manager.getDisplaysInformation('DisplayWebGPU3D', undefined, { holographicDisplayQuantity: 0 })
+	expect(first.available).not.toContain('DisplayWebGPU3D')
+	const second = await manager.getDisplaysInformation('DisplayWebGPU3D', undefined, { holographicDisplayQuantity: 0 })
+	expect(second.available).toContain('DisplayWebGPU3D')
+	expect(second.suggested).toBe('DisplayWebGPU3D')
+})
+
+test('an explicitly requested Portrait backend cannot pass using the other backend', async () => {
+	HTMLCanvasElement.prototype.getContext.mockImplementation(type => type === 'webgl2' ? { getExtension: () => null } : null)
+	await expect(manager.loadDisplayClass('DisplayLookingGlassWebGPU', { backend: 'webgpu' })).rejects.toThrow('Display unavailable')
+	Object.defineProperty(navigator, 'gpu', { value: { requestAdapter: async () => ({}) }, configurable: true })
+	HTMLCanvasElement.prototype.getContext.mockReturnValue(null)
+	await expect(manager.loadDisplayClass('DisplayLookingGlassWebGPU', { backend: 'webgl2' })).rejects.toThrow('Display unavailable')
 })
 
 test('saved Looking Glass IDs all resolve to the single Portrait renderer', () => {
@@ -342,7 +421,7 @@ test('four Composite displays each render into one quarter of a grid and reflow 
 	])
 	for (const child of children) expect(child.setSize).toHaveBeenLastCalledWith(320, 240)
 	display.drawElement('video', 0, 0, true, 640, 480)
-	for (const child of children) expect(child.drawElement).toHaveBeenCalledWith('video', 0, 0, true, 320, 240)
+	for (const child of children) expect(child.drawElement).toHaveBeenCalledWith('video', 0, 0, true, 320, 240, {})
 	display.setSize(800, 600)
 	for (const child of children) expect(child.setSize).toHaveBeenLastCalledWith(400, 300)
 	display.setLayout('layers')

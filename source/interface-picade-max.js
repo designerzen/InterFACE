@@ -28,6 +28,7 @@ import {
 	PICADE_MAX_JOYSTICK_UP,
 } from './hardware/gamepad/picade-max-input-controller.js'
 import { configurePersonByOperatingMode } from './people/person.presets.js'
+import { getLocationParam } from './utils/state-encoding.js'
 import {
 	GAMEPAD_DIRECTION_DOWN_LEFT,
 	GAMEPAD_DIRECTION_DOWN_RIGHT,
@@ -732,7 +733,7 @@ export const addPicadeMaxEvents = application => {
 		}
 
 		const gamepads = findPicadeMaxInputGamepads()
-		lightPreset = new URLSearchParams(window.location.search).get('lights') ?? application.options?.lights ?? 'default'
+		lightPreset = getLocationParam('lights') ?? application.options?.lights ?? 'default'
 		const key = [lightPreset, gamepads.map(gamepad => [
 			gamepad.index,
 			gamepad.player,

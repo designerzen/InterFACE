@@ -100,7 +100,7 @@ export default class StateWithIO extends State{
 		return this.encodedString
 	}
 
-	createEncodedURL(baseURL=this.url ?? window.location.href){
+	createEncodedURL(baseURL=window.location.href){
 		const url = new URL(baseURL)
 		url.search = ''
 		url.searchParams.set(STATE_QUERY_PARAM, this.createEncodedString())

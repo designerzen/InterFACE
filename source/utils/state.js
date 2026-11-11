@@ -569,7 +569,7 @@ export default class State {
 	 * @returns {String}
 	 */
 	createLocationURL(){
-		const url = new URL(this.url ?? window.location.href)
+		const url = new URL(window.location.href)
 		url.search = ''
 		this.state.forEach( (value,key) => {
 			url.searchParams.set(key, value)

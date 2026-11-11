@@ -180,6 +180,30 @@ export const mergeEncodedAndRawQueryParams = (
 	return mergedState
 }
 
+let decodedSearch = null
+let decodedState = null
+
+/**
+ * Read one setting from a query string whether it is readable or inside an
+ * encoded link. Use this rather than URLSearchParams(location.search).get()
+ * as the address bar normally only holds ?s=…
+ * @param {String} key
+ * @param {String} search
+ * @returns {String|null} null when the setting is not in the link
+ */
+export const getLocationParam = (key, search=globalThis.location?.search ?? '') => {
+	const params = new URLSearchParams(search)
+	if (params.has(key)) return params.get(key)
+	if (!params.has(STATE_QUERY_PARAM) && !params.has(ENCODED_QUERY_PARAM)) return null
+	// some callers read this every frame, so only decode each link once
+	if (search !== decodedSearch)
+	{
+		decodedState = decodeLocationState({}, params)
+		decodedSearch = search
+	}
+	return Object.prototype.hasOwnProperty.call(decodedState, key) ? String(decodedState[key]) : null
+}
+
 /**
  * Read any encoded state from a URL (versioned ?s= or legacy ?b=) merged
  * with readable params, which always win so links can be tweaked by hand

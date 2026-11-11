@@ -102,7 +102,6 @@ export const configurePersonKey = (person) => {
 export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 	
 	operatingMode = normalisePersonOperatingMode(operatingMode)
-	person.userMode = operatingMode
 
 	const data = PERSON_TYPE_DATA[operatingMode]
 
@@ -127,6 +126,10 @@ export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 			person.activeInstrument.arpeggiate = data.arpeggiate
 		}
 	}
+
+	// set last as the change event saves the person to the URL,
+	// so everything above must already be configured
+	person.userMode = operatingMode
 
 	// special cases
 	switch (operatingMode)
