@@ -1,7 +1,12 @@
 import { populateSelect } from './select'
 import { DISPLAY_ICONS } from './display-icons.js'
-import { DISPLAY_LABELS, DISPLAY_COMPOSITE } from '../display/display-types.js'
+import { DISPLAY_LABELS, DISPLAY_TYPES, DISPLAY_COMPOSITE } from '../display/display-types.js'
 import { getCompositeDisplayTypes, getDefaultCompositeDisplays } from '../display/display-manager.js'
+
+const displayTitle = type => DISPLAY_LABELS[DISPLAY_TYPES[type] ?? type]
+
+export const getDisplayFallbackMessage = (requested, fallback) =>
+	`${displayTitle(requested) ?? 'The requested display'} is not available. Switching to ${displayTitle(fallback) ?? 'the default display'}.`
 
 /**
  * Create the display options for the Display select element

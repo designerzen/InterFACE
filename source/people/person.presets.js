@@ -121,7 +121,9 @@ export const configurePersonByOperatingMode = (person, operatingMode=0 ) => {
 	if (person.activeInstrument) {
 		if ("performanceMode" in person.activeInstrument)
 		{
-			person.activeInstrument.performanceMode = data.performanceMode ?? (data.arpeggiate ? "arpeggio" : "chord")
+			const performanceMode = data.performanceMode ?? (data.arpeggiate ? "arpeggio" : "chord")
+			// single note is a variation of the chord modes kept in the options
+			person.activeInstrument.performanceMode = performanceMode === "chord" && person.options?.singleNote ? "single-note" : performanceMode
 		}else{
 			person.activeInstrument.arpeggiate = data.arpeggiate
 		}

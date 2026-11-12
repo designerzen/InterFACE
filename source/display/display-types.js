@@ -26,17 +26,17 @@ export const DISPLAY_TYPES = {
 
 export const DISPLAY_IDS = Object.values(DISPLAY_TYPES)
 
-// Stable IDs keep saved URLs working; captions describe the actual backend.
+// Stable IDs keep saved URLs working; captions describe what people see.
 export const DISPLAY_LABELS = {
-	[DISPLAY_COMPOSITE]: 'Composite — multiple displays',
-	[DISPLAY_CANVAS_2D]: 'Canvas 2D — visualisers and overlays',
-	[DISPLAY_MEDIA_VISION_2D]: 'Face 2D',
-	[DISPLAY_MEDIA_PIPE_2D]: 'Face 2D — legacy preset',
-	[DISPLAY_WEB_GL_3D]: 'WebGL 2 — face mesh',
-	[DISPLAY_WEB_GPU_3D]: 'WebGPU — face particles (experimental)',
-	[DISPLAY_BABYLON_3D]: 'Babylon — 3D face particles',
-	[DISPLAY_THREE_WEBGPU_PARTICLE]: 'Three — WebGL 2 particles',
-	[DISPLAY_LOOKING_GLASS_3D]: 'Looking Glass — Three WebGL 2',
+	[DISPLAY_COMPOSITE]: 'Multiple views',
+	[DISPLAY_CANVAS_2D]: 'Visualisers and overlays',
+	[DISPLAY_MEDIA_VISION_2D]: 'Face tracking',
+	[DISPLAY_MEDIA_PIPE_2D]: 'Face tracking (classic)',
+	[DISPLAY_WEB_GL_3D]: '3D face mesh',
+	[DISPLAY_WEB_GPU_3D]: 'Face particles (WebGPU, experimental)',
+	[DISPLAY_BABYLON_3D]: '3D face particles (Babylon)',
+	[DISPLAY_THREE_WEBGPU_PARTICLE]: 'Face particles (Three.js)',
+	[DISPLAY_LOOKING_GLASS_3D]: 'Looking Glass Portrait (classic)',
 	[DISPLAY_LOOKING_GLASS_WEBGPU]: 'Looking Glass Portrait',
-	[DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL]: 'Looking Glass — legacy TSL preset (WebGL 2)'
+	[DISPLAY_LOOKING_GLASS_3D_WEBGPU_TSL]: 'Looking Glass Portrait (classic 3D)'
 }

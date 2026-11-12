@@ -268,8 +268,8 @@ import { getThemeFromReferer, setTheme, setupThemeControls } from './theme/theme
 import { fetchBrandColor as fetchBrandColour } from './settings/palette.js'
 
 // DISPLAYS
-import DisplayManager, { getDisplaysInformation } from './display/display-manager.js'
-import { DISPLAY_TYPES } from './display/display-types.js'
+import DisplayManager, { getDisplaysInformation, normalizeDisplayType } from './display/display-manager.js'
+import { DISPLAY_TYPES, DISPLAY_LABELS } from './display/display-types.js'
 import DisplayOverlay2d from './display/display-overlay-2d.js'
 import { createDisplayStageController } from './display/display-stage.js'
 import VisualiserManager from './visual/visualiser/visualiser-manager.js'
@@ -292,7 +292,7 @@ import { getPitchClassForKey, normaliseKeyName } from './audio/tuning/keys.js'
 import { observeOrientationChange } from './display/display-abstract.js'
 import { formatTimeStampFromSeconds } from 'netronome'
 import { setupAccessibilityControls } from './accessibility/accessibility-panel.js'
-import { createDisplayOptions } from './dom/ui.display.js'
+import { createDisplayOptions, getDisplayFallbackMessage } from './dom/ui.display.js'
 import { observeMIDIInputs, stopMIDIInputForPerson } from './interface-midi.js'
 import { setupMIDICC } from './interface-midi-cc.js'
 
@@ -2514,6 +2514,12 @@ export const createInterface = (
 	}
 	const saveLookingGlassSettings = values => stateMachine.set('lookingGlassSettings', JSON.stringify({ ...getLookingGlassSettings(), ...values }))
 
+	const notifyDisplayFallback = (requested, fallback) => {
+		const message = getDisplayFallbackMessage(requested, fallback)
+		setFeedback(message, 0, 'display')
+		setToast(message, 0)
+	}
+
 	/**
 	 * switch display to the specifed one and destroy any existing
 	 * ensuring to wipe the canvas ad recrate a new one if required
@@ -2552,6 +2558,7 @@ export const createInterface = (
 				if (displayManager.type !== displayType) return
 				console.error('Display failed; switching to Canvas 2D', error)
 				display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop)
+				notifyDisplayFallback(displayType, display.type)
 			}
 		}
 		const newDisplay = await displayManager.switchTo(displayType, predictionLoop, displayOptions)
@@ -2579,7 +2586,7 @@ export const createInterface = (
 		if (saveAndExclaim)
 		{
 			stateMachine.set( "display", displayType )
-			setFeedback('Display '+displayType+' set', 0, 'display' )
+			setFeedback(`${DISPLAY_LABELS[newDisplay.type] ?? 'Display'} selected.`, 0, 'display' )
 		}
 		// console.info("Display Created", displayType, display) 
 		return newDisplay
@@ -3860,6 +3867,7 @@ export const createInterface = (
 			doc.getElementById('photosynth-canvas'), 
 			stateMachine.get('display') ?? DISPLAY_TYPES.DISPLAY_CANVAS_2D
 		)
+		const requestedDisplay = displayManager.type
 		try{
 			const portrait = await lookingGlassStartup.ready
 			const {suggested, available} = await getDisplaysInformation(displayManager.type, undefined, {
@@ -3880,6 +3888,9 @@ export const createInterface = (
 			// 'predictionLoop' here is a method passed into this function that is called
 			// on every frame to update the visuals and audio of none quanitsed sounds
 			display = await switchDisplay( suggested, predictionLoop, false )
+			if (requestedDisplay && !available.includes(normalizeDisplayType(requestedDisplay))) {
+				notifyDisplayFallback(requestedDisplay, display.type)
+			}
 			if (!syncDisplayToMedia(inputElement))
 			{
 				overlayDisplay?.setSize(display.width, display.height)
@@ -3892,11 +3903,11 @@ export const createInterface = (
 		}catch(error){
 			console.error("FAIL: PhotoSYNTH Screens available", error, { settings} ) 
 			progressCallback(1, "No Holographic display detected")
-			showError("Could not access display code", "importing code has failed perhaps due to internet connection.", true)
 			try
 			{
 				display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop, false)
 				stateMachine.set("display", display.type ?? DISPLAY_TYPES.DISPLAY_CANVAS_2D)
+				notifyDisplayFallback(requestedDisplay, display.type)
 			}
 			catch(fallbackError)
 			{
@@ -3905,7 +3916,7 @@ export const createInterface = (
 			}
 		}
 
-		progressCallback(loadIndex++/loadTotal, "Loading display " + (display?.type ?? displayManager.type) )
+		progressCallback(loadIndex++/loadTotal, "Loading display: " + (DISPLAY_LABELS[display?.type ?? displayManager.type] ?? 'Display') )
 		
 		// MOTION TRACKING --------------------------------------------------------------------------------
 		fetchPredictionFromEngine = fetchPredictions
@@ -5054,7 +5065,7 @@ export const createInterface = (
 				}catch(error){
 					console.error("Display Issue! Could not initiate display", error)
 					display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop)
-					setFeedback('Display could not start. Canvas 2D selected.', 0, 'display')
+					notifyDisplayFallback(option.value, display.type)
 				}
 				
 			}else{
@@ -5076,7 +5087,7 @@ export const createInterface = (
 			} catch (error) {
 				console.error('Composite could not start', error)
 				display = await switchDisplay(DISPLAY_TYPES.DISPLAY_CANVAS_2D, predictionLoop)
-				setFeedback('Composite could not start. Canvas 2D selected.', 0, 'display')
+				notifyDisplayFallback(DISPLAY_TYPES.DISPLAY_COMPOSITE, display.type)
 			}
 		})
 

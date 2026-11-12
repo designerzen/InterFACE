@@ -168,6 +168,9 @@ export const DEFAULT_PERSON_OPTIONS = {
 	// display active harmonies as chord labels instead of listing each note
 	showChordNames:false,
 
+	// play one note at a time instead of chords in the chord play modes
+	singleNote:false,
+
 	// inherit the global points display, or explicitly use "on" / "off"
 	showPointsOverride:POINTS_OVERRIDE_INHERIT,
 

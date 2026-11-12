@@ -1,8 +1,19 @@
-import { createDisplayOptions } from '../source/dom/ui.display.js'
+import { createDisplayOptions, getDisplayFallbackMessage } from '../source/dom/ui.display.js'
 import { DISPLAY_IDS, DISPLAY_LABELS } from '../source/display/display-types.js'
 import { DISPLAY_ICONS } from '../source/dom/display-icons.js'
 
 describe('display options', () => {
+	test('fallback notices name the requested display and its replacement using friendly titles', () => {
+		expect(getDisplayFallbackMessage('DisplayWebGPU3D', 'DisplayMediaVision2D')).toBe(
+			'Face particles (WebGPU, experimental) is not available. Switching to Face tracking.'
+		)
+		expect(getDisplayFallbackMessage('DISPLAY_WEB_GL_3D', 'DisplayCanvas2D')).toBe(
+			'3D face mesh is not available. Switching to Visualisers and overlays.'
+		)
+		expect(getDisplayFallbackMessage('<img src=x onerror=alert(1)>', 'DisplayCanvas2D')).toBe(
+			'The requested display is not available. Switching to Visualisers and overlays.'
+		)
+	})
 	test('every display has a distinct scalable icon', () => {
 		expect(Object.keys(DISPLAY_ICONS).sort()).toEqual([...DISPLAY_IDS].sort())
 		expect(new Set(Object.values(DISPLAY_ICONS)).size).toBe(DISPLAY_IDS.length)
@@ -75,7 +86,7 @@ describe('display options', () => {
 		expect(document.getElementById('select-composite-layout').value).toBe('grid')
 		expect(document.getElementById('select-composite-layout').parentElement.hidden).toBe(false)
 		expect(Array.from(layers.selectedOptions, option => option.value)).toEqual(['DisplayCanvas2D', 'DisplayMediaVision2D'])
-		expect(document.querySelector('#select-display option').textContent).toBe('Composite — multiple displays')
+		expect(document.querySelector('#select-display option').textContent).toBe('Multiple views')
 		createDisplayOptions(['DisplayMediaVision2D'], 'DisplayMediaVision2D', [])
 		expect(layers.parentElement.hidden).toBe(true)
 		expect(document.getElementById('select-composite-layout').parentElement.hidden).toBe(true)

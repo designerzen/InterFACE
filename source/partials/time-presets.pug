@@ -1,13 +1,14 @@
-nav.time-presets(aria-label="TiME live demonstration setups")
-	a(href="./time.pug?players=1&advancedMode=false&metronome=false&automationMode=false")
-		strong Solo introduction
-		span One player, simple controls and no backing track. A clear first demonstration.
-	a(href="./time.pug?players=2&advancedMode=false&metronome=false&automationMode=false")
-		strong Play a duet
-		span Two players sharing a camera. Explore musical call and response.
-	a(href="./time.pug?players=4&advancedMode=false&metronome=true&bpm=90&automationMode=false")
-		strong Four-player ensemble
-		span Up to four players with a steady 90 BPM metronome for playing together.
-	a(href="./time.pug?players=1&advancedMode=true&showPiano=true&metronome=true&bpm=75&automationMode=false")
-		strong Teaching workshop
-		span One player, full controls, a visible piano and a slower 75 BPM pulse for exploring notes and rhythm.
+mixin timePreset(settings, title, description)
+	form(action="./time.html" method="get")
+		each value, key in settings
+			input(type="hidden" name=key value=String(value))
+		input(type="hidden" name="automationMode" value="false")
+		button(type="submit")
+			strong= title
+			span= description
+
+.time-presets(role="group" aria-label="TiME live demonstration setups")
+	+timePreset({players: 1, advancedMode: false, metronome: false}, 'Solo introduction', 'One player, simple controls and no backing track. A clear first demonstration.')
+	+timePreset({players: 2, advancedMode: false, metronome: false}, 'Play a duet', 'Two players sharing a camera. Explore musical call and response.')
+	+timePreset({players: 4, advancedMode: false, metronome: true, bpm: 90}, 'Four-player ensemble', 'Up to four players with a steady 90 BPM metronome for playing together.')
+	+timePreset({players: 1, advancedMode: true, showPiano: true, metronome: true, bpm: 75}, 'Teaching workshop', 'One player, full controls, a visible piano and a slower 75 BPM pulse for exploring notes and rhythm.')

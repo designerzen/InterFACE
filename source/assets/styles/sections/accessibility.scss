@@ -177,7 +177,9 @@ html.a11y-strongFocus :focus-visible { outline-width: max(4px, var(--a11y-focus-
 $typography: (fontfamily: font-family, fontweight: font-weight, fontstyle: font-style, fontvariant: font-variant, texttransform: text-transform, letterspacing: letter-spacing, wordspacing: word-spacing, linespacing: line-height);
 @each $key, $property in $typography {
 	html[data-a11y-#{$key}][data-a11y-theme] :is(body, h1, h2, h3, h4, h5, h6, p, a, label, legend, button, input, textarea, select, summary, output) {
-		#{$property}: var(--a11y-#{if($key == linespacing, 'line-spacing', $property)}) !important;
+		$variable: $property;
+		@if $key == linespacing { $variable: line-spacing; }
+		#{$property}: var(--a11y-#{$variable}) !important;
 	}
 }
 html.a11y-reduce-motion {

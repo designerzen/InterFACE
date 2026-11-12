@@ -2018,6 +2018,8 @@ export default class Person extends EventTarget{
 			performanceMode === "arpeggio" ?
 				(this.usesCircleOfFifthsSequence ? PERSON_TYPE_ARPEGGIO_CIRCLE_OF_FIFTHS : PERSON_TYPE_ARPEGGIO) :
 				(this.usesCircleOfFifthsSequence ? PERSON_TYPE_SYMPATHETIC_SYNTH_CIRCLE_OF_FIFTHS : PERSON_TYPE_CHROMATIC)
+		// single note shares the chord operating modes so is saved as an option
+		this.options.singleNote = performanceMode === "single-note"
 		configurePersonByOperatingMode(this, nextMode)
 		if (this.activeInstrument)
 		{

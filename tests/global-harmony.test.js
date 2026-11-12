@@ -172,6 +172,20 @@ describe('person operating modes', () => {
 		expect(PERSON_TYPE_DATA[PERSON_TYPE_HARP_CIRCLE_OF_FIFTHS].noteSequence).toBe('circle-of-fifths')
 	})
 
+	test('restores single note play from the person options in the chord modes only', () => {
+		const person = {
+			options:{ harmonyMode:HARMONY_MODE_FREE_RANGE, singleNote:true },
+			activeInstrument:{ performanceMode:'chord' }
+		}
+		configurePersonByOperatingMode(person, 1)
+		expect(person.activeInstrument.performanceMode).toBe('single-note')
+		configurePersonByOperatingMode(person, PERSON_TYPE_HARP)
+		expect(person.activeInstrument.performanceMode).toBe('harp')
+		person.options.singleNote = false
+		configurePersonByOperatingMode(person, 1)
+		expect(person.activeInstrument.performanceMode).toBe('chord')
+	})
+
 	test('resolves per-person point overrides against the global setting', () => {
 		expect(resolvePointsEnabled(true, POINTS_OVERRIDE_INHERIT)).toBe(true)
 		expect(resolvePointsEnabled(false, POINTS_OVERRIDE_INHERIT)).toBe(false)
