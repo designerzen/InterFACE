@@ -270,6 +270,18 @@ export const createDrumArranger = (options={}) => {
 	{
 		cells[lane] = createCells(lane, [selectedGroove[lane]])
 	}
+	// Keep the defining accents, including syncopated hits away from beats.
+	// Masks belong to authored cells and survive copies made for variations.
+	for (const [lane, laneCells] of Object.entries(cells)) {
+		for (const cell of laneCells) {
+			const peak = Math.max(...cell.sequence)
+			cell.anchors = Uint8Array.from(cell.sequence, (velocity, step) => velocity > 0 && (
+				protectedLanes.has(lane) ||
+				(lane !== 'hat' && velocity >= Math.max(180, peak * 0.8)) ||
+				(feel.strong[step % grid.stepsPerBar] && velocity >= Math.max(100, peak * 0.8))
+			))
+		}
+	}
 	const state = {
 		step: -1,
 		bar: 0,
@@ -297,12 +309,17 @@ export const createDrumArranger = (options={}) => {
 		lastActivity: clamp(options.intent?.energy ?? DEFAULT_INTENT.energy),
 		activityReserve: 0,
 		lastPersonUpdateAt: null,
-		lastParts: {}
+		lastParts: {},
+		colourBar: -1
 	}
 
 	const phraseLength = () => state.phraseBars * state.stepsPerBar
 	const stepDuration = (bpm=state.bpm) => 60 / (bpm > 0 ? bpm : 120) / grid.stepsPerBeat
 	const isStrong = step => feel.strong[wrap(step, state.stepsPerBar)] === 1
+	const isAnchor = (lane, step) => {
+		const anchors = state.current[lane]?.anchors
+		return !!anchors?.[wrap(step, anchors.length)]
+	}
 	const currentTempoProfile = () => getTempoProfile(state.bpm)
 	const fillWindowFor = tempo => Math.min(state.stepsPerBar, Math.max(1, Math.round(grid.stepsPerBeat * (tempo.name === 'very-fast' ? 1 : 2))))
 	const activeFillWindowFor = tempo => Math.max(1, Math.ceil(fillWindowFor(tempo) * state.fillAmount))
@@ -358,7 +375,7 @@ export const createDrumArranger = (options={}) => {
 				for (let local=1; local<state.stepsPerBar-1; local++) {
 					const index = wrap(first + local, hats.length)
 					const snareIndex = wrap(first + local, snares.length)
-					if (hats[index] > 0 && hats[index] < 170 && snares[snareIndex] === 0 && !isStrong(local)) {
+					if (hats[index] > 0 && hats[index] < 170 && snares[snareIndex] === 0 && !isStrong(local) && !isAnchor('hat', index)) {
 						hats[index] = 0
 						snares[snareIndex] = 42 + Math.floor(random() * 25)
 						break
@@ -367,6 +384,19 @@ export const createDrumArranger = (options={}) => {
 			}
 			state.current.hat = {...state.current.hat, sequence:hats, length:hats.length}
 			state.current.snare = {...state.current.snare, sequence:snares, length:snares.length}
+		}
+		// Quiet phrases lose ornaments before accents. Decide once per phrase
+		// so a changing input never flickers individual notes on and off.
+		const thinChance = clamp((0.5 - state.intent.density) * 1.5)
+		if (thinChance > 0) {
+			for (const lane of CORE_LANES) {
+				if (protectedLanes.has(lane)) continue
+				const cell = state.current[lane]
+				const sequence = cell.sequence.map((velocity, step) => {
+					return velocity > 0 && velocity < 180 && !isAnchor(lane, step) && random() < thinChance ? 0 : velocity
+				})
+				state.current[lane] = {...cell, sequence, length:sequence.length}
+			}
 		}
 	}
 
@@ -400,11 +430,11 @@ export const createDrumArranger = (options={}) => {
 		}
 
 		let output = velocity
-		if (inFill && !protectedLanes.has(lane))
+		if (inFill && !protectedLanes.has(lane) && !isAnchor(lane, state.step))
 		{
 			output = Math.max(output, createFill(lane, stepInPhrase, phraseLengthValue, tempo, intent, fillWindow) * state.fillAmount)
 		}
-		if (inRoll && !protectedLanes.has(lane) && (lane === 'hat' || lane === 'snare'))
+		if (inRoll && !protectedLanes.has(lane) && !isAnchor(lane, state.step) && (lane === 'hat' || lane === 'snare'))
 		{
 			const roll = drumRollSequence[wrap(stepInPhrase, drumRollSequence.length)] ?? 0
 			output = Math.max(output, roll * (lane === 'hat' ? 0.9 : 0.75))
@@ -414,9 +444,12 @@ export const createDrumArranger = (options={}) => {
 
 		if (output > 0)
 		{
-			const human = 1 + (random() * 2 - 1) * feel.variation
+			const amount = state.performanceControl ? 0.4 + state.intent.energy * 0.6 : 1
+			const human = isAnchor(lane, state.step) ? 1 : 1 + (random() * 2 - 1) * feel.variation * 0.25
 			const accent = isStrongStep ? 1.06 : 1
-			output = output * human * accent
+			const articulation = 1 + ((feel.accents[wrap(state.step, state.stepsPerBar)][lane] ?? 1) - 1) * amount
+			const phraseShape = 1 + (feel.phraseLift ?? 0) * (2 * stepInPhrase / Math.max(1, phraseLengthValue - 1) - 1) * amount
+			output = output * human * accent * articulation * phraseShape
 		}
 		return clampVelocity(output)
 	}
@@ -496,9 +529,9 @@ export const createDrumArranger = (options={}) => {
 				for (const lane of Object.keys(parts))
 				{
 					if (!SOUND_LANES.has(lane) || !Number.isFinite(parts[lane])) continue
-					const keep = lane === 'kick' ? stepInBar % halfBar === 0 :
+					const keep = isAnchor(lane, state.step) || (lane === 'kick' ? stepInBar % halfBar === 0 :
 						(lane === 'snare' || lane === 'clap') ? stepInBar === quarterBar || stepInBar === quarterBar * 3 :
-						lane === 'hat' ? stepInBar % quarterBar === 0 : false
+						lane === 'hat' ? stepInBar % quarterBar === 0 : false)
 					parts[lane] = keep ? clampVelocity(parts[lane] * 0.72) : 0
 				}
 				break
@@ -548,6 +581,8 @@ export const createDrumArranger = (options={}) => {
 		const stepInBar = wrap(state.step, state.stepsPerBar)
 		if (stepInBar === 0) state.subHitsRemaining = 8
 		parts.offsets = feel.offsets[stepInBar]
+		parts.expressiveOffsets = feel.expressiveOffsets[stepInBar]
+		parts.feelAmount = state.performanceControl ? 0.4 + state.intent.energy * 0.6 : 1
 		parts.laneDelays = feel.delays
 		parts.quarterDuration = 60 / (state.bpm > 0 ? state.bpm : 120)
 		const sixteenth = stepInBar / grid.stepsPerBeat * 4
@@ -578,11 +613,12 @@ export const createDrumArranger = (options={}) => {
 		{
 			// A colour replaces an existing weak stroke on a phrase response bar.
 			// It never layers another voice onto the genre's canonical rhythm.
-			if (state.bar % 4 === 3 && parts.snare > 0 && !protectedLanes.has('snare') && stepInBar === Math.round(grid.stepsPerBeat * 3)) {
+			if (state.bar % 4 === 3 && state.colourBar !== state.bar && parts.snare > 0 && !protectedLanes.has('snare') && !isAnchor('snare', state.step)) {
 				const colour = feel.colours[state.phrase % feel.colours.length]
 				if (!parts[colour] && !selectedGroove?.[colour]) {
 					parts[colour] = parts.snare
 					parts.snare = 0
+					state.colourBar = state.bar
 				}
 			}
 		}
@@ -600,6 +636,7 @@ export const createDrumArranger = (options={}) => {
 		const hatInterval = stepDuration() + nextSwing - parts.swingOffset
 			+ ((feel.offsets[nextStep].hat ?? 0) - (parts.offsets.hat ?? 0)) * parts.quarterDuration
 			+ ((feel.offsets[nextStep].pulse ?? 0) - (parts.offsets.pulse ?? 0)) * parts.quarterDuration
+			+ ((feel.expressiveOffsets[nextStep].hat ?? 0) - (parts.expressiveOffsets.hat ?? 0)) * parts.quarterDuration * parts.feelAmount
 		const inFill = !protectedLanes.size && state.step < state.fillUntilStep &&
 			phraseLengthValue - stepInPhrase <= activeFillWindowFor(tempo)
 		const eventStrength = inFill && !presetSubdivisionStep ? state.fillAmount : 1

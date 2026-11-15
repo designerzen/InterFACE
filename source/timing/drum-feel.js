@@ -2,10 +2,10 @@ const gcd = (a, b) => b ? gcd(b, a % b) : a
 export const lcm = (a, b) => a / gcd(a, b) * b
 
 export const DRUM_FEELS = Object.freeze({
-	straight:{ variation:0.025, colours:['clap'], ghost:false },
-	breaks:{ variation:0.06, colours:['rimshot', 'snareElectric'], ghost:true, delays:{snare:0.004, clap:0.004} },
-	garage:{ variation:0.045, colours:['clap'], ghost:true, swing:0.18, delays:{snare:0.003} },
-	jazz:{ variation:0.055, colours:['crossStick'], ghost:true, delays:{snare:0.006}, openHats:false },
+	straight:{ variation:0.025, colours:['clap'], ghost:false, accents:{hat:[1,0.86,0.94,0.82]}, laneOffsets:{hat:[0,0.002,0,0.003]}, phraseLift:0.02 },
+	breaks:{ variation:0.06, colours:['rimshot', 'snareElectric'], ghost:true, delays:{snare:0.004, clap:0.004}, accents:{hat:[1,0.8,0.94,0.84]}, laneOffsets:{hat:[0,0.006,0.002,0.004]}, phraseLift:0.035 },
+	garage:{ variation:0.045, colours:['clap'], ghost:true, swing:0.18, delays:{snare:0.003}, accents:{hat:[1,0.82,0.94,0.86]}, laneOffsets:{hat:[0,0.004,0.002,0.006]}, phraseLift:0.03 },
+	jazz:{ variation:0.055, colours:['crossStick'], ghost:true, delays:{snare:0.006}, openHats:false, accents:{ride:[1,0.86,0.92]}, laneOffsets:{ride:[0,0.004,0.002]}, phraseLift:0.025 },
 	reggae:{ variation:0.035, colours:[], ghost:false, delays:{snare:0.008}, openHats:false },
 	brazilian:{ variation:0.04, colours:[], ghost:false, delays:{cabasa:0.002, tambourine:0.002}, openHats:false },
 	colombian:{ variation:0.035, colours:[], ghost:false, openHats:false },
@@ -36,6 +36,18 @@ export const compileDrumFeel = (groove, grid) => {
 	}
 	const swingable = grid.stepsPerBeat % 4 === 0
 	const pulses = profile.pulseOffsets
+	// Templates describe one quarter-note pulse, independently of grid size.
+	const sample = (values, step, fallback) => values?.length
+		? values[Math.floor((step / grid.stepsPerBeat % 1) * values.length + 1e-6) % values.length]
+		: fallback
+	const expressiveOffsets = Array.from({length:grid.stepsPerBar}, (_, step) =>
+		Object.fromEntries(Object.entries(profile.laneOffsets ?? {}).map(([lane, values]) => [
+			lane, Math.max(0, Math.min(0.08 / grid.stepsPerBeat, sample(values, step, 0)))
+		])))
+	const accents = Array.from({length:grid.stepsPerBar}, (_, step) =>
+		Object.fromEntries(Object.entries(profile.accents ?? {}).map(([lane, values]) => [
+			lane, Math.max(0.5, Math.min(1.2, sample(values, step, 1)))
+		])))
 	const offsets = Array.from({length:grid.stepsPerBar}, (_, step) => {
 		const sixteenth = step / grid.stepsPerBeat * 4
 		const offbeat = swingable && Math.abs(sixteenth - Math.round(sixteenth)) < 1e-6 && Math.round(sixteenth) % 2 === 1
@@ -44,13 +56,14 @@ export const compileDrumFeel = (groove, grid) => {
 		const pulse = pulses?.length ? pulses[index] + (pulses[(index + 1) % pulses.length] - pulses[index]) * (phase - index) : 0
 		return { pulse, hat:offbeat ? (profile.swing ?? 0) / 4 : 0 }
 	})
-	return { ...profile, strong, offsets, swingable, delays:profile.delays ?? {} }
+	return { ...profile, strong, offsets, expressiveOffsets, accents, swingable, delays:profile.delays ?? {} }
 }
 
 export const getDrumPartTime = (parts, lane, triggerAt) => triggerAt
 	+ ((parts.offsets?.[lane] ?? 0) + (parts.offsets?.pulse ?? 0)) * (parts.quarterDuration ?? 0)
 	+ (parts.laneDelays?.[lane] ?? 0)
 	+ (parts.swingOffset ?? 0)
+	+ (parts.expressiveOffsets?.[lane] ?? 0) * (parts.quarterDuration ?? 0) * (parts.feelAmount ?? 1)
 
 // Reuse existing clock callbacks. Missed steps advance phase without replaying
 // stale audio. The same small output array is reused even on empty clock ticks.
