@@ -1,0 +1,30 @@
+extends _base.pug
+
+block title
+	+title('Test:Audiobus')
+
+block nav
+	a(href="./tests.pug") All Tests
+
+block preload
+
+block above
+
+block main
+	main#test-audiobus
+		p Plays a C major chord through each audiobus engine
+		button(type="button" data-engine="rompler") Rompler
+		button(type="button" data-engine="fm") FM
+		button(type="button" data-engine="monotron") Monotron
+		button(type="button" data-engine="waveguide") Waveguide
+		button(type="button" data-engine="oscillators") Oscillators
+		button(type="button" data-engine="yoshimi") Yoshimi
+		p Or any output from the factory
+		select#audiobus-factory
+		button#audiobus-factory-play(type="button") Play
+		output#audiobus-status
+
+block styles
+
+block scripts
+	script(type="module" src="./tests/test.audiobus.js")

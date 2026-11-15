@@ -28,8 +28,12 @@
 	"main": "dist-electron/electron/main.js",
 	"alias": {
 		"three/addons/loaders/FBXLoader.js": "three/examples/jsm/loaders/FBXLoader.js",
-		"three/webgpu": "three/build/three.webgpu.js",
-		"three/tsl": "three/build/three.tsl.js"
+		"three/webgpu": "./node_modules/three/build/three.webgpu.js",
+		"three/tsl": "./node_modules/three/build/three.tsl.js",
+		"@lookingglass/webxr/dist/bundle/webxr.js": "./node_modules/@lookingglass/webxr/dist/bundle/webxr.js"
+	},
+	"@parcel/resolver-default": {
+		"packageExports": true
 	},
 	"targets": {
 		"main": false,
@@ -215,6 +219,18 @@
 			"staticOutPath": "assets/audio/OpenGM24/"
 		},
 		{
+			"staticPath": "./node_modules/audiobus/wam/yoshimi/worklet",
+			"staticOutPath": "audiobus/yoshimi/worklet/"
+		},
+		{
+			"staticPath": "./node_modules/audiobus/wam/yoshimi/libs",
+			"staticOutPath": "audiobus/yoshimi/libs/"
+		},
+		{
+			"staticPath": "./node_modules/audiobus/wam/yoshimi/banks",
+			"staticOutPath": "audiobus/yoshimi/banks/"
+		},
+		{
 			"staticPath": "./node_modules/open-gm/OpenGM24.json",
 			"staticOutPath": "assets/audio/"
 		},
@@ -270,6 +286,7 @@
 		"@webaudiomodules/sdk-parammgr": "^0.0.13",
 		"abcjs": "^6.7.2",
 		"audio-decode": "^3.12.0",
+		"audiobus": "link:../harmoneasy/packages/audiobus",
 		"audioworklet-polyfill": "^1.1.2",
 		"bonjour-service": "^1.4.4",
 		"butterchurn": "^2.6.7",

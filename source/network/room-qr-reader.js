@@ -1,4 +1,4 @@
-import { prepareZXingModule, readBarcodes } from 'zxing-wasm/dist/es/reader/index.js'
+import { prepareZXingModule, readBarcodes } from 'zxing-wasm/reader'
 
 const wasmURL = new URL('zxing/zxing_reader.wasm', document.baseURI).href
 
