@@ -286,7 +286,7 @@
 		"@webaudiomodules/sdk-parammgr": "^0.0.13",
 		"abcjs": "^6.7.2",
 		"audio-decode": "^3.12.0",
-		"audiobus": "link:../harmoneasy/packages/audiobus",
+		"audiobus": "github:designerzen/audiobus#2881e70678abd4c2696d44a5f17bc448a8851aec",
 		"audioworklet-polyfill": "^1.1.2",
 		"bonjour-service": "^1.4.4",
 		"butterchurn": "^2.6.7",
