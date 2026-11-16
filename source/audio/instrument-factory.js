@@ -14,7 +14,7 @@ import { fetchJSON } from "../utils/fetch.js"
 import VoiceEngineHost from './voice-engine-host.js'
 import EngineInstrument from './instruments/instrument.engine.js'
 import { createVoiceBackend } from './voice-engines.js'
-import { INSTRUMENT_TYPE_FM } from "./instrument-list.js"
+import { INSTRUMENT_TYPE_FM, INSTRUMENT_TYPE_AUDIOBUS_FM, INSTRUMENT_TYPE_AUDIOBUS_ROMPLER } from "./instrument-list.js"
 import { INSTRUMENT_TYPE_CHORD, INSTRUMENT_TYPE_COMPOSITE, INSTRUMENT_TYPE_DRUMKIT, INSTRUMENT_TYPE_DUAL_OSCILLATOR, INSTRUMENT_TYPE_KIT, INSTRUMENT_TYPE_MIDI, INSTRUMENT_TYPE_MONOTRON, INSTRUMENT_TYPE_MOOG, INSTRUMENT_TYPE_OSCILLATOR, INSTRUMENT_TYPE_SOUNDFONT, INSTRUMENT_TYPE_SPEECH, INSTRUMENT_TYPE_SYTHESIZER, INSTRUMENT_TYPE_TRIPLE_OSCILLATOR, INSTRUMENT_TYPE_WAM, INSTRUMENT_TYPE_WAM2, INSTRUMENT_TYPE_WAVEGUIDE, INSTRUMENTS } from "./instrument-list.js"
 // import ChordInstrument from "./instruments/chord.instrument.js"
 // import SoundFontInstrument from "./instruments/instrument.soundfont.js"
@@ -147,6 +147,14 @@ const loadInstrumentClass = async (type) => {
 			const FMInstrument = (await import("./instruments/instrument.fm.js")).default
 			instrumentsImported.set(INSTRUMENT_TYPE_FM, FMInstrument)
 			return FMInstrument
+
+		case INSTRUMENT_TYPE_AUDIOBUS_FM:
+		case INSTRUMENT_TYPE_AUDIOBUS_ROMPLER:
+			await import("./instruments/instrument.js")
+			const { AudiobusFMInstrument, AudiobusRomplerInstrument } = await import("./instruments/instrument.audiobus.js")
+			instrumentsImported.set(INSTRUMENT_TYPE_AUDIOBUS_FM, AudiobusFMInstrument)
+			instrumentsImported.set(INSTRUMENT_TYPE_AUDIOBUS_ROMPLER, AudiobusRomplerInstrument)
+			return type === INSTRUMENT_TYPE_AUDIOBUS_FM ? AudiobusFMInstrument : AudiobusRomplerInstrument
 
 		case "synth":
 		case INSTRUMENT_TYPE_SYTHESIZER:
