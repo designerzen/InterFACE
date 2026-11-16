@@ -8363,12 +8363,12 @@ Module["FS_createLazyFile"] = FS_createLazyFile;
 // End JS library exports
 // end include: postlibrary.js
 var ASM_CONSTS = {
-  1628804: $0 => {
+  1625684: $0 => {
     const canvas = Emval.toValue($0);
     const context = canvas.getContext("webgpu");
     return WebGPU.importJsTexture(context.getCurrentTexture());
   },
-  1628947: ($0, $1, $2, $3, $4) => {
+  1625827: ($0, $1, $2, $3, $4) => {
     const drawable = Emval.toValue($0);
     const device = WebGPU.getJsObject($1);
     const texture = WebGPU.getJsObject($2);
@@ -8380,7 +8380,7 @@ var ASM_CONSTS = {
       texture
     }, [ width, height ]);
   },
-  1629206: ($0, $1, $2, $3) => {
+  1626086: ($0, $1, $2, $3) => {
     const sourceExtTex = Emval.toValue($0);
     const device = WebGPU.getJsObject($1);
     const sampler = WebGPU.getJsObject($2);
@@ -8397,29 +8397,29 @@ var ASM_CONSTS = {
     });
     return WebGPU.importJsBindGroup(bindGroup);
   },
-  1629576: ($0, $1) => {
+  1626456: ($0, $1) => {
     const input = Emval.toValue($0);
     const output = Emval.toValue($1);
     const ctx = output.getContext("2d");
     ctx.drawImage(input, 0, 0, output.width, output.height);
   },
-  1629741: ($0, $1) => {
+  1626621: ($0, $1) => {
     const inputArray = Emval.toValue($0);
     const output = Emval.toValue($1);
     const ctx = output.getContext("2d");
     const image_data = new ImageData(inputArray, output.width, output.height);
     ctx.putImageData(image_data, 0, 0);
   },
-  1629965: ($0, $1) => {
+  1626845: ($0, $1) => {
     const input = Emval.toValue($0);
     const outputArray = Emval.toValue($1);
     const ctx = input.getContext("2d");
     const data = ctx.getImageData(0, 0, input.width, input.height);
     outputArray.set(data.data);
   },
-  1630169: () => (typeof HTMLCanvasElement !== "undefined"),
-  1630224: () => !!Module["preinitializedWebGPUDevice"],
-  1630275: () => {
+  1627049: () => (typeof HTMLCanvasElement !== "undefined"),
+  1627104: () => !!Module["preinitializedWebGPUDevice"],
+  1627155: () => {
     specialHTMLTargets["#canvas"] = Module.canvas;
   }
 };
@@ -8679,7 +8679,7 @@ function JsWrapErrorListenerInternal(code, message) {
 }
 
 // Imports from the Wasm binary.
-var _free, _malloc, _interactive_segmenter_create, _interactive_segmenter_set_image, _interactive_segmenter_segment, _interactive_segmenter_close, _wgpuDeviceAddRef, _addBoundTextureAsImageToStream, _attachImageListener, _attachImageVectorListener, _mediapipeLoggerGetEncodedApiKey, _registerModelResourcesGraphService, _bindTextureToStream, _addBoundTextureToStream, _addDoubleToInputStream, _addFloatToInputStream, _addBoolToInputStream, _addIntToInputStream, _addUintToInputStream, _addStringToInputStream, _addRawDataSpanToInputStream, _allocateBoolVector, _allocateFloatVector, _allocateDoubleVector, _allocateIntVector, _allocateUintVector, _allocateStringVector, _addBoolVectorEntry, _addFloatVectorEntry, _addDoubleVectorEntry, _addIntVectorEntry, _addUintVectorEntry, _addStringVectorEntry, _addBoolVectorToInputStream, _addFloatVectorToInputStream, _addDoubleVectorToInputStream, _addIntVectorToInputStream, _addUintVectorToInputStream, _addStringVectorToInputStream, _addFlatHashMapToInputStream, _addProtoToInputStream, _addEmptyPacketToInputStream, _addBoolToInputSidePacket, _addDoubleToInputSidePacket, _addFloatToInputSidePacket, _addIntToInputSidePacket, _addUintToInputSidePacket, _addStringToInputSidePacket, _addRawDataSpanToInputSidePacket, _addProtoToInputSidePacket, _addBoolVectorToInputSidePacket, _addDoubleVectorToInputSidePacket, _addFloatVectorToInputSidePacket, _addIntVectorToInputSidePacket, _addUintVectorToInputSidePacket, _addStringVectorToInputSidePacket, _attachBoolListener, _attachBoolVectorListener, _attachDoubleListener, _attachDoubleVectorListener, _attachFloatListener, _attachFloatVectorListener, _attachIntListener, _attachIntVectorListener, _attachUintListener, _attachUintVectorListener, _attachStringListener, _attachStringVectorListener, _attachProtoListener, _attachProtoVectorListener, _getGraphConfig, ___getTypeName, _emwgpuCreateBindGroup, _emwgpuCreateBindGroupLayout, _emwgpuCreateCommandBuffer, _emwgpuCreateCommandEncoder, _emwgpuCreateComputePassEncoder, _emwgpuCreateComputePipeline, _emwgpuCreateExternalTexture, _emwgpuCreatePipelineLayout, _emwgpuCreateQuerySet, _emwgpuCreateRenderBundle, _emwgpuCreateRenderBundleEncoder, _emwgpuCreateRenderPassEncoder, _emwgpuCreateRenderPipeline, _emwgpuCreateSampler, _emwgpuCreateSurface, _emwgpuCreateTexture, _emwgpuCreateTextureView, _emwgpuCreateAdapter, _emwgpuImportBuffer, _emwgpuCreateDevice, _emwgpuCreateQueue, _emwgpuCreateShaderModule, _emwgpuOnCreateComputePipelineCompleted, _emwgpuOnCreateRenderPipelineCompleted, _clearSubgraphs, _pushBinarySubgraph, _pushTextSubgraph, _changeBinaryGraph, _changeTextGraph, _processGl, _process, _bindTextureToCanvas, _requestShaderRefreshOnGraphChange, _waitUntilIdle, _closeGraph, _setAutoRenderToScreen, _emscripten_builtin_memalign, _memalign, __emscripten_tempret_set, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, dynCall_ji, dynCall_jii, dynCall_iiiijij, dynCall_iij, dynCall_iiiijj, dynCall_viijj, dynCall_viiijjj, dynCall_vij, dynCall_viiji, dynCall_viji, dynCall_iiiji, dynCall_jjj, dynCall_jiii, dynCall_viijii, dynCall_vijjj, dynCall_vj, dynCall_viij, dynCall_jiji, dynCall_iiiiij, dynCall_iiiiijj, dynCall_iiiiiijj, memory, _kVersionStampBuildChangelistStr, _kVersionStampCitcSnapshotStr, _kVersionStampCitcWorkspaceIdStr, _kVersionStampSourceUriStr, _kVersionStampBuildClientStr, _kVersionStampBuildClientMintStatusStr, _kVersionStampBuildCompilerStr, _kVersionStampBuildDateTimePstStr, _kVersionStampBuildDepotPathStr, _kVersionStampBuildIdStr, _kVersionStampBuildInfoStr, _kVersionStampBuildLabelStr, _kVersionStampBuildTargetStr, _kVersionStampBuildTimestampStr, _kVersionStampBuildToolStr, _kVersionStampG3BuildTargetStr, _kVersionStampVerifiableStr, _kVersionStampBuildFdoTypeStr, _kVersionStampBuildBaselineChangelistStr, _kVersionStampBuildLtoTypeStr, _kVersionStampBuildPropellerTypeStr, _kVersionStampBuildPghoTypeStr, _kVersionStampBuildFdoProfileChangelistStr, _kVersionStampBuildMemprofProfileChangelistStr, _kVersionStampBuildUsernameStr, _kVersionStampBuildHostnameStr, _kVersionStampBuildDirectoryStr, _kVersionStampBuildChangelistInt, _kVersionStampCitcSnapshotInt, _kVersionStampBuildClientMintStatusInt, _kVersionStampBuildTimestampInt, _kVersionStampVerifiableInt, _kVersionStampBuildCoverageEnabledInt, _kVersionStampBuildBaselineChangelistInt, _kVersionStampPrecookedTimestampStr, _kVersionStampPrecookedClientInfoStr, __indirect_function_table, _kVersionStampBuildHasHardeningProtobuf, wasmMemory, wasmTable;
+var _free, _malloc, _interactive_segmenter_create, _interactive_segmenter_set_image, _interactive_segmenter_segment, _interactive_segmenter_close, _wgpuDeviceAddRef, _addBoundTextureAsImageToStream, _attachImageListener, _attachImageVectorListener, _mediapipeLoggerGetEncodedApiKey, _registerModelResourcesGraphService, _bindTextureToStream, _addBoundTextureToStream, _addDoubleToInputStream, _addFloatToInputStream, _addBoolToInputStream, _addIntToInputStream, _addUintToInputStream, _addStringToInputStream, _addRawDataSpanToInputStream, _allocateBoolVector, _allocateFloatVector, _allocateDoubleVector, _allocateIntVector, _allocateUintVector, _allocateStringVector, _addBoolVectorEntry, _addFloatVectorEntry, _addDoubleVectorEntry, _addIntVectorEntry, _addUintVectorEntry, _addStringVectorEntry, _addBoolVectorToInputStream, _addFloatVectorToInputStream, _addDoubleVectorToInputStream, _addIntVectorToInputStream, _addUintVectorToInputStream, _addStringVectorToInputStream, _addFlatHashMapToInputStream, _addProtoToInputStream, _addEmptyPacketToInputStream, _addBoolToInputSidePacket, _addDoubleToInputSidePacket, _addFloatToInputSidePacket, _addIntToInputSidePacket, _addUintToInputSidePacket, _addStringToInputSidePacket, _addRawDataSpanToInputSidePacket, _addProtoToInputSidePacket, _addBoolVectorToInputSidePacket, _addDoubleVectorToInputSidePacket, _addFloatVectorToInputSidePacket, _addIntVectorToInputSidePacket, _addUintVectorToInputSidePacket, _addStringVectorToInputSidePacket, _attachBoolListener, _attachBoolVectorListener, _attachDoubleListener, _attachDoubleVectorListener, _attachFloatListener, _attachFloatVectorListener, _attachIntListener, _attachIntVectorListener, _attachUintListener, _attachUintVectorListener, _attachStringListener, _attachStringVectorListener, _attachProtoListener, _attachProtoVectorListener, _getGraphConfig, ___getTypeName, _emwgpuCreateBindGroup, _emwgpuCreateBindGroupLayout, _emwgpuCreateCommandBuffer, _emwgpuCreateCommandEncoder, _emwgpuCreateComputePassEncoder, _emwgpuCreateComputePipeline, _emwgpuCreateExternalTexture, _emwgpuCreatePipelineLayout, _emwgpuCreateQuerySet, _emwgpuCreateRenderBundle, _emwgpuCreateRenderBundleEncoder, _emwgpuCreateRenderPassEncoder, _emwgpuCreateRenderPipeline, _emwgpuCreateSampler, _emwgpuCreateSurface, _emwgpuCreateTexture, _emwgpuCreateTextureView, _emwgpuCreateAdapter, _emwgpuImportBuffer, _emwgpuCreateDevice, _emwgpuCreateQueue, _emwgpuCreateShaderModule, _emwgpuOnCreateComputePipelineCompleted, _emwgpuOnCreateRenderPipelineCompleted, _clearSubgraphs, _pushBinarySubgraph, _pushTextSubgraph, _changeBinaryGraph, _changeTextGraph, _processGl, _process, _bindTextureToCanvas, _requestShaderRefreshOnGraphChange, _waitUntilIdle, _closeGraph, _setAutoRenderToScreen, _emscripten_builtin_memalign, _memalign, __emscripten_tempret_set, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, dynCall_ji, dynCall_jii, dynCall_iiiijij, dynCall_vij, dynCall_viiji, dynCall_viji, dynCall_iij, dynCall_iiiijj, dynCall_viijj, dynCall_viiijjj, dynCall_iiiji, dynCall_jjj, dynCall_jiii, dynCall_viijii, dynCall_vijjj, dynCall_vj, dynCall_viij, dynCall_jiji, dynCall_iiiiij, dynCall_iiiiijj, dynCall_iiiiiijj, memory, _kVersionStampBuildChangelistStr, _kVersionStampCitcSnapshotStr, _kVersionStampCitcWorkspaceIdStr, _kVersionStampSourceUriStr, _kVersionStampBuildClientStr, _kVersionStampBuildClientMintStatusStr, _kVersionStampBuildCompilerStr, _kVersionStampBuildDateTimePstStr, _kVersionStampBuildDepotPathStr, _kVersionStampBuildIdStr, _kVersionStampBuildInfoStr, _kVersionStampBuildLabelStr, _kVersionStampBuildTargetStr, _kVersionStampBuildTimestampStr, _kVersionStampBuildToolStr, _kVersionStampG3BuildTargetStr, _kVersionStampVerifiableStr, _kVersionStampBuildFdoTypeStr, _kVersionStampBuildBaselineChangelistStr, _kVersionStampBuildLtoTypeStr, _kVersionStampBuildPropellerTypeStr, _kVersionStampBuildPghoTypeStr, _kVersionStampBuildFdoProfileChangelistStr, _kVersionStampBuildMemprofProfileChangelistStr, _kVersionStampBuildUsernameStr, _kVersionStampBuildHostnameStr, _kVersionStampBuildDirectoryStr, _kVersionStampBuildChangelistInt, _kVersionStampCitcSnapshotInt, _kVersionStampBuildClientMintStatusInt, _kVersionStampBuildTimestampInt, _kVersionStampVerifiableInt, _kVersionStampBuildCoverageEnabledInt, _kVersionStampBuildBaselineChangelistInt, _kVersionStampPrecookedTimestampStr, _kVersionStampPrecookedClientInfoStr, __indirect_function_table, _kVersionStampBuildHasHardeningAbsl, _kVersionStampBuildHasHardeningCfi, _kVersionStampBuildHasHardeningCfiRecover, _kVersionStampBuildHasHardeningLibcxx, _kVersionStampBuildHasHardeningLibcxxBoundedIterators, _kVersionStampBuildHasHardeningPie, _kVersionStampBuildHasHardeningSafeStack, _kVersionStampBuildHasHardeningSanitizeArrayBounds, _kVersionStampBuildHasHardeningStackAutoInit, _kVersionStampBuildHasHardeningStackProtectors, _kVersionStampBuildHasHardeningUcl, _kVersionStampBuildHasHardeningHeapAutoInit, _kVersionStampBuildHasHardeningProtobuf, _kVersionStampBuildHasHardeningScudoAlloc, _kVersionStampBuildHasHardeningWx, _kVersionStampBuildHasHardeningWxPropagate, wasmMemory, wasmTable;
 
 function assignWasmExports(wasmExports) {
   _free = Module["_free"] = wasmExports["de"];
@@ -8790,22 +8790,22 @@ function assignWasmExports(wasmExports) {
   _waitUntilIdle = Module["_waitUntilIdle"] = wasmExports["bg"];
   _closeGraph = Module["_closeGraph"] = wasmExports["cg"];
   _setAutoRenderToScreen = Module["_setAutoRenderToScreen"] = wasmExports["dg"];
-  _emscripten_builtin_memalign = wasmExports["fg"];
-  _memalign = wasmExports["gg"];
-  __emscripten_tempret_set = wasmExports["hg"];
-  __emscripten_stack_restore = wasmExports["ig"];
-  __emscripten_stack_alloc = wasmExports["jg"];
-  _emscripten_stack_get_current = wasmExports["kg"];
+  _emscripten_builtin_memalign = wasmExports["ug"];
+  _memalign = wasmExports["vg"];
+  __emscripten_tempret_set = wasmExports["wg"];
+  __emscripten_stack_restore = wasmExports["xg"];
+  __emscripten_stack_alloc = wasmExports["yg"];
+  _emscripten_stack_get_current = wasmExports["zg"];
   dynCall_ji = wasmExports["dynCall_ji"];
   dynCall_jii = wasmExports["dynCall_jii"];
   dynCall_iiiijij = wasmExports["dynCall_iiiijij"];
+  dynCall_vij = wasmExports["dynCall_vij"];
+  dynCall_viiji = wasmExports["dynCall_viiji"];
+  dynCall_viji = wasmExports["dynCall_viji"];
   dynCall_iij = wasmExports["dynCall_iij"];
   dynCall_iiiijj = wasmExports["dynCall_iiiijj"];
   dynCall_viijj = wasmExports["dynCall_viijj"];
   dynCall_viiijjj = wasmExports["dynCall_viiijjj"];
-  dynCall_vij = wasmExports["dynCall_vij"];
-  dynCall_viiji = wasmExports["dynCall_viiji"];
-  dynCall_viji = wasmExports["dynCall_viji"];
   dynCall_iiiji = wasmExports["dynCall_iiiji"];
   dynCall_jjj = wasmExports["dynCall_jjj"];
   dynCall_jiii = wasmExports["dynCall_jiii"];
@@ -8855,7 +8855,22 @@ function assignWasmExports(wasmExports) {
   _kVersionStampPrecookedTimestampStr = Module["_kVersionStampPrecookedTimestampStr"] = wasmExports["ae"].value;
   _kVersionStampPrecookedClientInfoStr = Module["_kVersionStampPrecookedClientInfoStr"] = wasmExports["be"].value;
   __indirect_function_table = wasmTable = wasmExports["ce"];
-  _kVersionStampBuildHasHardeningProtobuf = Module["_kVersionStampBuildHasHardeningProtobuf"] = wasmExports["eg"].value;
+  _kVersionStampBuildHasHardeningAbsl = Module["_kVersionStampBuildHasHardeningAbsl"] = wasmExports["eg"].value;
+  _kVersionStampBuildHasHardeningCfi = Module["_kVersionStampBuildHasHardeningCfi"] = wasmExports["fg"].value;
+  _kVersionStampBuildHasHardeningCfiRecover = Module["_kVersionStampBuildHasHardeningCfiRecover"] = wasmExports["gg"].value;
+  _kVersionStampBuildHasHardeningLibcxx = Module["_kVersionStampBuildHasHardeningLibcxx"] = wasmExports["hg"].value;
+  _kVersionStampBuildHasHardeningLibcxxBoundedIterators = Module["_kVersionStampBuildHasHardeningLibcxxBoundedIterators"] = wasmExports["ig"].value;
+  _kVersionStampBuildHasHardeningPie = Module["_kVersionStampBuildHasHardeningPie"] = wasmExports["jg"].value;
+  _kVersionStampBuildHasHardeningSafeStack = Module["_kVersionStampBuildHasHardeningSafeStack"] = wasmExports["kg"].value;
+  _kVersionStampBuildHasHardeningSanitizeArrayBounds = Module["_kVersionStampBuildHasHardeningSanitizeArrayBounds"] = wasmExports["lg"].value;
+  _kVersionStampBuildHasHardeningStackAutoInit = Module["_kVersionStampBuildHasHardeningStackAutoInit"] = wasmExports["mg"].value;
+  _kVersionStampBuildHasHardeningStackProtectors = Module["_kVersionStampBuildHasHardeningStackProtectors"] = wasmExports["ng"].value;
+  _kVersionStampBuildHasHardeningUcl = Module["_kVersionStampBuildHasHardeningUcl"] = wasmExports["og"].value;
+  _kVersionStampBuildHasHardeningHeapAutoInit = Module["_kVersionStampBuildHasHardeningHeapAutoInit"] = wasmExports["pg"].value;
+  _kVersionStampBuildHasHardeningProtobuf = Module["_kVersionStampBuildHasHardeningProtobuf"] = wasmExports["qg"].value;
+  _kVersionStampBuildHasHardeningScudoAlloc = Module["_kVersionStampBuildHasHardeningScudoAlloc"] = wasmExports["rg"].value;
+  _kVersionStampBuildHasHardeningWx = Module["_kVersionStampBuildHasHardeningWx"] = wasmExports["sg"].value;
+  _kVersionStampBuildHasHardeningWxPropagate = Module["_kVersionStampBuildHasHardeningWxPropagate"] = wasmExports["tg"].value;
 }
 
 var wasmImports = {
