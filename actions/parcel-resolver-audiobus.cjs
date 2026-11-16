@@ -33,14 +33,15 @@ module.exports = new Resolver({
 	async resolve({ specifier, dependency, options })
 	{
 		const from = dependency.resolveFrom
-		if (!from || !dependency.env.isBrowser() || !isOutside(from, options.projectRoot))
+		if (!from || !dependency.env.isBrowser())
 		{
 			return null
 		}
-		if (POLYFILLS[specifier])
+		if (POLYFILLS[specifier] && isOutside(from, options.projectRoot))
 		{
 			return { filePath: join(options.projectRoot, 'node_modules', POLYFILLS[specifier]) }
 		}
+		// Applies whether audiobus is linked or installed into our node_modules
 		if (specifier === 'onnxruntime-web' && dependency.env.outputFormat !== 'esmodule')
 		{
 			const filePath = findClassicOnnxRuntime(from)
