@@ -29,7 +29,10 @@ allowBuilds:
   lmdb: false
   midi-writer-js: false
   msgpackr-extract: false
-  netronome@https://codeload.github.com/designerzen/netronome/tar.gz/f4c6d48e3253a4e712f600f7e02217b95bf180ab: true
+  onnxruntime-node: false
+  protobufjs: false
+  netronome@https://codeload.github.com/designerzen/netronome/tar.gz/b3af4196336cb901c74832cb3a9ef007a4bed4a3: true
+  audiobus-protocol@https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/4946ba64298404e745fcfe8b98914d51de05a09f: true
   phantomjs-prebuilt: false
   sharp: false
   unrs-resolver: false
