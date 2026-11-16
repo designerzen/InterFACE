@@ -63,11 +63,11 @@ block header
 	nav#pwa
 		.pwa-actions
 			a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})")
-				span.pwa-label Play Online!
+				| Play Online!
 			button#install-pwa.button-push.button-install.icon-right.text-always(hidden type="button" title="Install this application to your homescreen")
-				span.pwa-label Install
+				| Install
 			button#upgrade-pwa.button-push.button-upgrade.icon-right.text-always(hidden type="button" title="Upgrade to the latest version v.#{package.version}")
-				span.pwa-label Upgrade
+				| Upgrade
 
 	details#requirements-test
 		summary Requirements

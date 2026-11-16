@@ -47,6 +47,8 @@
 			gap:clamp(0.5rem, 1.5cqi, 1rem);
 			justify-content:stretch;
 			text-align:center;
+			overflow-wrap:anywhere;
+			hyphens:none;
 
 			&.icon-right{
 				grid-template-areas:"text icon";
@@ -67,12 +69,6 @@
 			}
 		}
 
-		.pwa-label{
-			grid-area:text;
-			min-width:0;
-			overflow-wrap:anywhere;
-			hyphens:none;
-		}
 	}
 
 	// Join only two visible actions, once their actual container has room.
