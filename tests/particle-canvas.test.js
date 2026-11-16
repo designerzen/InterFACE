@@ -6,7 +6,7 @@ jest.mock('@chenglou/pretext', () => ({
 import DisplayOverlay2d from '../source/display/display-overlay-2d.js'
 
 const createContext = () => Object.fromEntries(
-	['save', 'restore', 'translate', 'rotate', 'beginPath', 'moveTo', 'lineTo', 'closePath', 'stroke', 'fill', 'clearRect']
+	['save', 'restore', 'scale', 'translate', 'rotate', 'beginPath', 'moveTo', 'lineTo', 'closePath', 'stroke', 'fill', 'clearRect']
 		.map(name => [name, jest.fn()])
 )
 
@@ -44,6 +44,40 @@ test('an unavailable main context never redirects effects to the text overlay', 
 	overlay.flushFrame(null)
 	expect(overlay.context.fill).not.toHaveBeenCalled()
 	expect(overlay.dirtyRects).toEqual([])
+})
+
+test.each([
+	[1280, 720, 640, 360],
+	[720, 1280, 360, 640],
+	[640, 480, 1562, 1438],
+	[640, 480, 640, 480],
+])('maps mouth particles from a %sx%s overlay into a %sx%s renderer', (width, height, targetWidth, targetHeight) => {
+	const overlay = createOverlay()
+	Object.assign(overlay, { canvasWidth:width, canvasHeight:height })
+	const faces = createContext()
+	faces.canvas = { width:targetWidth, height:targetHeight }
+	const mouth = { x:width * .7, y:height * .8 }
+	let scaleX = 1, scaleY = 1
+	faces.scale.mockImplementation((x, y) => { scaleX *= x; scaleY *= y })
+	faces.translate.mockImplementation((x, y) => {
+		// Compare normalised positions: CSS stretches both canvases over the stage.
+		expect(x * scaleX / targetWidth).toBeCloseTo(.7)
+		expect(y * scaleY / targetHeight).toBeCloseTo(.8)
+	})
+	overlay.drawNoteParticleFrame = jest.fn((now, context) => {
+		context.translate(mouth.x, mouth.y)
+		return true
+	})
+	overlay.clearDirty()
+	overlay.flushFrame(faces)
+	expect(overlay.drawNoteParticleFrame).toHaveBeenCalled()
+	if (width !== targetWidth || height !== targetHeight) {
+		expect(faces.scale).toHaveBeenCalledWith(targetWidth / width, targetHeight / height)
+		expect(faces.save).toHaveBeenCalledTimes(1)
+		expect(faces.restore).toHaveBeenCalledTimes(1)
+	} else {
+		expect(faces.scale).not.toHaveBeenCalled()
+	}
 })
 
 test('suspending the main overlay clears queued effects once and resumes cleanly', () => {
