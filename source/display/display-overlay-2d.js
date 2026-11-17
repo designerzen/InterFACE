@@ -766,7 +766,24 @@ export default class DisplayOverlay2d {
 			command()
 		}
 		this.renderingBatch = false
-		const drewParticles = this.drawNoteParticleFrame(performance.now(), effectsContext)
+		// Particle positions are in overlay pixels; renderers can independently
+		// resize their backing canvas for the viewport or device pixel ratio.
+		const target = effectsContext?.canvas
+		const scaleParticles = target?.width > 0 && target?.height > 0 &&
+			this.width > 0 && this.height > 0 &&
+			(target.width !== this.width || target.height !== this.height)
+		let drewParticles
+		if (scaleParticles) {
+			effectsContext.save()
+			try {
+				effectsContext.scale(target.width / this.width, target.height / this.height)
+				drewParticles = this.drawNoteParticleFrame(performance.now(), effectsContext)
+			} finally {
+				effectsContext.restore()
+			}
+		} else {
+			drewParticles = this.drawNoteParticleFrame(performance.now(), effectsContext)
+		}
 		this.drewThisFrame = commands.length > 0 || drewParticles
 	}
 
