@@ -238,30 +238,55 @@ const selectInstrumentFamily = (controls, selectedPreset) => {
 	return active
 }
 
-export const showPersonalControlPanel = (playerName, controls, instrumentName, activeClassName="expanded") => {
-	const active = selectInstrumentFamily(controls, instrumentName)
-	
-	if (instrumentName !== undefined)
+// Closed panels sit off-screen, so keep their contents out of the tab order
+const setPanelMenuInert = (controls, inert) => {
+	const menu = controls.querySelector(':scope > .person-controls')
+	if (menu)
 	{
-		// find active input field and focus
-		
-		if (active)
-		{
-			active.focus({ focusVisible: false })
-		}else{
-			// send focus to form?
-			controls.focus({ focusVisible: false })
-		}
-		
-		// console.log("SHOW Form", {active, controls })
+		menu.inert = inert
 	}
-	
+}
+
+// Scroll only the panel's own list, never the layout behind it
+const scrollMenuToInput = (input) => {
+	const menu = input.closest('.person-controls')
+	const target = input.closest('label') ?? input
+	if (!menu)
+	{
+		return
+	}
+	const menuBounds = menu.getBoundingClientRect()
+	const targetBounds = target.getBoundingClientRect()
+	menu.scrollTop += targetBounds.top - menuBounds.top - (menuBounds.height - targetBounds.height) / 2
+}
+
+export const showPersonalControlPanel = (playerName, controls, instrumentName, activeClassName="expanded") => {
 	// FIXME: Add aria-roles
 	controls.classList.toggle(activeClassName,true)
+	setPanelMenuInert(controls, false)
 
 	// toggle class in header
 	// this allows us to close the others too)
 	document.documentElement.classList.toggle(`${playerName}-sidebar-showing`,true)
+
+	const active = selectInstrumentFamily(controls, instrumentName)
+
+	if (instrumentName !== undefined)
+	{
+		// find active input field and focus
+		// NB. the panel is still sliding in so the browser
+		// would otherwise scroll the whole control panel to reveal it
+		if (active)
+		{
+			active.focus({ focusVisible: false, preventScroll: true })
+			scrollMenuToInput(active)
+		}else{
+			// send focus to form?
+			controls.focus({ focusVisible: false, preventScroll: true })
+		}
+
+		// console.log("SHOW Form", {active, controls })
+	}
 
 	return true
 }
@@ -277,6 +302,7 @@ export const hidePersonalControlPanel = (playerName, controls,  activeClassName=
 	// console.log("HIDE Form")
 	controls.setAttribute("style", "--x:0;")
 	controls.classList.toggle(activeClassName,false)
+	setPanelMenuInert(controls, true)
 	document.documentElement.classList.toggle(`${playerName}-sidebar-showing`,false)
 	return false
 }
@@ -476,8 +502,10 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 	const playerName = controls.className.split(" ")[1] //.replace("person-","" ).replace("-panel","" )
 	const drawerToggle = controls.querySelector( playerToggleSelector )
 	
-	let isDrawerOpen = controls.classList.contains(activeClassName) 
+	let isDrawerOpen = controls.classList.contains(activeClassName)
 	let bypass = false
+
+	setPanelMenuInert(controls, !isDrawerOpen)
 
 	const getDragX = (event) => {
 		const point = event.changedTouches?.[0] ?? event.touches?.[0] ?? event
@@ -491,7 +519,6 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 
 		if (isDrawerOpen)
 		{
-			selectInstrumentFamily(controls, person.activePresetIndex)
 			person.refreshInstrumentPanelIfDirty?.().catch(error => {
 				console.error("Failed to refresh instrument panel", error)
 			})
@@ -572,20 +599,16 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		document.removeEventListener("touchcancel", onDragControlsEnd)
 		controls.classList.toggle("dragging", false)
 
-		isDrawerOpen = x >= panelWidth * considerOpenAt
+		const open = x >= panelWidth * considerOpenAt
 
-		if (isDrawerOpen)
+		if (open)
 		{
 			// console.error(x, panelWidth/2, "dragend:SHOW", event)
-			controls.classList.toggle(activeClassName, true)
 			controls.setAttribute("style", `--x:${999};`)
-		}else{
-
-			// console.error(x, panelWidth/2, "dragend:HIDE", event)
-			controls.classList.toggle(activeClassName, false)
-			controls.setAttribute("style", `--x:${0};`)
 		}
-		refreshDrawerContent()
+		// go through the same path as the toggle button so the
+		// document classes and focus are kept in sync
+		setDrawerState(open)
 	}
 	
 	//- controls.addEventListener("dragstart", (event) => {

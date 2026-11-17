@@ -5,6 +5,9 @@
 	margin:0;
 	padding:0;
 	overflow: hidden;
+	// clip (unlike hidden) cannot be scrolled by focus or scrollIntoView,
+	// which would otherwise slide the whole layout behind an off-screen sidebar
+	overflow: clip;
 	position: absolute;
 	top:0;
 	left:0;
