@@ -11,7 +11,7 @@ import { setLoadProgress } from './dom/load-progress.js'
 import { getBrowserLocales } from './locales/i18n.js'
 import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options.js'
 import { showChangelog, installOrUpdate, uninstall } from './pwa/installation.js'
-// import { showError } from './dom/errors.js'
+import { showError } from './dom/errors.js'
 import { addToolTips, setToast } from './dom/tooltips.js'
 import { MOUSE_HELD, MOUSE_TAP, addMouseTapAndHoldEvents } from './hardware/mouse.js'
 import { updateCapabalitiesTable } from './dom/compatability.js'
@@ -403,8 +403,7 @@ const checkPWAUpdates = () => {
 
 	}).catch(error => {
 
-		body.classList.add("failed")
-		console.error("Interface:PWA", error)
+		console.warn("PhotoSYNTH offline installation or update check failed", error)
 	})
 }
 
@@ -422,11 +421,11 @@ const checkPlatformUpdates = async (query) => {
 
 	} else if (capabilities.pwa) {
 		// we are running this as a PWA!
-		await checkPWAUpdates()
+		void checkPWAUpdates()
 
 	} else if (capabilities.pwaPossible) {
 		// potential for it to be a webapp
-		await checkPWAUpdates()
+		void checkPWAUpdates()
 
 	} else {
 		// probably just a website that doesn't have 
@@ -460,9 +459,12 @@ const createVersionButton = () => {
 // 	// serviceworker/sync not supported
 // }
 
-// we hang out here until the service worker has comfirmed that everything is ready
-checkPlatformUpdates().finally(() => {
-	// APP STARTING>
+// Offline installation and updates must never hold up application startup.
+checkPlatformUpdates().catch(error => {
+	body.classList.add('failed')
+	setLoadProgress(1, '', true)
+	showError('PhotoSYNTH could not start', 'Reload the page to try again.', true, String(error))
+	console.error('PhotoSYNTH startup failed', error)
 })
 
 // Kludge: prevent back from leaving site

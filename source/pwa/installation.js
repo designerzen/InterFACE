@@ -79,7 +79,10 @@ const registerServiceWorker = async () => {
 
 	activeRegistration = registration
 	watchForUpdate(registration)
-	await registration.update()
+	// Updating is optional; slow or unavailable networks must not delay the UI.
+	void registration.update().catch(error => {
+		console.warn('Unable to check for a service worker update', error)
+	})
 	return registration
 }
 
