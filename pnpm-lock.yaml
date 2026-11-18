@@ -313,6 +313,9 @@ importers:
       is-electron:
         specifier: ^2.2.2
         version: 2.2.2
+      midi-devices:
+        specifier: github:designerzen/midi-devices
+        version: https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126
       midi-manufacturers:
         specifier: ^1.1.0
         version: 1.1.0
@@ -4329,8 +4332,8 @@ packages:
     resolution: {integrity: sha512-1DpKU0Z5ThltBwjNySMC14g0CkbyhCaz9FkhxqNsZI6uAPJXFS8cMXlBKo26FJ8ZuW6S9GCMcR9IO5k2X5/9Fg==}
     engines: {node: '>= 12.13.0'}
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20261103':
-    resolution: {integrity: sha512-BiDHCjWQsZPTJOLJUgwC4GUFtOiV4Ru7eLb8XOMA/oDtn4yUMesfOGl9UaFb7BlmFWnqdx9FA6alLfz4HGYErA==}
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20261116':
+    resolution: {integrity: sha512-x1XhXnvBADCxaIS+p1Cg8hF/HuC2aj61PkbwHdLgT3ehc8B9xGFS11qYjtKtBIIvAebkRCGhHtTLir4hVh6zhw==}
 
   '@maxim_mazurok/gapi.client.discovery-v1@0.6.20200806':
     resolution: {integrity: sha512-QN6aGmIbLXcJW0SEf8tz9UWCpQTBMy2u4xSuZ04YofzMGknhWwMeUecySLntCZYAEstHzDoSgwxCf5Gb8GqIRQ==}
@@ -6678,8 +6681,8 @@ packages:
     resolution: {integrity: sha512-E9Bl1FGGDS81H/mKvaoPq0iQ8uT3qTBe6XWjipOo5kYrhLMAbjD7hREAVle0YJFahZOVbztxTdkwi0VBDJutSA==}
     engines: {node: '>=14'}
 
-  audiobus-protocol@https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/4946ba64298404e745fcfe8b98914d51de05a09f:
-    resolution: {gitHosted: true, integrity: sha512-tQQtxx23/RGzS3djQYL+rByXFnIIvU4rtXtfN5XBd393t6Zlcdm3WYTUUctz86FdL3SBl7nGlK41lDhVuivu+w==, tarball: https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/4946ba64298404e745fcfe8b98914d51de05a09f}
+  audiobus-protocol@https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/e3204ab1b7446ab1541249f70c0dc4aa27c164dc:
+    resolution: {gitHosted: true, integrity: sha512-vTMWyHub2hlHWKr2e7ndsl4PX0jLkFWkUi8BaUTOOhZhrFINUfGQhh24OgL+qWnUa8KWXOXbAXejlecNG5NWhQ==, tarball: https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/e3204ab1b7446ab1541249f70c0dc4aa27c164dc}
     version: 0.3.0
 
   audiobus@https://codeload.github.com/designerzen/audiobus/tar.gz/096f4ae9af84401b30ef46585f8e5a6bdfa4ec22:
@@ -7247,8 +7250,8 @@ packages:
   constantinople@4.0.1:
     resolution: {integrity: sha512-vCrqcSIq4//Gx74TXXCGnHpulY1dskqLTFGDmhrGxzeXL8lF8kvXv6mpNWlJj1uD4DW23D4ljAqbY4RRaaUZIw==}
 
-  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/d251e6b42e2ac064f29bf7f58a8526095e3dc2ba:
-    resolution: {gitHosted: true, integrity: sha512-E9nk2a8vo1FylxHUK9zgLhymKdmz6XsHv9xRPfqpnaHMSpyve+jportKcq0VCctKe+dwuD3iEA0VTJuU0uU+QQ==, tarball: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/d251e6b42e2ac064f29bf7f58a8526095e3dc2ba}
+  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f:
+    resolution: {gitHosted: true, integrity: sha512-LA7xAl66M91KYm4NMxYIjn7reKgNsklyUfccVXzGhBclVUyyVG9FP8gXhb4jXez4tnhTy9NnOdMY/Cl5Bv52rw==, tarball: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f}
     version: 0.1.0
 
   conventional-changelog-angular@5.0.13:
@@ -8067,11 +8070,9 @@ packages:
 
   extsprintf@1.3.0:
     resolution: {integrity: sha512-11Ndz7Nv+mvAC1j0ktTa7fAb0vLyGGX+rMHNBYQviQDGU0Hw7lhctJANqbPhu9nV9/izT/IntTgZ7Im/9LJs9g==}
-    engines: {'0': node >=0.6.0}
 
   extsprintf@1.4.1:
     resolution: {integrity: sha512-Wrk35e8ydCKDj/ArClo1VrPVmN8zph5V4AtHwIuHhvMXsKf73UT3BOD+azBIW+3wOJ4FhEH7zyaJCFvChjYvMA==}
-    engines: {'0': node >=0.6.0}
 
   falafel@2.2.5:
     resolution: {integrity: sha512-HuC1qF9iTnHDnML9YZAdCDQwT0yKl/U55K4XSUXqGAA2GLoafFgWRqdAbhWJxXaYD4pyoVxAJ8wH670jMpI9DQ==}
@@ -9550,8 +9551,8 @@ packages:
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
-  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/3302b56344506bb3411eec3b6769b04e6ce3cfe0:
-    resolution: {gitHosted: true, integrity: sha512-bwbieKkdrb8ram5syxEiCQ2wz1V6Q2jTJ4lknJZBcqmdGNMaDC5pIMoUUnW2Wi5HySYj30ChFoyw/SOugqxV1A==, tarball: https://codeload.github.com/designerzen/midi-devices/tar.gz/3302b56344506bb3411eec3b6769b04e6ce3cfe0}
+  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126:
+    resolution: {gitHosted: true, integrity: sha512-zdIwnTSHoe2ZgEhtndN4/9z0mb/Pu0eQEpSQdUprZUoN/rnXsJcXl7KN0NIbc6QVI90vcErSxX7IhLEpJaPOKA==, tarball: https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126}
     version: 1.0.0
 
   midi-file@1.2.4:
@@ -10183,6 +10184,11 @@ packages:
     resolution: {integrity: sha512-RQlrqs4ujYNJpTQi+dITqPKNhRWEqpjPd1YBcGp50Wy3FcJHpwu0/iRm7XWz2dKU/Bwp2qCcVYPIeEDYi2uOUw==}
     engines: {node: '>= 16.0.0'}
     hasBin: true
+    peerDependencies:
+      '@parcel/core': '*'
+    peerDependenciesMeta:
+      '@parcel/core':
+        optional: true
 
   parse-asn1@5.1.9:
     resolution: {integrity: sha512-fIYNuZ/HastSb80baGOuPRo1O9cf4baWw5WsAp7dBuUzeTD/BoaG8sVTdlPFksBE2lF21dN+A1AnrpIjSWqHHg==}
@@ -11852,7 +11858,7 @@ packages:
     hasBin: true
 
   uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/9ec36de7709996c58dce03d63796216c90a17136:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/9ec36de7709996c58dce03d63796216c90a17136}
+    resolution: {gitHosted: true, integrity: sha512-tuVmOn7woNsBj1YB8JzKFImaghp+xcQJO/ER35yp5iHyksDdpDiq757hih58I6YGNFBhPBjcEculpxdvp7PIEg==, tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/9ec36de7709996c58dce03d63796216c90a17136}
     version: 20.71.0
 
   uc.micro@1.0.6:
@@ -12076,7 +12082,6 @@ packages:
 
   verror@1.10.0:
     resolution: {integrity: sha512-ZZKSmDAEFOijERBLkmYfJ+vmk3w+7hOLYDNkRCuRuMJGEmqYNCNLyBBFwWKVMhfwaEF3WOd0Zlw86U/WC/+nYw==}
-    engines: {'0': node >=0.6.0}
 
   vexflow@5.0.0:
     resolution: {integrity: sha512-rjB7TV4ygKE5Fl3W5OlG+0dHv22CFufUJdMG6oNgvcn0zp34u+sOboZsadQXnF1O3tZ3myXThaUIaLkJlpNM2Q==}
@@ -17484,7 +17489,7 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20261103':
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.5.20261116':
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -19343,7 +19348,7 @@ snapshots:
 
   '@types/gapi.client.androidpublisher@3.0.2':
     dependencies:
-      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.5.20261103
+      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.5.20261116
 
   '@types/gapi.client.discovery-v1@0.0.4':
     dependencies:
@@ -19845,7 +19850,7 @@ snapshots:
 
   audio-type@2.4.2: {}
 
-  audiobus-protocol@https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/4946ba64298404e745fcfe8b98914d51de05a09f: {}
+  audiobus-protocol@https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/e3204ab1b7446ab1541249f70c0dc4aa27c164dc: {}
 
   audiobus@https://codeload.github.com/designerzen/audiobus/tar.gz/096f4ae9af84401b30ef46585f8e5a6bdfa4ec22(@tensorflow/tfjs-core@4.22.0(encoding@0.1.13))(@types/emscripten@1.41.5)(encoding@0.1.13):
     dependencies:
@@ -19854,15 +19859,15 @@ snapshots:
       '@msgpack/msgpack': 3.1.3
       '@spotify/basic-pitch': 1.0.1(encoding@0.1.13)
       '@tonejs/midi': 2.0.28
-      audiobus-protocol: https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/4946ba64298404e745fcfe8b98914d51de05a09f
+      audiobus-protocol: https://codeload.github.com/designerzen/audiobus-protocol/tar.gz/e3204ab1b7446ab1541249f70c0dc4aa27c164dc
       butterchurn: 2.6.7
       butterchurn-presets: 2.4.7
       coi-serviceworker: 0.1.7
-      control-surface: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/d251e6b42e2ac064f29bf7f58a8526095e3dc2ba
+      control-surface: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f
       fflate: 0.8.3
       kokoro-js: 1.2.1
       lz-string: 1.5.0
-      midi-devices: https://codeload.github.com/designerzen/midi-devices/tar.gz/3302b56344506bb3411eec3b6769b04e6ce3cfe0
+      midi-devices: https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126
       netronome: https://codeload.github.com/designerzen/netronome/tar.gz/b3af4196336cb901c74832cb3a9ef007a4bed4a3(@types/emscripten@1.41.5)
       pitfalls: https://codeload.github.com/designerzen/pitfalls/tar.gz/d5d7828e2ba4dfe70f2dbc093efecff7b53699d6
       sion: https://codeload.github.com/designerzen/SiON/tar.gz/1a80e5c9452177c105b4c0eea0fdeb07b2541622
@@ -20548,7 +20553,7 @@ snapshots:
       '@babel/parser': 7.29.8
       '@babel/types': 7.29.8
 
-  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/d251e6b42e2ac064f29bf7f58a8526095e3dc2ba: {}
+  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f: {}
 
   conventional-changelog-angular@5.0.13:
     dependencies:
@@ -23351,7 +23356,7 @@ snapshots:
 
   merge-stream@2.0.0: {}
 
-  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/3302b56344506bb3411eec3b6769b04e6ce3cfe0: {}
+  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126: {}
 
   midi-file@1.2.4: {}
 

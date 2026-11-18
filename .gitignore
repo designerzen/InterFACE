@@ -66,6 +66,7 @@ static/assets/audio/*
 /static/assets/audio/OpenGM24.json
 /static/assets/audio/OpenGM24.LICENSE.txt
 /static/zxing/
+/static/midi-devices/
 !static/assets/audio/fx/
 !static/assets/audio/fx/meme/
 !static/assets/audio/fx/meme/*.mp3

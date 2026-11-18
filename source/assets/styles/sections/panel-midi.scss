@@ -137,6 +137,35 @@
 	overflow: visible;
 }
 .midi-device-channel option{ background: #171313; color: var(--shade-white, #fff); }
+.midi-device-card header:has(.midi-device-icon){ justify-content: start; }
+.midi-device-card header:has(.midi-device-icon) .midi-device-status{ margin-inline-start: auto; }
+.midi-device-icon{ flex: 0 0 auto; inline-size: 2.4rem; block-size: 2.4rem; padding: .3rem; border-radius: .4rem; background: var(--shade-white, #fff); object-fit: contain; }
+.midi-device-match,
+.midi-device-actions,
+.midi-device-about{ grid-column: 1 / -1; }
+.midi-device-match{ margin: 0; font-size: .78rem; line-height: 1.4; color: color-mix(in srgb, currentColor 82%, transparent); }
+.midi-device-match[data-matched-by="unmatched"]{ color: var(--yellow, #ffce86); }
+.midi-device-actions{ display: flex; flex-wrap: wrap; align-items: end; gap: calc(var(--pad) * .6); }
+.midi-device-actions .midi-device-channel{ flex: 1 1 14rem; min-inline-size: 0; }
+.midi-device-about > summary{ cursor: pointer; padding-block: .35rem; font-size: .82rem; font-weight: 700; }
+.midi-device-about[open]{ display: grid; gap: calc(var(--pad) * .5); }
+.midi-device-about section{ display: grid; gap: .3rem; }
+.midi-device-about h5{ margin: 0; font-size: .7rem; letter-spacing: .06em; color: color-mix(in srgb, currentColor 72%, transparent); }
+.midi-device-about p{ margin: 0; font-size: .78rem; line-height: 1.45; }
+.midi-device-identity{ display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .2rem .8rem; margin: 0; font-size: .76rem; }
+.midi-device-identity dt{ color: color-mix(in srgb, currentColor 72%, transparent); }
+.midi-device-identity dd{ margin: 0; overflow-wrap: anywhere; font-family: var(--font-mono, ui-monospace, monospace); }
+.midi-device-tags{ display: flex; flex-wrap: wrap; gap: .3rem; margin: 0; padding: 0; list-style: none; }
+.midi-device-tags li{ padding: .15rem .5rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 1rem; font-size: .72rem; }
+.midi-device-list{ display: grid; gap: .2rem; margin: 0; padding-inline-start: 1.1rem; font-size: .76rem; }
+.midi-device-list a{ color: inherit; }
+.midi-device-mappings{ border-collapse: collapse; font-size: .76rem; }
+.midi-device-mappings th{ padding: .15rem .8rem .15rem 0; font-weight: 400; text-align: start; }
+.midi-device-mappings td{ font-family: var(--font-mono, ui-monospace, monospace); }
+.midi-device-diagrams{ display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: calc(var(--pad) * .5); }
+.midi-device-diagrams figure{ display: grid; gap: .3rem; margin: 0; }
+.midi-device-diagrams img{ inline-size: 100%; block-size: auto; max-block-size: 16rem; padding: .4rem; border-radius: .4rem; background: var(--shade-white, #fff); object-fit: contain; }
+.midi-device-diagrams figcaption{ font-size: .7rem; color: color-mix(in srgb, currentColor 72%, transparent); }
 @keyframes midi-device-pulse{ 50%{ transform: scale(1.7); box-shadow: 0 0 .8rem currentColor; } }
 @media (prefers-reduced-motion: reduce){ .midi-device-card.is-active .midi-device-activity::before{ animation: none; } }
 @media (max-width: 48rem){

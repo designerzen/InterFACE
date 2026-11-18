@@ -14,6 +14,10 @@
 			"inputs": ["actions/zips.mjs", "source/assets/audio/wave-tables/**/*.json"],
 			"outputs": ["source/assets/audio/wave-tables/*.zip"]
 		},
+		"//#midi-devices": {
+			"inputs": ["actions/midi-devices.mjs", "pnpm-lock.yaml"],
+			"outputs": ["static/midi-devices/**"]
+		},
 		"//#streamdeck:build": {
 			"inputs": [
 				"actions/build-profile.mjs",
@@ -28,7 +32,7 @@
 			]
 		},
 		"//#build:web:parcel": {
-			"dependsOn": ["//#copy", "//#zips", "//#streamdeck:build"],
+			"dependsOn": ["//#copy", "//#zips", "//#streamdeck:build", "//#midi-devices"],
 			"inputs": [
 				"source/**",
 				"static/**",
@@ -39,6 +43,7 @@
 				"!static/@mediapipe/tasks-vision/*.*",
 				"!static/@litertjs/**",
 				"!static/zxing/**",
+				"!static/midi-devices/**",
 				"!static/PhotoSYNTH/**",
 				"!static/PhotoSYNTH-Stream-Deck/**",
 				"!static/PhotoSYNTH.streamDeckProfile",

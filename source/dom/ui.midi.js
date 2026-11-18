@@ -1,8 +1,9 @@
 import { setToast } from './tooltips.js'
 import { getMIDIPortDisplayName, isDigitCMPSRPort } from '../hardware/digit/cmpsr.js'
-import { dispatchMIDIActivity, MIDI_ACTIVITY_EVENT } from '../audio/midi/midi-echo-guard.js'
+import { dispatchMIDIActivity, MIDI_ACTIVITY_EVENT, sendGuardedMIDIOutput } from '../audio/midi/midi-echo-guard.js'
 import { getPersonMIDIOutputs, getPersonMIDIChannel, getMIDIPortTransport } from '../audio/midi/midi-routing.js'
 import { stopMIDIEyebrowsForPerson } from '../audio/midi/person-eyebrow-expression.js'
+import { findMIDIDeviceProfile, getMIDIDeviceCatalogue, getMIDIDeviceProfileChoice, setMIDIDeviceProfileChoice, groupMIDIPortsByDevice, loadMIDIDeviceCatalogue, onMIDIDeviceCatalogueLoaded, midiDeviceAssetURL, describeMIDIControlMessage, PROFILE_AUTOMATIC, PROFILE_NONE } from '../audio/midi/midi-device-profiles.js'
 
 const state = { people: [], outputs: [], inputs: [], statusAPI: null }
 const monitoredInputs = new Map()
@@ -11,7 +12,8 @@ let connectedStatusIds = new Set()
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character])
 const personLabel = (person, index) => person?.displayName || person?.name || `Person ${(person?.playerNumber ?? index) + 1}`
 const channelLabel = channel => channel === 'all' ? 'All channels (1–16)' : `Channel ${channel}`
-const portLabel = (port, direction, index) => getMIDIPortDisplayName(port, `MIDI ${direction} ${index + 1}`)
+const portProfile = (port, direction) => findMIDIDeviceProfile(port, direction.toLowerCase()).profile
+const portLabel = (port, direction, index) => portProfile(port, direction)?.name ?? getMIDIPortDisplayName(port, `MIDI ${direction} ${index + 1}`)
 const connectionLabel = port => `${port.state ?? 'Connected'} · ${getMIDIPortTransport(port)}${port.connection ? ` · ${port.connection}` : ''}`
 const routeOutputs = (person, outputs, index) => getPersonMIDIOutputs(person, outputs, person.playerNumber ?? index)
 const routeChannel = (person, outputs, people, index) => getPersonMIDIChannel(person, outputs, people, person.playerNumber ?? index)
@@ -70,7 +72,9 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = []) 
 		detail: `${isDigitCMPSRPort(port) ? 'Available · ' : ''}Input · All channels (1–16)`,
 		tooltipDetails: [
 			{ label: 'Port', value: 'MIDI input' },
-			{ label: 'Device', value: isDigitCMPSRPort(port) ? 'DIGIT CMPSR' : null },
+			{ label: 'Device', value: portProfile(port, 'input')?.name ?? (isDigitCMPSRPort(port) ? 'DIGIT CMPSR' : null) },
+			{ label: 'Port name', value: port.name },
+			{ label: 'Port ID', value: port.id },
 			{ label: 'Manufacturer', value: port.manufacturer },
 			{ label: 'Connection', value: `${portLabel(port, 'Input', index)} → PhotoSYNTH · ${connectionLabel(port)}` },
 			{ label: 'Channels', value: 'All channels (1–16)' },
@@ -86,6 +90,9 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = []) 
 			detail: `Output · ${channels.join(', ') || 'Unassigned'} · ${assigned.length} ${assigned.length === 1 ? 'person' : 'people'}`,
 			tooltipDetails: [
 				{ label: 'Port', value: 'MIDI output' },
+				{ label: 'Device', value: portProfile(port, 'output')?.name },
+				{ label: 'Port name', value: port.name },
+				{ label: 'Port ID', value: port.id },
 				{ label: 'Manufacturer', value: port.manufacturer },
 				{ label: 'Connection', value: `PhotoSYNTH → ${label} · ${connectionLabel(port)}` },
 				{ label: 'Channels', value: channels.length ? channels : 'Unassigned' },
@@ -122,13 +129,75 @@ const applyRouting = () => {
 	})
 }
 
-const createDeviceCard = (port, direction, index, people, outputs) => {
+const MATCH_LABELS = {
+	choice: 'Profile chosen by you',
+	id: 'Recognised by its MIDI port ID',
+	name: 'Recognised by its MIDI port name',
+	slug: 'Recognised by its MIDI port name',
+	none: 'Marked as not in the device list',
+	unmatched: 'Not recognised · choose its profile below if it is listed',
+}
+
+const listHTML = (items, className) => items?.length ? `<ul class="${className}">${items.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` : ''
+const sectionHTML = (title, content) => content ? `<section><h5>${escapeHTML(title)}</h5>${content}</section>` : ''
+const linkHTML = (url, title) => /^https?:/.test(url ?? '') ? `<a href="${escapeHTML(url)}" target="_blank" rel="noopener">${escapeHTML(title)}</a>` : ''
+
+const profileOptionsHTML = selected => {
+	const catalogue = getMIDIDeviceCatalogue()
+	const manufacturers = new Map()
+	catalogue?.devices.forEach(device => manufacturers.set(device.manufacturer, [...(manufacturers.get(device.manufacturer) ?? []), device]))
+	const groups = [...manufacturers].sort(([a], [b]) => a.localeCompare(b)).map(([manufacturer, devices]) => `<optgroup label="${escapeHTML(manufacturer)}">${optionsHTML(devices.map(device => [device.id, device.name]), selected)}</optgroup>`).join('')
+	return optionsHTML([[PROFILE_AUTOMATIC, 'Recognise automatically'], [PROFILE_NONE, 'Not in the list']], selected) + groups
+}
+
+const createProfileDetails = profile => {
+	const connections = profile.connections.map(({ label, connector, direction, location }) => [label, connector !== label ? connector : '', direction, location].filter(Boolean).join(' · '))
+	const mappings = profile.controls.filter(control => control.message?.type)
+	const mappingRows = mappings.map(control => `<tr><th scope="row">${escapeHTML(control.label)}</th><td>${escapeHTML(describeMIDIControlMessage(control.message))}</td></tr>`).join('')
+	const assignable = profile.controls.length - mappings.length
+	const links = [linkHTML(profile.productUrl, 'Product page'), ...profile.documentation.map(({ url, title }) => linkHTML(url, title))].filter(Boolean)
+	const images = [['connections', 'Sockets and connections'], ['diagram', 'Controls layout']].filter(([key]) => profile.assets[key])
+		.map(([key, caption]) => `<figure><img src="${escapeHTML(midiDeviceAssetURL(profile.assets[key]))}" alt="${escapeHTML(`${profile.name}: ${caption.toLowerCase()} diagram`)}" loading="lazy" decoding="async"><figcaption>${caption}</figcaption></figure>`).join('')
+	return sectionHTML('What it can do', listHTML(profile.abilities, 'midi-device-tags')) +
+		sectionHTML('Hardware controls', listHTML(profile.hardwareControls, 'midi-device-tags')) +
+		sectionHTML('Sockets', listHTML(connections, 'midi-device-list')) +
+		sectionHTML('MIDI messages', mappingRows || assignable ? `${mappingRows ? `<table class="midi-device-mappings"><tbody>${mappingRows}</tbody></table>` : ''}${assignable ? `<p>${assignable} assignable ${assignable === 1 ? 'control depends' : 'controls depend'} on the device preset.</p>` : ''}` : '') +
+		sectionHTML('Setup notes', profile.notice ? `<p>${escapeHTML(profile.notice)}</p>` : '') +
+		(images ? `<div class="midi-device-diagrams">${images}</div>` : '') +
+		sectionHTML('Manuals and support', links.length ? `<ul class="midi-device-list">${links.map(link => `<li>${link}</li>`).join('')}</ul>` : '')
+}
+
+const createDeviceCard = (port, direction, index, people, outputs, partner, openCards) => {
 	const label = portLabel(port, direction, index)
+	const key = `${direction}-${port.id ?? port.name ?? index}`
+	const { profile, matchedBy } = findMIDIDeviceProfile(port, direction)
+	const assignedChannels = people.map((person, i) => routeOutputs(person, outputs, i).includes(port) ? routeChannel(person, outputs, people, i) : null).filter(channel => channel !== null)
 	const routes = direction === 'input' ? '<p>Device → PhotoSYNTH · Active person · All channels (1–16)</p>' :
 		people.map((person, i) => routeOutputs(person, outputs, i).includes(port) ? `<p>${escapeHTML(personLabel(person, i))} <span aria-hidden="true">→</span> ${escapeHTML(label)} · ${channelLabel(routeChannel(person, outputs, people, i))}</p>` : '').join('') || '<p>No people assigned</p>'
-	return `<article class="midi-device-card" data-midi-device-key="${escapeHTML(`${direction}-${port.id ?? port.name ?? index}`)}" data-midi-port-id="${escapeHTML(port.id)}" data-midi-port-name="${escapeHTML(port.name)}" data-midi-direction="${direction}">
-		<header><div class="midi-device-name"><h4>${escapeHTML(label)}</h4><p class="midi-device-manufacturer">${escapeHTML(port.manufacturer)}</p></div><div class="midi-device-status"><span class="midi-device-kind">${direction}</span><div class="midi-device-activity" aria-live="off"><span>Idle</span></div></div></header>
+	const identity = [
+		['Port name', port.name],
+		['Port ID', port.id],
+		['Reported manufacturer', port.manufacturer],
+		['Driver version', port.version],
+		['Direction', direction === 'input' ? 'Input · sends MIDI to PhotoSYNTH' : 'Output · receives MIDI from PhotoSYNTH'],
+		['State', [port.state, port.connection].filter(Boolean).join(' · ')],
+		['Transport', getMIDIPortTransport(port)],
+		['Same device as', partner ? `${partner.name ?? partner.id} (${direction === 'input' ? 'output' : 'input'})` : null],
+		['Profile', profile ? `${profile.name} · ${profile.id}` : null],
+	].filter(([, value]) => value !== undefined && value !== null && value !== '')
+	const name = escapeHTML(label)
+	return `<article class="midi-device-card${profile ? ' is-recognised' : ''}" data-midi-device-key="${escapeHTML(key)}" data-midi-port-id="${escapeHTML(port.id)}" data-midi-port-name="${escapeHTML(port.name)}" data-midi-direction="${direction}">
+		<header>${profile?.assets.icon ? `<img class="midi-device-icon" src="${escapeHTML(midiDeviceAssetURL(profile.assets.icon))}" alt="" loading="lazy" decoding="async">` : ''}<div class="midi-device-name"><h4>${name}</h4><p class="midi-device-manufacturer">${escapeHTML([profile?.manufacturer ?? port.manufacturer, profile && port.name !== label ? `port “${port.name}”` : ''].filter(Boolean).join(' · '))}</p></div><div class="midi-device-status"><span class="midi-device-kind">${direction}</span><div class="midi-device-activity" aria-live="off"><span>Idle</span></div></div></header>
 		<p class="midi-device-connection">${escapeHTML(connectionLabel(port))}</p><div class="midi-device-routes">${routes}</div>
+		<p class="midi-device-match" data-matched-by="${matchedBy}">${escapeHTML(MATCH_LABELS[matchedBy])}${profile?.description ? ` · ${escapeHTML(profile.description)}` : ''}</p>
+		<div class="midi-device-actions">
+			<label class="midi-device-channel">Device profile<select data-midi-profile aria-label="Device profile for ${name}"${getMIDIDeviceCatalogue() ? '' : ' disabled'}>${profileOptionsHTML(getMIDIDeviceProfileChoice(port, direction))}</select></label>
+			${direction === 'output' ? `<button type="button" data-midi-test data-midi-test-channel="${assignedChannels.find(channel => channel !== 'all') ?? 1}" aria-label="Send a test note to ${name}">Send test note</button>` : ''}
+		</div>
+		<details class="midi-device-about" data-midi-card-details${openCards.has(key) ? ' open' : ''}><summary>About this ${direction}</summary>
+			<dl class="midi-device-identity">${identity.map(([term, value]) => `<dt>${escapeHTML(term)}</dt><dd>${escapeHTML(value)}</dd>`).join('')}</dl>
+			${profile ? createProfileDetails(profile) : '<p>No hardware profile for this port. Its controls still work; PhotoSYNTH only lacks a description of it.</p>'}
+		</details>
 	</article>`
 }
 
@@ -140,7 +209,14 @@ export const renderMIDIDeviceMonitor = (people = [], outputs = [], inputs = []) 
 	if (empty) empty.hidden = outputs.length + inputs.length > 0
 	const summary = document.getElementById('midi-routing-summary')
 	if (summary) summary.textContent = !outputs.length ? 'Connect a MIDI output to send music.' : outputs.length === 1 ? 'Automatic routing with one output: each person gets their own channel.' : outputs.length < people.length ? 'Automatic routing with fewer outputs than people: devices are shared using separate channels.' : 'Automatic routing with dedicated outputs: each person gets their own device, sending on all channels.'
-	const cards = [...inputs.map((port, i) => createDeviceCard(port, 'input', i, people, outputs)), ...outputs.map((port, i) => createDeviceCard(port, 'output', i, people, outputs))]
+	if (inputs.length + outputs.length && !getMIDIDeviceCatalogue()) loadMIDIDeviceCatalogue()
+	const devices = groupMIDIPortsByDevice(inputs, outputs)
+	const partnerOf = (port, direction) => {
+		const group = devices.find(item => item[direction] === port)
+		return group?.[direction === 'input' ? 'output' : 'input'] ?? null
+	}
+	const openCards = new Set([...container.querySelectorAll('.midi-device-card:has([data-midi-card-details][open])')].map(card => card.dataset.midiDeviceKey))
+	const cards = [...inputs.map((port, i) => createDeviceCard(port, 'input', i, people, outputs, partnerOf(port, 'input'), openCards)), ...outputs.map((port, i) => createDeviceCard(port, 'output', i, people, outputs, partnerOf(port, 'output'), openCards))]
 	const routing = people.map((person, index) => {
 		const device = person.options?.midiDevice ?? 'auto'
 		const devices = [['auto', 'Automatic'], ['none', 'Off'], ['all', 'All output devices'], ...outputs.map((port, i) => [port.id ?? port.name, portLabel(port, 'Output', i)])]
@@ -151,7 +227,7 @@ export const renderMIDIDeviceMonitor = (people = [], outputs = [], inputs = []) 
 	}).join('')
 	const detailsOpen = container.querySelector('[data-midi-details]')?.open ?? false
 	const devicesOpen = container.querySelector('[data-midi-device-details]')?.open ?? false
-	container.innerHTML = (outputs.length ? createRoutingPresets(people, outputs) : '') + (outputs.length || inputs.length ? createConnectionDiagram(people, outputs, inputs) : '') + (outputs.length ? `<details class="midi-person-routing" data-midi-details${detailsOpen ? ' open' : ''}><summary>Fine-tune devices and channels</summary>${routing || '<p>No people active</p>'}<button type="button" data-midi-reset>Restore automatic routing</button></details>` : '') + (cards.length ? `<details class="midi-port-details" data-midi-device-details${devicesOpen ? ' open' : ''}><summary>Device details · ${inputs.length} ${inputs.length === 1 ? 'input' : 'inputs'} · ${outputs.length} ${outputs.length === 1 ? 'output' : 'outputs'}</summary><div class="midi-port-cards">${cards.join('')}</div></details>` : '')
+	container.innerHTML = (outputs.length ? createRoutingPresets(people, outputs) : '') + (outputs.length || inputs.length ? createConnectionDiagram(people, outputs, inputs) : '') + (outputs.length ? `<details class="midi-person-routing" data-midi-details${detailsOpen ? ' open' : ''}><summary>Fine-tune devices and channels</summary>${routing || '<p>No people active</p>'}<button type="button" data-midi-reset>Restore automatic routing</button></details>` : '') + (cards.length ? `<details class="midi-port-details" data-midi-device-details${devicesOpen ? ' open' : ''}><summary>Device details · ${devices.length} ${devices.length === 1 ? 'device' : 'devices'} · ${inputs.length} ${inputs.length === 1 ? 'input' : 'inputs'} · ${outputs.length} ${outputs.length === 1 ? 'output' : 'outputs'}</summary><div class="midi-port-cards">${cards.join('')}</div></details>` : '')
 }
 
 const refreshRouting = () => {
@@ -176,12 +252,33 @@ const applyPreset = (preset, sharedDevice) => {
 	refreshRouting()
 }
 
+const findCardPort = card => card && (card.dataset.midiDirection === 'input' ? state.inputs : state.outputs)
+	.find(port => String(port.id ?? '') === card.dataset.midiPortId && String(port.name ?? '') === card.dataset.midiPortName)
+
+// Middle C for half a second, so people can hear which device an output reaches.
+const TEST_NOTE = 60
+const sendTestNote = (port, channel = 1) => {
+	const options = { channels:channel, attack:.8 }
+	if (!port || !sendGuardedMIDIOutput(port, 'playNote', TEST_NOTE, options, 'midi-device-test')) return
+	setTimeout(() => sendGuardedMIDIOutput(port, 'stopNote', TEST_NOTE, { channels:channel, release:0 }, 'midi-device-test'), 500)
+}
+
 export const setupMIDIMenu = () => {
 	setupMIDIPanelFrame()
 	const monitor = document.getElementById('midi-monitor-devices')
 	if (!monitor || monitor.dataset.ready) return
 	monitor.dataset.ready = 'true'
+	onMIDIDeviceCatalogueLoaded(() => { if (monitor.isConnected) refreshRouting() })
 	monitor.addEventListener('change', event => {
+		if (event.target.matches('[data-midi-profile]')) {
+			const card = event.target.closest('.midi-device-card')
+			const port = findCardPort(card)
+			if (!port) return
+			setMIDIDeviceProfileChoice(port, card.dataset.midiDirection, event.target.value)
+			refreshRouting()
+			monitor.querySelector(`.midi-device-card[data-midi-device-key="${CSS.escape(card.dataset.midiDeviceKey)}"] [data-midi-profile]`)?.focus()
+			return
+		}
 		if (event.target.matches('[data-midi-shared-device]')) {
 			applyPreset('shared', event.target.value)
 			monitor.querySelector('[data-midi-shared-device]')?.focus()
@@ -197,6 +294,11 @@ export const setupMIDIMenu = () => {
 		monitor.querySelector(`[data-midi-person="${row.dataset.midiPerson}"] [data-midi-option="${option}"]`)?.focus()
 	})
 	monitor.addEventListener('click', event => {
+		const test = event.target.closest('[data-midi-test]')
+		if (test) {
+			sendTestNote(findCardPort(test.closest('.midi-device-card')), Number(test.dataset.midiTestChannel))
+			return
+		}
 		const preset = event.target.closest('[data-midi-preset]')
 		if (preset && !preset.disabled) {
 			applyPreset(preset.dataset.midiPreset, monitor.querySelector('[data-midi-shared-device]')?.value)
