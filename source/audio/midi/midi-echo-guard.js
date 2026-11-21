@@ -1,5 +1,9 @@
 import { recordMIDIOutput } from '../../storage/session-midi-output.js'
+import { findMIDIDeviceProfile } from './midi-device-profiles.js'
+import { getMIDIDeviceIntegration } from './midi-device-integration.js'
 const MIDI_ECHO_GUARD_TTL = 150
+// How long after a device releases a note it still may not be sent that note
+const MIDI_SOURCE_GUARD_TTL = 250
 const MIDI_OUTPUT_LOOP_WINDOW = 250
 const MIDI_OUTPUT_LOOP_LIMIT = 24
 const MIDI_PANIC_LOOP_LIMIT = 2
@@ -227,6 +231,89 @@ const getEchoTypes = type => {
 	}
 }
 
+// Notes each input device is playing. A device must never be sent a note it
+// played: devices that echo (MIDI thru) would bounce it straight back and
+// feedback loops break the system. Values are release times, null while held.
+const inputDeviceNotes = new Map()
+
+// Windows and some drivers name the two halves "Device IN" and "Device OUT"
+const getHardwareName = port => normalizeMIDIPortName(port?.name)
+	.replace(/^\d+-\s*/, '')
+	.replace(/\b(in|out|input|output|midiin\d*|midiout\d*)\b/g, '')
+	.replace(/[\s()[\]-]+/g, ' ')
+	.trim()
+
+export const isSameMIDIHardware = (input, output) => {
+	if (!input || !output)
+	{
+		return false
+	}
+	if (input === output || (input.id && input.id === output.id))
+	{
+		return true
+	}
+	const inputProfile = findMIDIDeviceProfile(input, 'input').profile
+	const outputProfile = findMIDIDeviceProfile(output, 'output').profile
+	if (inputProfile && outputProfile)
+	{
+		return inputProfile.id === outputProfile.id
+	}
+	const name = getHardwareName(input)
+	return Boolean(name) && name === getHardwareName(output) &&
+		normalizeMIDIPortName(input.manufacturer) === normalizeMIDIPortName(output.manufacturer)
+}
+
+/**
+ * Remember a note an input device played so it is never sent back to it
+ * @param {Object} input MIDI input port
+ * @param {Number|Object} note
+ * @param {Boolean} isNoteOn
+ */
+export const recordMIDIInputNote = (input, note, isNoteOn) => {
+	if (!input)
+	{
+		return
+	}
+	const notes = inputDeviceNotes.get(input) ?? new Map()
+	const releasedAt = isNoteOn ? null : performance.now()
+	getNoteKeys(note).forEach(noteKey => notes.set(noteKey, releasedAt))
+	inputDeviceNotes.set(input, notes)
+}
+
+export const forgetMIDIInputNotes = input => inputDeviceNotes.delete(input)
+
+const getSourceOfNote = (output, note) => {
+	const now = performance.now()
+	const noteKeys = getNoteKeys(note)
+	for (const [input, notes] of inputDeviceNotes)
+	{
+		for (const noteKey of noteKeys)
+		{
+			if (!notes.has(noteKey))
+			{
+				continue
+			}
+			const releasedAt = notes.get(noteKey)
+			if (releasedAt !== null && now - releasedAt > MIDI_SOURCE_GUARD_TTL)
+			{
+				notes.delete(noteKey)
+				continue
+			}
+			// A held note is safe to send to a device that does not echo; just
+			// after release it could arrive late and start a note nobody holds
+			if (releasedAt === null && !getMIDIDeviceIntegration(input).echoes)
+			{
+				continue
+			}
+			if (isSameMIDIHardware(input, output))
+			{
+				return input
+			}
+		}
+	}
+	return null
+}
+
 export const recordMIDIOutputForEchoGuard = (output, type, note, source = 'unknown') => {
 	const debugState = getMIDIDebugState()
 	const now = performance.now()
@@ -336,6 +423,21 @@ export const sendGuardedMIDIOutput = (output, method, note, options, source = 'u
 	const activeNoteKey = method === 'playNote' || method === 'stopNote' ?
 		getActiveNoteKey(output, note, options) :
 		null
+
+	if (method === 'playNote')
+	{
+		const source = getSourceOfNote(output, note)
+		if (source)
+		{
+			debugState.totals.suppressed++
+			logMIDIDebug("MIDI:Note not sent back to the device that played it", {
+				input: source.name,
+				output: output?.name,
+				note
+			}, 'info')
+			return false
+		}
+	}
 
 	if (method === 'playNote' && debugState.activeNotes.has(activeNoteKey))
 	{

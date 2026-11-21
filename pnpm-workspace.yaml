@@ -2,6 +2,7 @@ blockExoticSubdeps: false
 
 packages:
   - packages/looking-glass
+  - packages/midi-devices
   - source/electron/lib/macos-coremidi
   - source/electron/lib/windows-midi-services
 

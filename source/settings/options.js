@@ -281,7 +281,7 @@ export const DEFAULT_OPTIONS = {
 	midiPercussion:true,
 
 	// allow midi input to control stuff too
-	midiInput:false,
+	midiInput:true,
 
 	// Bidirectional app control uses a dedicated channel, separate from note input.
 	midiCC:true,

@@ -3,6 +3,8 @@ import { getMIDIPortDisplayName, isDigitCMPSRPort } from '../hardware/digit/cmps
 import { dispatchMIDIActivity, MIDI_ACTIVITY_EVENT, sendGuardedMIDIOutput } from '../audio/midi/midi-echo-guard.js'
 import { getPersonMIDIOutputs, getPersonMIDIChannel, getMIDIPortTransport } from '../audio/midi/midi-routing.js'
 import { stopMIDIEyebrowsForPerson } from '../audio/midi/person-eyebrow-expression.js'
+import { describeMIDIDeviceIntegration, getMIDIDeviceIntegration, INTEGRATION_MODES, INTEGRATION_MONITOR, onMIDIDeviceIntegrationChanged, setMIDIDeviceIntegration } from '../audio/midi/midi-device-integration.js'
+import { offerMIDIDeviceGuides, showMIDIDeviceGuide } from './ui.midi-device-guide.js'
 import { findMIDIDeviceProfile, getMIDIDeviceCatalogue, getMIDIDeviceProfileChoice, setMIDIDeviceProfileChoice, groupMIDIPortsByDevice, loadMIDIDeviceCatalogue, onMIDIDeviceCatalogueLoaded, midiDeviceAssetURL, describeMIDIControlMessage, PROFILE_AUTOMATIC, PROFILE_NONE } from '../audio/midi/midi-device-profiles.js'
 
 const state = { people: [], outputs: [], inputs: [], statusAPI: null }
@@ -54,7 +56,7 @@ const createConnectionDiagram = (people, outputs, inputs) => {
 	}
 	const node = (title, detail, kind = '') => `<div class="midi-map-node ${kind}"><strong>${escapeHTML(title)}</strong>${detail ? `<small>${escapeHTML(detail)}</small>` : ''}</div>`
 	const wire = label => `<div class="midi-map-wire"><span>${escapeHTML(label)}</span><i aria-hidden="true"></i></div>`
-	const incoming = inputs.length ? `<div class="midi-map-row midi-map-input"><div class="midi-map-targets">${inputs.map((port, i) => node(portLabel(port, 'Input', i), transportLabel(port))).join('')}</div>${wire('All channels')}${node('PhotoSYNTH', 'Input goes to the active person')}</div>` : ''
+	const incoming = inputs.map((port, i) => `<div class="midi-map-row midi-map-input">${node(portLabel(port, 'Input', i), transportLabel(port))}${wire('All channels')}${node('PhotoSYNTH', describeMIDIDeviceIntegration(getMIDIDeviceIntegration(port), people))}</div>`).join('')
 	const outgoing = people.map((person, index) => {
 		const targets = routeOutputs(person, outputs, index)
 		const selection = person.options?.midiDevice ?? 'auto'
@@ -69,7 +71,7 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = []) 
 	const entries = inputs.map((port, index) => ({
 		id: `midi-input-${port.id ?? port.name ?? index}`,
 		label: portLabel(port, 'Input', index),
-		detail: `${isDigitCMPSRPort(port) ? 'Available · ' : ''}Input · All channels (1–16)`,
+		detail: `${isDigitCMPSRPort(port) ? 'Available · ' : ''}Input · ${describeMIDIDeviceIntegration(getMIDIDeviceIntegration(port), people)}`,
 		tooltipDetails: [
 			{ label: 'Port', value: 'MIDI input' },
 			{ label: 'Device', value: portProfile(port, 'input')?.name ?? (isDigitCMPSRPort(port) ? 'DIGIT CMPSR' : null) },
@@ -78,7 +80,7 @@ export const createMIDIStatusEntries = (people = [], outputs = [], inputs = []) 
 			{ label: 'Manufacturer', value: port.manufacturer },
 			{ label: 'Connection', value: `${portLabel(port, 'Input', index)} → PhotoSYNTH · ${connectionLabel(port)}` },
 			{ label: 'Channels', value: 'All channels (1–16)' },
-			...people.map((person, i) => ({ label: personLabel(person, i), value: 'Receives input when active · All channels (1–16)' })),
+			{ label: 'Plays', value: describeMIDIDeviceIntegration(getMIDIDeviceIntegration(port), people) },
 		],
 	}))
 	outputs.forEach((port, index) => {
@@ -167,12 +169,28 @@ const createProfileDetails = profile => {
 		sectionHTML('Manuals and support', links.length ? `<ul class="midi-device-list">${links.map(link => `<li>${link}</li>`).join('')}</ul>` : '')
 }
 
+// Input devices are observed by default and only play once given a mode
+const createInputIntegrationHTML = (port, people, name, partner) => {
+	const integration = getMIDIDeviceIntegration(port)
+	const choosers = integration.mode === INTEGRATION_MONITOR ? '' : `<fieldset class="midi-device-people"><legend>Augments</legend>${people.map((person, i) => `<label><input type="checkbox" data-midi-integration-person value="${person.playerNumber ?? i}"${integration.people.includes(person.playerNumber ?? i) ? ' checked' : ''}> ${escapeHTML(personLabel(person, i))}</label>`).join('')}<small>None ticked follows the active person.</small></fieldset>`
+	// Only devices PhotoSYNTH can send to could bounce notes back
+	const echo = partner ? `<label class="midi-device-echo"><input type="checkbox" data-midi-integration-echo${integration.echoes ? ' checked' : ''}> Sends back what it receives</label><small>Leave ticked unless MIDI thru or echo is switched off on the device. While ticked, notes it is holding are never sent back to it.</small>` : ''
+	return `<p>Device → PhotoSYNTH · ${escapeHTML(describeMIDIDeviceIntegration(integration, people))}</p><label class="midi-device-channel">Plays<select data-midi-integration aria-label="How ${name} plays">${optionsHTML(INTEGRATION_MODES.map(([mode, title]) => [mode, title]), integration.mode)}</select></label>${choosers}${echo}`
+}
+
+const findCardGroup = card => {
+	const port = findCardPort(card)
+	if (!port) return null
+	return groupMIDIPortsByDevice(state.inputs, state.outputs).find(group => group[card.dataset.midiDirection] === port) ?? null
+}
+
 const createDeviceCard = (port, direction, index, people, outputs, partner, openCards) => {
 	const label = portLabel(port, direction, index)
+	const name = escapeHTML(label)
 	const key = `${direction}-${port.id ?? port.name ?? index}`
 	const { profile, matchedBy } = findMIDIDeviceProfile(port, direction)
 	const assignedChannels = people.map((person, i) => routeOutputs(person, outputs, i).includes(port) ? routeChannel(person, outputs, people, i) : null).filter(channel => channel !== null)
-	const routes = direction === 'input' ? '<p>Device → PhotoSYNTH · Active person · All channels (1–16)</p>' :
+	const routes = direction === 'input' ? createInputIntegrationHTML(port, people, name, partner) :
 		people.map((person, i) => routeOutputs(person, outputs, i).includes(port) ? `<p>${escapeHTML(personLabel(person, i))} <span aria-hidden="true">→</span> ${escapeHTML(label)} · ${channelLabel(routeChannel(person, outputs, people, i))}</p>` : '').join('') || '<p>No people assigned</p>'
 	const identity = [
 		['Port name', port.name],
@@ -185,13 +203,13 @@ const createDeviceCard = (port, direction, index, people, outputs, partner, open
 		['Same device as', partner ? `${partner.name ?? partner.id} (${direction === 'input' ? 'output' : 'input'})` : null],
 		['Profile', profile ? `${profile.name} · ${profile.id}` : null],
 	].filter(([, value]) => value !== undefined && value !== null && value !== '')
-	const name = escapeHTML(label)
 	return `<article class="midi-device-card${profile ? ' is-recognised' : ''}" data-midi-device-key="${escapeHTML(key)}" data-midi-port-id="${escapeHTML(port.id)}" data-midi-port-name="${escapeHTML(port.name)}" data-midi-direction="${direction}">
 		<header>${profile?.assets.icon ? `<img class="midi-device-icon" src="${escapeHTML(midiDeviceAssetURL(profile.assets.icon))}" alt="" loading="lazy" decoding="async">` : ''}<div class="midi-device-name"><h4>${name}</h4><p class="midi-device-manufacturer">${escapeHTML([profile?.manufacturer ?? port.manufacturer, profile && port.name !== label ? `port “${port.name}”` : ''].filter(Boolean).join(' · '))}</p></div><div class="midi-device-status"><span class="midi-device-kind">${direction}</span><div class="midi-device-activity" aria-live="off"><span>Idle</span></div></div></header>
 		<p class="midi-device-connection">${escapeHTML(connectionLabel(port))}</p><div class="midi-device-routes">${routes}</div>
 		<p class="midi-device-match" data-matched-by="${matchedBy}">${escapeHTML(MATCH_LABELS[matchedBy])}${profile?.description ? ` · ${escapeHTML(profile.description)}` : ''}</p>
 		<div class="midi-device-actions">
 			<label class="midi-device-channel">Device profile<select data-midi-profile aria-label="Device profile for ${name}"${getMIDIDeviceCatalogue() ? '' : ' disabled'}>${profileOptionsHTML(getMIDIDeviceProfileChoice(port, direction))}</select></label>
+			<button type="button" data-midi-guide>Setup guide</button>
 			${direction === 'output' ? `<button type="button" data-midi-test data-midi-test-channel="${assignedChannels.find(channel => channel !== 'all') ?? 1}" aria-label="Send a test note to ${name}">Send test note</button>` : ''}
 		</div>
 		<details class="midi-device-about" data-midi-card-details${openCards.has(key) ? ' open' : ''}><summary>About this ${direction}</summary>
@@ -269,6 +287,7 @@ export const setupMIDIMenu = () => {
 	if (!monitor || monitor.dataset.ready) return
 	monitor.dataset.ready = 'true'
 	onMIDIDeviceCatalogueLoaded(() => { if (monitor.isConnected) refreshRouting() })
+	onMIDIDeviceIntegrationChanged(() => { if (monitor.isConnected) refreshRouting() })
 	monitor.addEventListener('change', event => {
 		if (event.target.matches('[data-midi-profile]')) {
 			const card = event.target.closest('.midi-device-card')
@@ -277,6 +296,18 @@ export const setupMIDIMenu = () => {
 			setMIDIDeviceProfileChoice(port, card.dataset.midiDirection, event.target.value)
 			refreshRouting()
 			monitor.querySelector(`.midi-device-card[data-midi-device-key="${CSS.escape(card.dataset.midiDeviceKey)}"] [data-midi-profile]`)?.focus()
+			return
+		}
+		if (event.target.matches('[data-midi-integration], [data-midi-integration-person], [data-midi-integration-echo]')) {
+			const card = event.target.closest('.midi-device-card')
+			const port = findCardPort(card)
+			if (!port) return
+			const integration = getMIDIDeviceIntegration(port)
+			const people = event.target.matches('[data-midi-integration-person]') ? [...card.querySelectorAll('[data-midi-integration-person]:checked')].map(box => Number(box.value)) : integration.people
+			const echoes = card.querySelector('[data-midi-integration-echo]')?.checked ?? integration.echoes
+			const focus = event.target.matches('[data-midi-integration-person]') ? `[data-midi-integration-person][value="${event.target.value}"]` : event.target.matches('[data-midi-integration-echo]') ? '[data-midi-integration-echo]' : '[data-midi-integration]'
+			setMIDIDeviceIntegration(port, { mode:card.querySelector('[data-midi-integration]').value, people, echoes })
+			monitor.querySelector(`.midi-device-card[data-midi-device-key="${CSS.escape(card.dataset.midiDeviceKey)}"] ${focus}`)?.focus()
 			return
 		}
 		if (event.target.matches('[data-midi-shared-device]')) {
@@ -294,6 +325,12 @@ export const setupMIDIMenu = () => {
 		monitor.querySelector(`[data-midi-person="${row.dataset.midiPerson}"] [data-midi-option="${option}"]`)?.focus()
 	})
 	monitor.addEventListener('click', event => {
+		const guide = event.target.closest('[data-midi-guide]')
+		if (guide) {
+			const group = findCardGroup(guide.closest('.midi-device-card'))
+			if (group) showMIDIDeviceGuide(group, state.people)
+			return
+		}
 		const test = event.target.closest('[data-midi-test]')
 		if (test) {
 			sendTestNote(findCardPort(test.closest('.midi-device-card')), Number(test.dataset.midiTestChannel))
@@ -398,6 +435,7 @@ const updateDevices = (button, people, outputs, inputs, setFeedback, statusAPI) 
 	Object.assign(state, { people, outputs, inputs, statusAPI })
 	refreshRouting()
 	monitorInputs(inputs)
+	offerMIDIDeviceGuides(inputs, outputs, people).catch(error => console.warn('[MIDI] Could not offer device guide', error))
 	const connected = outputs.length + inputs.length > 0
 	const main = document.querySelector('main')
 	main?.classList.toggle('midi-no-devices', !connected)
@@ -450,6 +488,7 @@ export const setupMIDIDialog = () => renderMIDIDeviceMonitor(state.people, state
 export const setMIDIControls = async (manager, classes, people, optionsOrFeedback, feedbackOrStatus, maybeStatus = null) => {
 	const feedback = typeof optionsOrFeedback === 'function' ? optionsOrFeedback : feedbackOrStatus
 	const statusAPI = typeof optionsOrFeedback === 'function' ? feedbackOrStatus : maybeStatus
+	const { autoConnect = false } = typeof optionsOrFeedback === 'object' && optionsOrFeedback ? optionsOrFeedback : {}
 	setupMIDIMenu()
 	Object.assign(state, { people, outputs:manager.outputs ?? [], inputs:manager.inputs ?? [], statusAPI })
 	refreshRouting()
@@ -480,4 +519,7 @@ export const setMIDIControls = async (manager, classes, people, optionsOrFeedbac
 		}
 	}
 	document.querySelector('[href="#folder-midi"]')?.addEventListener('click', connect)
+	// Once MIDI access is granted, list devices that were connected before launch
+	if (autoConnect) await connect()
+	return enabled
 }

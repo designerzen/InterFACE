@@ -209,13 +209,35 @@ block main
 							p Play PhotoSYNTH from a MIDI keyboard or controller, or send each person's notes to a synthesiser, drum machine or sound module.
 							h5 Connect your MIDI gear
 							ol
-								li Connect your device by USB, or through a MIDI interface for 5-pin DIN gear, before starting PhotoSYNTH.
-								li Open MIDI routing, switch on Enable MIDI and allow the browser's MIDI permission request. Connected devices appear under Connected MIDI devices.
-								li Choose a Quick setup, or expand Fine-tune devices and channels to set each person's input, output and MIDI channel.
+								li Connect your device by USB, or through a MIDI interface for 5-pin DIN gear. You can plug it in before or after starting PhotoSYNTH.
+								li Allow the browser's MIDI permission request. PhotoSYNTH recognises the device and opens a setup guide with its abilities, connections and manuals.
+								li Choose how its notes play: Play its notes, Set the key, Harmonise with emotion or Monitor only, and tick the people it augments. A new device only shows its activity until you choose.
+								li To send music out, open MIDI routing and choose a Quick setup, or expand Fine-tune devices and channels to set each person's output and MIDI channel.
 								li Play your keyboard to hear PhotoSYNTH, or perform in PhotoSYNTH and check that your sound module receives notes on the matching channel.
 							h5 Two-way control
 							p Hardware knobs and faders can change PhotoSYNTH's controls over MIDI CC on the App control channel (16 by default). Open CC codes in MIDI routing for the full list, and use Send current controls to update your gear to PhotoSYNTH's settings.
-							p If a device is missing, reconnect it and reload PhotoSYNTH. Web MIDI needs a supporting browser such as Chrome or Edge.
+							p Change a device's choices, or reopen its Setup guide, from its card under Connected MIDI devices → Device details. If a device is missing, reconnect it. Web MIDI needs a supporting browser such as Chrome or Edge.
+
+					details(name="hardware")#arcana-strum
+						summary.with-image
+							img.hardware-summary-photo.integration-icon(src="./assets/icons/music_note.svg" width="96" height="96" alt="" aria-hidden="true")
+							span.integration-summary-copy
+								span.hardware-summary-name Arcana Strum
+								small Strum chords & melodies with an adaptive guitar
+						.details
+							p Play PhotoSYNTH with the #[a(href="https://arcanainstruments.com/product/arcana-instrument/" rel="noopener noreferrer" target="_blank") Arcana Strum]. Your Strum chooses the chords and notes; PhotoSYNTH gives them a voice and visuals.
+							h5 Connect & play
+							ol
+								li Connect the Strum by USB, which also charges it, and turn it on with its Power button. You can connect it before or after starting PhotoSYNTH.
+								li Allow the browser's MIDI permission request. PhotoSYNTH recognises the Strum and asks how to use it.
+								li Choose Play its notes to hear the Strum's own chords, Set the key to let your face play around them, or Harmonise with emotion to turn each note into an expressive chord. Tick the people the Strum augments, or leave everyone unticked to follow whoever is active.
+								li Hold keys under your left hand and move the strum stick across the strings.
+							h5 On the Strum
+							p Melodic mode plays single notes; the Power button returns to Harmony mode. ♭ and ♯ transpose by a semitone (hold for an octave), SeptaChords adds 7ths, and Mode I and Mode II change the note arrangement. Turn on the Dynamics switch underneath to make the volume follow your playing.
+							p The Strum's notes play on PhotoSYNTH's instruments only and are never sent back out over MIDI, so they cannot loop. Change its choices from its card under Connected MIDI devices.
+							figure.integration-diagram
+								img(src="./assets/hardware/arcana-strum-panel.svg" width="1400" height="530" loading="lazy" decoding="async" alt="Arcana Strum top panel: five playing keys, mode buttons and the strum stick")
+								figcaption Strum controls. Diagram from the #[a(href="https://designerzen.github.io/midi-devices/" rel="noopener noreferrer" target="_blank") midi-devices] catalogue.
 			
 					details(name="hardware")#gamepads
 						summary.with-image

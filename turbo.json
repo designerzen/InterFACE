@@ -15,7 +15,7 @@
 			"outputs": ["source/assets/audio/wave-tables/*.zip"]
 		},
 		"//#midi-devices": {
-			"inputs": ["actions/midi-devices.mjs", "pnpm-lock.yaml"],
+			"inputs": ["actions/midi-devices.mjs", "packages/midi-devices/devices/**"],
 			"outputs": ["static/midi-devices/**"]
 		},
 		"//#streamdeck:build": {

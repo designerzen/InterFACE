@@ -4390,7 +4390,7 @@ export const createInterface = (
 
 			if (!isMIDIRefused && stateMachine.get("midiInput"))
 			{
-				observeMIDIInputs({
+				const midiInputOptions = {
 					stateMachine,
 					personManager,
 					globalChordPlayer,
@@ -4400,7 +4400,13 @@ export const createInterface = (
 					toggleBackgroundPercussion,
 					scheduleMIDIInput,
 					statusAPI: inputStatusOverlay
-				})
+				}
+				observeMIDIInputs(midiInputOptions)
+
+				// Observe devices plugged in while playing and forget unplugged ones.
+				// The manager keeps its observers when MIDI is switched off and on,
+				// whereas WebMidi.disable() removes every WebMidi listener.
+				midiManager.observe(() => observeMIDIInputs(midiInputOptions))
 			}
 		}
 
@@ -4416,7 +4422,7 @@ export const createInterface = (
 				const MIDIConnectionClasses = [WebMIDIClass]
 			
 				// rather than enabling midi directly we show a button to enable it
-				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, personManager.people, setFeedback, inputStatusOverlay )
+				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, personManager.people, { autoConnect:isMIDIAvailable }, setFeedback, inputStatusOverlay )
 				
 				console.info("MIDIManager", {hasMIDI,midiManager})
 			

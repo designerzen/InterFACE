@@ -289,6 +289,13 @@
 	}
 }
 
+// Device diagrams from the midi-devices catalogue are line drawings on white
+.integration-diagram{
+	display: grid; gap: .4rem; margin: 1rem 0 0;
+	img{ width: 100%; height: auto; max-width: 40rem; padding: .5rem; border-radius: .5rem; background: #fff; }
+	figcaption{ font-size: .8rem; opacity: .8; }
+}
+
 #looking-glass-portrait{
 	.integration-setup{
 		display: grid;

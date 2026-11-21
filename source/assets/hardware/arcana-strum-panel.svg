@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 530" role="img" aria-labelledby="title description">
+<title id="title">Arcana Strum top panel</title><desc id="description">Original simplified top-down line drawing; positions are illustrative, not mechanical dimensions. Labels identify physical controls, not guaranteed MIDI assignments.</desc>
+<metadata>Symbol vocabulary: NYU ABILITY Project / IDM SynthAccess; https://github.com/IDMNYU/synthaccess/tree/ee1ef12cec3a3fb6be59a7861f7df8848be2dafe/tactileSynthGuides. Original schematic geometry; physical controls do not imply MIDI mappings.</metadata>
+<defs>
+<pattern id="tactile-stripes" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#fff"/><path d="M0 3H6" stroke="#000" stroke-width="2"/></pattern>
+<pattern id="tactile-dots" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><circle cx="2" cy="2" r="1.5" fill="#000"/><circle cx="6" cy="6" r="1.5" fill="#000"/></pattern>
+</defs>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#000;stroke:none}.line{fill:#fff;stroke:#000;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}.thin{fill:none;stroke:#000;stroke-width:1;stroke-linejoin:round;stroke-linecap:round}</style>
+<rect x="0" y="0" width="1400" height="530" fill="#fff" stroke="none" stroke-width="1.6"/>
+<rect x="9" y="9" width="1382" height="512" fill="#fff" stroke="#000" stroke-width="1.6" rx="45"/>
+<text x="25" y="37" fill="#000" font-family="Arial,Helvetica,sans-serif" font-size="19" text-anchor="start" font-weight="bold">Arcana Strum</text>
+<text x="1375" y="37" fill="#000" font-family="Arial,Helvetica,sans-serif" font-size="11" text-anchor="end">TOP VIEW</text>
+<rect x="45" y="100" width="430" height="330" fill="#fff" stroke="#000" stroke-width="1.6" rx="3"/>
+<g id="five-key-touch-cluster-playing-key-1" data-kind="touch" aria-label="Playing key 1"><title>Playing key 1</title>
+<circle cx="260" cy="266.835" r="22.021" fill="#fff" stroke="#000" stroke-width="1.6"/>
+<path d="M260 247.814L260 259.128" fill="none" stroke="#000" stroke-width="1"/>
+<circle cx="260" cy="266.835" r="17.617" fill="#fff" stroke="#000" stroke-width="1.6"/>
+</g>
+<g id="five-key-touch-cluster-playing-key-2" data-kind="touch" aria-label="Playing key 2"><title>Playing key 2</title>
+<circle cx="135.3" cy="266.835" r="22.021" fill="#fff" stroke="#000" stroke-width="1.6"/>
+<path d="M135.3 247.814L135.3 259.128" fill="none" stroke="#000" stroke-width="1"/>
+<circle cx="135.3" cy="266.835" r="17.617" fill="#fff" stroke="#000" stroke-width="1.6"/>
+</g>
+<g id="five-key-touch-cluster-playing-key-3" data-kind="touch" aria-label="Playing key 3"><title>Playing key 3</title>
+<circle cx="260" cy="172.435" r="22.021" fill="#fff" stroke="#000" stroke-width="1.6"/>
+<path d="M260 153.414L260 164.728" fill="none" stroke="#000" stroke-width="1"/>
+<circle cx="260" cy="172.435" r="17.617" fill="#fff" stroke="#000" stroke-width="1.6"/>
+</g>
+<g id="five-key-touch-cluster-playing-key-4" data-kind="touch" aria-label="Playing key 4"><title>Playing key 4</title>
+<circle cx="384.7" cy="266.835" r="22.021" fill="#fff" stroke="#000" stroke-width="1.6"/>
+<path d="M384.7 247.814L384.7 259.128" fill="none" stroke="#000" stroke-width="1"/>
+<circle cx="384.7" cy="266.835" r="17.617" fill="#fff" stroke="#000" stroke-width="1.6"/>
+</g>
+<g id="five-key-touch-cluster-playing-key-5" data-kind="touch" aria-label="Playing key 5"><title>Playing key 5</title>
+<circle cx="260" cy="361.235" r="22.021" fill="#fff" stroke="#000" stroke-width="1.6"/>
+<path d="M260 342.214L260 353.528" fill="none" stroke="#000" stroke-width="1"/>
+<circle cx="260" cy="361.235" r="17.617" fill="#fff" stroke="#000" stroke-width="1.6"/>
+</g>
+<rect x="495" y="125" width="490" height="270" fill="#fff" stroke="#000" stroke-width="1.6" rx="3"/>
+<g id="mode-buttons-duration" data-kind="button" aria-label="Duration"><title>Duration</title>
+<svg data-symbol="button" x="536.750" y="181.035" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<g id="mode-buttons-melodic-mode" data-kind="button" aria-label="Melodic mode"><title>Melodic mode</title>
+<svg data-symbol="button" x="656.250" y="181.035" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<g id="mode-buttons-septachords" data-kind="button" aria-label="SeptaChords"><title>SeptaChords</title>
+<svg data-symbol="button" x="775.750" y="181.035" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<g id="mode-buttons-power-reset" data-kind="button" aria-label="Power / Reset"><title>Power / Reset</title>
+<svg data-symbol="button" x="895.250" y="181.035" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<g id="mode-buttons-transpose" data-kind="button" aria-label="Transpose -"><title>Transpose -</title>
+<svg data-symbol="button" x="536.750" y="298.535" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<g id="mode-buttons-transpose-2" data-kind="button" aria-label="Transpose +"><title>Transpose +</title>
+<svg data-symbol="button" x="656.250" y="298.535" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<g id="mode-buttons-mode-1" data-kind="button" aria-label="Mode 1"><title>Mode 1</title>
+<svg data-symbol="button" x="775.750" y="298.535" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<g id="mode-buttons-mode-2" data-kind="button" aria-label="Mode 2"><title>Mode 2</title>
+<svg data-symbol="button" x="895.250" y="298.535" width="48.000" height="48.000" viewBox="0 0 40 40"><g fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="34" height="34" fill="#fff"/><path d="M3 3L10 10M37 3L30 10M3 37L10 30M37 37L30 30"/><rect x="10" y="10" width="20" height="20" fill="#000"/></g></svg>
+</g>
+<rect x="1010" y="100" width="345" height="330" fill="#fff" stroke="#000" stroke-width="1.6" rx="3"/>
+<g id="strum-stick-strum-handle" data-kind="joystick" aria-label="Strum handle"><title>Strum handle</title>
+<rect x="1066.233" y="153.518" width="232.534" height="232.534" fill="#fff" stroke="#000" stroke-width="1.6" rx="9"/>
+<path d="M1112.74 269.785L1252.26 269.785" fill="none" stroke="#000" stroke-width="1"/>
+<path d="M1182.5 200.025L1182.5 339.545" fill="none" stroke="#000" stroke-width="1"/>
+<circle cx="1182.5" cy="269.785" r="44.182" fill="#fff" stroke="#000" stroke-width="1.6"/>
+<circle cx="1182.5" cy="269.785" r="74.411" fill="#fff" stroke="#000" stroke-width="1.6"/>
+</g>
+</svg>

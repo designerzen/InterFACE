@@ -304,7 +304,7 @@
 		"holoplay-core": "^0.0.11",
 		"html2pdf.js": "^0.14.0",
 		"is-electron": "^2.2.2",
-		"midi-devices": "github:designerzen/midi-devices",
+		"midi-devices": "workspace:*",
 		"midi-manufacturers": "^1.1.0",
 		"midi-writer-js": "^3.2.1",
 		"mpe": "^1.0.4",

@@ -3,6 +3,9 @@ import { isDigitCMPSRPort } from '../source/hardware/digit/cmpsr.js'
 
 jest.mock('../source/dom/tooltips.js', () => ({ setToast: jest.fn() }))
 
+// The device catalogue is a static file; these tests run without it
+globalThis.fetch ??= jest.fn(() => Promise.reject(new Error('offline')))
+
 describe('MIDI HUD status entries', () => {
 	test('lists every person sharing a single MIDI output', () => {
 		const people = [
@@ -48,9 +51,8 @@ describe('MIDI HUD status entries', () => {
 		expect(input.id).toBe('midi-input-in-a')
 		expect(input.tooltipDetails).toEqual(expect.arrayContaining([
 			{ label: 'Channels', value: 'All channels (1–16)' },
-			{ label: 'One', value: 'Receives input when active · All channels (1–16)' },
-			{ label: 'Two', value: 'Receives input when active · All channels (1–16)' },
-			{ label: 'Three', value: 'Receives input when active · All channels (1–16)' },
+			// New inputs are observed without playing until given a mode
+			{ label: 'Plays', value: 'Monitor only' },
 		]))
 		expect(outputA.tooltipDetails).toEqual(expect.arrayContaining([
 			{ label: 'One', value: 'One → Synth A · Channel 1' },

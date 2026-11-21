@@ -314,8 +314,8 @@ importers:
         specifier: ^2.2.2
         version: 2.2.2
       midi-devices:
-        specifier: github:designerzen/midi-devices
-        version: https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126
+        specifier: workspace:*
+        version: link:packages/midi-devices
       midi-manufacturers:
         specifier: ^1.1.0
         version: 1.1.0
@@ -672,6 +672,15 @@ importers:
       three:
         specifier: '>=0.186.1 <0.187.0'
         version: 0.186.1
+
+  packages/midi-devices:
+    devDependencies:
+      ajv:
+        specifier: ^8.17.1
+        version: 8.20.0
+      happy-dom:
+        specifier: ^21.0.4
+        version: 21.0.4(bufferutil@4.1.0)(utf-8-validate@6.0.3)
 
   source/electron/lib/macos-coremidi:
     dependencies:
@@ -6229,6 +6238,12 @@ packages:
   '@types/webgl2@0.0.6':
     resolution: {integrity: sha512-50GQhDVTq/herLMiqSQkdtRu+d5q/cWHn4VvKJtrj4DJAjo1MNkWYa2MA41BaBO1q1HgsUjuQvEOk0QHvlnAaQ==}
 
+  '@types/whatwg-mimetype@3.0.2':
+    resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
+
+  '@types/ws@8.18.2':
+    resolution: {integrity: sha512-67MQl+fpWKVTT1NYdnmo3U4sc/xPo/zQBncVnI74qmQa0z/b+1g6iYqNmGCPbxO+zz2aklb08a0oHfegiVd0/w==}
+
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
 
@@ -6977,6 +6992,10 @@ packages:
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
 
+  buffer-image-size@0.6.4:
+    resolution: {integrity: sha512-nEh+kZOPY1w+gcCMobZ6ETUp9WfibndnosbpwB1iJk/8Gt5ZF2bhS6+B6bPYz424KtwsR6Rflc3tCz1/ghX2dQ==}
+    engines: {node: '>=4.0'}
+
   buffer-xor@1.0.3:
     resolution: {integrity: sha512-571s0T7nZWK6vB67HI5dyUF7wXiNcfaPPPTl6zYCNApANjIvYJTg7hlud/+cJpdAhS7dVzqMLmfhfHR3rAcOjQ==}
 
@@ -7305,8 +7324,8 @@ packages:
   constantinople@4.0.1:
     resolution: {integrity: sha512-vCrqcSIq4//Gx74TXXCGnHpulY1dskqLTFGDmhrGxzeXL8lF8kvXv6mpNWlJj1uD4DW23D4ljAqbY4RRaaUZIw==}
 
-  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f:
-    resolution: {gitHosted: true, integrity: sha512-LA7xAl66M91KYm4NMxYIjn7reKgNsklyUfccVXzGhBclVUyyVG9FP8gXhb4jXez4tnhTy9NnOdMY/Cl5Bv52rw==, tarball: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f}
+  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/c0170126cfcec5ab53a174fec1fe600087a141b1:
+    resolution: {gitHosted: true, integrity: sha512-YpNk6pMtWi3M0/2bAm2JG3UVGQC91coydb7MX7nAKPkCPHf92pLKudPlrEJbVydPAqJ4TikYLEanv2hfEVmr8w==, tarball: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/c0170126cfcec5ab53a174fec1fe600087a141b1}
     version: 0.1.0
 
   conventional-changelog-angular@5.0.13:
@@ -7940,6 +7959,10 @@ packages:
     resolution: {integrity: sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==}
     engines: {node: '>=0.12'}
 
+  entities@7.0.1:
+    resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
+    engines: {node: '>=0.12'}
+
   entities@8.0.0:
     resolution: {integrity: sha512-zwfzJecQ/Uej6tusMqwAqU/6KL2XaB2VZ2Jg54Je6ahNBGNH6Ek6g3jjNCF0fG9EWQKGZNddNjU5F1ZQn/sBnA==}
     engines: {node: '>=20.19.0'}
@@ -8516,6 +8539,10 @@ packages:
     resolution: {integrity: sha512-4E71E0rpOaQuJR2A3xDZ+GM1HyWYv1clR58tC8emQNeQe3RH7MAzSbat+V0wG78LQBo6m6bzSG/L4pBuCsgnUQ==}
     engines: {node: '>=0.4.7'}
     hasBin: true
+
+  happy-dom@21.0.4:
+    resolution: {integrity: sha512-tFm+GaLBgo6o0awHnvHaNoraVo27qJ+2tZEtZ+cIa08hXbeitrxAJajLI05hsUy/2/YTKcUjQYzHe5mCcraLBw==}
+    engines: {node: '>=20.0.0'}
 
   har-schema@2.0.0:
     resolution: {integrity: sha512-Oqluz6zhGX8cyRaTQlFMPw80bSJVG2x/cFb8ZPhUILGgHka9SsokCCOQgpveePerqidZOrT14ipqfJb7ILcW5Q==}
@@ -9609,9 +9636,9 @@ packages:
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
-  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126:
-    resolution: {gitHosted: true, integrity: sha512-zdIwnTSHoe2ZgEhtndN4/9z0mb/Pu0eQEpSQdUprZUoN/rnXsJcXl7KN0NIbc6QVI90vcErSxX7IhLEpJaPOKA==, tarball: https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126}
-    version: 1.0.0
+  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/7a93a419b053746baa7e615194de05c13efc3663:
+    resolution: {gitHosted: true, integrity: sha512-Z1JzWyzKLwifM8lDwZx6MooERbJ4KtDUdJ79oou8qHVqYVvtIrLk8kkXVMECnh/s4BvNdgOSX8YaaEf4j+Z2wg==, tarball: https://codeload.github.com/designerzen/midi-devices/tar.gz/7a93a419b053746baa7e615194de05c13efc3663}
+    version: 1.0.1
 
   midi-file@1.2.4:
     resolution: {integrity: sha512-B5SnBC6i2bwJIXTY9MElIydJwAmnKx+r5eJ1jknTLetzLflEl0GWveuBB6ACrQpecSRkOB6fhTx1PwXk2BVxnA==}
@@ -10432,8 +10459,8 @@ packages:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
 
-  pitfalls@https://codeload.github.com/designerzen/pitfalls/tar.gz/d5d7828e2ba4dfe70f2dbc093efecff7b53699d6:
-    resolution: {gitHosted: true, integrity: sha512-/1nibqkAcMk8mYhqPNWHi3KT2j/MbnmNnZv4KdH8SAE0+P+nOGykl0qqy0AAdqeBWl0vdeSYeKdGNbS4f4IFqw==, tarball: https://codeload.github.com/designerzen/pitfalls/tar.gz/d5d7828e2ba4dfe70f2dbc093efecff7b53699d6}
+  pitfalls@https://codeload.github.com/designerzen/pitfalls/tar.gz/0ac78cc94c385ae0109d4e25460ea55acad87fbf:
+    resolution: {gitHosted: true, integrity: sha512-8RVZEaRekkRHEVWuzw95lLvlPXDfLGsQZw8oVohO06Vg1RRfGMO0MdCVVvQ+YIMurDZ9tglpTrKbDE+t/dQwqw==, tarball: https://codeload.github.com/designerzen/pitfalls/tar.gz/0ac78cc94c385ae0109d4e25460ea55acad87fbf}
     version: 0.1.1
 
   pixelmatch@4.0.2:
@@ -11246,8 +11273,8 @@ packages:
   simple-yenc@1.0.4:
     resolution: {integrity: sha512-5gvxpSd79e9a3V4QDYUqnqxeD4HGlhCakVpb6gMnDD7lexJggSBJRBO5h52y/iJrdXRilX9UCuDaIJhSWm5OWw==}
 
-  sion@https://codeload.github.com/designerzen/SiON/tar.gz/1a80e5c9452177c105b4c0eea0fdeb07b2541622:
-    resolution: {gitHosted: true, integrity: sha512-UuZt8PLAj1XDa4Ou2aCAWT+KcdZv9ZKTRi+OYBtDtDGd9ixWH6eQp+SN1J1VK6D3jNeL9PJB6DIl5C8wShgWTQ==, tarball: https://codeload.github.com/designerzen/SiON/tar.gz/1a80e5c9452177c105b4c0eea0fdeb07b2541622}
+  sion@https://codeload.github.com/designerzen/SiON/tar.gz/343a133aa1c734a0ba611ebdb4bbcbfb6a57386f:
+    resolution: {gitHosted: true, integrity: sha512-lTV3jmWjTM+acfRrZ+R7QaqgmNh9FYvNGZ/C0X8LbBXN8zix5dnudu/GBNpyceuAiNVxP4YGJqfbRGLxvt3/8g==, tarball: https://codeload.github.com/designerzen/SiON/tar.gz/343a133aa1c734a0ba611ebdb4bbcbfb6a57386f}
     version: 0.1.0
 
   sisteransi@1.0.5:
@@ -11630,8 +11657,8 @@ packages:
   text-segmentation@1.0.3:
     resolution: {integrity: sha512-iOiPUo/BGnZ6+54OsWxZidGCsdU8YbE4PSpdPinp7DeMtUJNJBoJ/ouUSTJjHkh1KntHaltHl/gDs2FC4i5+Nw==}
 
-  theremid@https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/84e46c32caedf0becf69669a09fef0559e0572cc:
-    resolution: {gitHosted: true, integrity: sha512-ryGFeikFaAdL03JppvlkWPLNCa7p2NVIuabrYNk9PKFHazu7Z4N98qz5emR4wYg0RPQW8jRfy7Oy5M/1wkkO9w==, tarball: https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/84e46c32caedf0becf69669a09fef0559e0572cc}
+  theremid@https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/1a8cf6f762e90fb9e93f087b66fd33ca063b0218:
+    resolution: {gitHosted: true, integrity: sha512-AkJbooiqp4uGNFDR6FvIFf81fe17fny2xnwyUaujUzYtNZ7hjrK+J/dnd3CdEIo1/hViezBSAf8tCUvdA4BHxA==, tarball: https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/1a8cf6f762e90fb9e93f087b66fd33ca063b0218}
     version: 2.0.0
 
   three-addons@1.2.0:
@@ -12255,6 +12282,10 @@ packages:
 
   whatwg-fetch@3.6.20:
     resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
+
+  whatwg-mimetype@3.0.0:
+    resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
+    engines: {node: '>=12'}
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -19576,6 +19607,12 @@ snapshots:
 
   '@types/webgl2@0.0.6': {}
 
+  '@types/whatwg-mimetype@3.0.2': {}
+
+  '@types/ws@8.18.2':
+    dependencies:
+      '@types/node': 26.6.6
+
   '@types/yargs-parser@21.0.3': {}
 
   '@types/yargs@17.0.35':
@@ -19969,18 +20006,18 @@ snapshots:
       butterchurn: 2.6.7
       butterchurn-presets: 2.4.7
       coi-serviceworker: 0.1.7
-      control-surface: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f
+      control-surface: https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/c0170126cfcec5ab53a174fec1fe600087a141b1
       fflate: 0.8.3
       kokoro-js: 1.2.1
       lz-string: 1.5.0
-      midi-devices: https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126
+      midi-devices: https://codeload.github.com/designerzen/midi-devices/tar.gz/7a93a419b053746baa7e615194de05c13efc3663
       netronome: https://codeload.github.com/designerzen/netronome/tar.gz/b3af4196336cb901c74832cb3a9ef007a4bed4a3(@types/emscripten@1.41.5)
-      pitfalls: https://codeload.github.com/designerzen/pitfalls/tar.gz/d5d7828e2ba4dfe70f2dbc093efecff7b53699d6
-      sion: https://codeload.github.com/designerzen/SiON/tar.gz/1a80e5c9452177c105b4c0eea0fdeb07b2541622
+      pitfalls: https://codeload.github.com/designerzen/pitfalls/tar.gz/0ac78cc94c385ae0109d4e25460ea55acad87fbf
+      sion: https://codeload.github.com/designerzen/SiON/tar.gz/343a133aa1c734a0ba611ebdb4bbcbfb6a57386f
       standardized-audio-context: 25.3.77
       supersonic-scsynth: 0.64.0
       supersonic-scsynth-bundle: 0.64.0
-      theremid: https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/84e46c32caedf0becf69669a09fef0559e0572cc
+      theremid: https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/1a8cf6f762e90fb9e93f087b66fd33ca063b0218
       tone: 15.1.22
       vexflow: 5.0.0
       webmidi: 3.3.1
@@ -20317,6 +20354,10 @@ snapshots:
   buffer-equal@0.0.1: {}
 
   buffer-from@1.1.2: {}
+
+  buffer-image-size@0.6.4:
+    dependencies:
+      '@types/node': 26.6.6
 
   buffer-xor@1.0.3: {}
 
@@ -20671,7 +20712,7 @@ snapshots:
       '@babel/parser': 7.29.8
       '@babel/types': 7.29.8
 
-  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/2f55fb7739964402ea06a9b4cf683b2d7a08100f: {}
+  control-surface@https://codeload.github.com/designerzen/audiobus-control-surface/tar.gz/c0170126cfcec5ab53a174fec1fe600087a141b1: {}
 
   conventional-changelog-angular@5.0.13:
     dependencies:
@@ -21370,6 +21411,8 @@ snapshots:
   entities@4.5.0: {}
 
   entities@6.0.1: {}
+
+  entities@7.0.1: {}
 
   entities@8.0.0: {}
 
@@ -22095,6 +22138,19 @@ snapshots:
       wordwrap: 1.0.0
     optionalDependencies:
       uglify-js: 3.19.3
+
+  happy-dom@21.0.4(bufferutil@4.1.0)(utf-8-validate@6.0.3):
+    dependencies:
+      '@types/node': 26.6.6
+      '@types/whatwg-mimetype': 3.0.2
+      '@types/ws': 8.18.2
+      buffer-image-size: 0.6.4
+      entities: 7.0.1
+      whatwg-mimetype: 3.0.0
+      ws: 8.23.0(bufferutil@4.1.0)(utf-8-validate@6.0.3)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   har-schema@2.0.0: {}
 
@@ -23476,7 +23532,7 @@ snapshots:
 
   merge-stream@2.0.0: {}
 
-  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/4412c071cabe46ff1021226bd1c839e76059c126: {}
+  midi-devices@https://codeload.github.com/designerzen/midi-devices/tar.gz/7a93a419b053746baa7e615194de05c13efc3663: {}
 
   midi-file@1.2.4: {}
 
@@ -24275,7 +24331,7 @@ snapshots:
 
   pirates@4.0.7: {}
 
-  pitfalls@https://codeload.github.com/designerzen/pitfalls/tar.gz/d5d7828e2ba4dfe70f2dbc093efecff7b53699d6: {}
+  pitfalls@https://codeload.github.com/designerzen/pitfalls/tar.gz/0ac78cc94c385ae0109d4e25460ea55acad87fbf: {}
 
   pixelmatch@4.0.2:
     dependencies:
@@ -25364,7 +25420,7 @@ snapshots:
 
   simple-yenc@1.0.4: {}
 
-  sion@https://codeload.github.com/designerzen/SiON/tar.gz/1a80e5c9452177c105b4c0eea0fdeb07b2541622: {}
+  sion@https://codeload.github.com/designerzen/SiON/tar.gz/343a133aa1c734a0ba611ebdb4bbcbfb6a57386f: {}
 
   sisteransi@1.0.5: {}
 
@@ -25785,7 +25841,7 @@ snapshots:
     dependencies:
       utrie: 1.0.2
 
-  theremid@https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/84e46c32caedf0becf69669a09fef0559e0572cc: {}
+  theremid@https://codeload.github.com/designerzen/Leap-Motion-Theremin/tar.gz/1a8cf6f762e90fb9e93f087b66fd33ca063b0218: {}
 
   three-addons@1.2.0:
     dependencies:
@@ -26431,6 +26487,8 @@ snapshots:
       iconv-lite: 0.6.3
 
   whatwg-fetch@3.6.20: {}
+
+  whatwg-mimetype@3.0.0: {}
 
   whatwg-mimetype@4.0.0: {}
 
