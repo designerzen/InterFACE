@@ -1,4 +1,4 @@
-import { getCameraErrorCode, getErrorMessage } from '../source/dom/errors.js'
+import { getCameraErrorCode, getErrorMessage, showError, showErrorCode } from '../source/dom/errors.js'
 
 describe('translatable error messages', () => {
 	test.each([
@@ -16,5 +16,32 @@ describe('translatable error messages', () => {
 		expect(message.problem).toBeTruthy()
 		expect(message.solution).toBeTruthy()
 		expect(`${message.problem}${message.solution}`).not.toMatch(/<[^>]+>/)
+	})
+})
+
+describe('error dialog camera help', () => {
+	beforeEach(() => {
+		document.body.innerHTML = `<dialog id="errors"><form>
+			<h5 id="error-title"></h5><p id="error-message"></p><p id="error-solution"></p>
+			<details id="error-help"><summary id="error-help-label"></summary><p id="error-help-text"></p></details>
+			<details id="error-technical"><summary id="error-details-label"></summary><p id="error-details"></p></details>
+			<audio></audio>
+			<menu><button class="reload-app"><span id="error-primary-label"></span></button>
+			<button class="camera-help"><span id="error-secondary-label"></span></button></menu>
+			<button class="close"></button>
+		</form></dialog>`
+	})
+
+	const isCameraHelpHidden = () => document.getElementById('error-help').hidden && document.querySelector('.camera-help').hidden
+
+	test('hides camera help for problems that are not caused by the camera', () => {
+		showError('PhotoSYNTH could not start', 'Reload the page to try again.', true, 'NotAllowedError: Permission to use Web MIDI API was not granted.')
+		expect(isCameraHelpHidden()).toBe(true)
+	})
+
+	test('shows camera help for camera errors', () => {
+		showErrorCode('camera-permission-denied')
+		expect(document.getElementById('error-help').hidden).toBe(false)
+		expect(document.querySelector('.camera-help').hidden).toBe(false)
 	})
 })

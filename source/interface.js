@@ -2752,7 +2752,7 @@ export const createInterface = (
 			}catch(error){
 				console.error("Camera:Error > ",{selected,error})
 				setToast( `Camera ${selected.label} could not be accessed`, 0 )
-				showError( `Camera ${selected.label} could not be accessed`, "the requested camera appears to either be already in use by other software, or it cannot be directly accessed. Try closing other programs and swapping the USB port if possible.", true)
+				showError( `Camera ${selected.label} could not be accessed`, "the requested camera appears to either be already in use by other software, or it cannot be directly accessed. Try closing other programs and swapping the USB port if possible.", true, "", { cameraHelp:true })
 			}
 			 
 			isCameraLoading = false
@@ -4359,21 +4359,36 @@ export const createInterface = (
 
 
 		
+		// MIDI is optional so a refusal or failure here must never stop the app
+		let isMIDIRefused = false
+
 		// FIXME: Hangs here on certain devices....
 		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
 		{
 			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
-			
+
 			// this has a timeout!
-			isMIDIAvailable = await establishMIDI()
+			try{
+				isMIDIAvailable = await establishMIDI()
+				if (!isMIDIAvailable)
+				{
+					setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
+				}
+			}catch(error){
+				isMIDIAvailable = false
+				isMIDIRefused = true
+				console.warn("MIDI could not be enabled, continuing without MIDI", error)
+				const message = error?.name === "NotAllowedError" || error?.name === "SecurityError" ?
+					"MIDI access was refused<br>PhotoSYNTH will continue without MIDI" :
+					"MIDI could not be started<br>PhotoSYNTH will continue without MIDI"
+				main.classList.add('no-midi', 'midi-unavailable')
+				setToast(message, 0)
+				setFeedback(message, 0, 'midi')
+			}
 
 			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
 
-			if (!isMIDIAvailable)
-			{
-				setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
-			}
-			if (stateMachine.get("midiInput"))
+			if (!isMIDIRefused && stateMachine.get("midiInput"))
 			{
 				observeMIDIInputs({
 					stateMachine,
@@ -4391,7 +4406,7 @@ export const createInterface = (
 
 		// FIXME: ONLY Use webmidi?
 		// This first tests for functions to exist
-		if (stateMachine.get("midi") && midiManager.available)
+		if (!isMIDIRefused && stateMachine.get("midi") && midiManager.available)
 		{
 			// The MIDI relay option will send any MIDI messages received back out
 			
@@ -4423,6 +4438,14 @@ export const createInterface = (
 				setToast("MIDI unavailable, or no instrument connected<br>"+error, 0)
 			}
 			progressCallback(loadIndex++/loadTotal, "MIDI Located")
+
+		}else if (isMIDIRefused || !stateMachine.get("midi")){
+
+			// either the user has already been told that MIDI was refused
+			// or MIDI was switched off so there is nothing to report
+			progressCallback(loadIndex++/loadTotal)
+			isMIDIAvailable = false
+			main.classList.add('midi-unavailable')
 
 		}else{
 

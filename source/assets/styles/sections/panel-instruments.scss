@@ -373,6 +373,18 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		block-size: var(--player-header-height);
+		z-index: 304;
+	}
+
+	// The player header and the family summaries are both sticky,
+	// so the summaries stop beneath the header instead of covering it
+	&:has(> .player-header){
+		--player-header-height: calc(44px + var(--pad, 1rem) * 2);
+
+		summary{
+			top: var(--player-header-height);
+		}
 	}
 
 	.player-report-button{

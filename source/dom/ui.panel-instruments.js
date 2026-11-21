@@ -499,7 +499,8 @@ export const addInteractivityToInstrumentPanel = (controls, onInstrumentInput, p
 export const createDraggablePanel = (person, controls, onLeftSide=true, activeClassName="expanded", considerOpenAt=0.5) => {
 
 	const playerToggleSelector = ".person-toggle-controls"
-	const playerName = controls.className.split(" ")[1] //.replace("person-","" ).replace("-panel","" )
+	// must match Person.showForm so the document classes open and close in pairs
+	const playerName = person.id
 	const drawerToggle = controls.querySelector( playerToggleSelector )
 	
 	let isDrawerOpen = controls.classList.contains(activeClassName)

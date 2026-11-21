@@ -26,6 +26,7 @@ export const showErrorCode = (code, { fatal=true, details='' }={}) => {
 		title:message.title,
 		primaryAction:message.primaryAction,
 		secondaryAction:message.secondaryAction,
+		cameraHelp:code.startsWith('camera-') || !getErrorMessage(code),
 	})
 }
 
@@ -77,7 +78,13 @@ export const showError = (error, solution, fatal=false, details="", options={} )
 
 	dialog.querySelector('.reload-app').onclick = () => window.location.reload()
 	const help = document.getElementById('error-help')
-	dialog.querySelector('.camera-help').onclick = () => {
+	const helpButton = dialog.querySelector('.camera-help')
+	// camera advice is only relevant when the camera caused the problem
+	const showCameraHelp = options.cameraHelp === true
+	help.hidden = !showCameraHelp
+	helpButton.hidden = !showCameraHelp
+	if (!showCameraHelp) help.open = false
+	helpButton.onclick = () => {
 		help.open = true
 		help.querySelector('summary')?.focus()
 	}

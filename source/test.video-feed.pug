@@ -1,0 +1,7 @@
+//- The full application with a looping video file standing in for the camera.
+//- Nothing about the GUI is changed so that the same issues appear as in use.
+//- Options : ?testVideo=url &testCameras=n &testControls=false
+extends index.pug
+
+block prepend scripts
+	script(type="module" src="tests/test.video-feed.js")
