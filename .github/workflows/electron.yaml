@@ -34,6 +34,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      # Build against the latest midi-devices catalogue, not the recorded commit
+      - name: Update submodules to their tracked branch
+        run: git submodule update --remote
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -199,6 +205,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      # Build against the latest midi-devices catalogue, not the recorded commit
+      - name: Update submodules to their tracked branch
+        run: git submodule update --remote
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
