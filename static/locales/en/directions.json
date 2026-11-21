@@ -1,19 +1,19 @@
 {
 	"complete": {
 		"icon": "complete",
-		"message": "You tried every face challenge in this set! Keep playing and see what sounds you can find."
+		"message": "🎉 You did ALL the faces! Keep playing to make more music! 🎶"
 	},
 	"basic": {
 		"default": [
 			{
 				"id": "first-spark",
-				"title": "Smile time",
-				"message": "Try a smile. Imagine your favourite song just came on.",
-				"hint": "Gently lift the corners of your mouth and hold for a moment.",
-				"encouragement": "A little smile is welcome too. Take your time.",
-				"congratulation": "Smile spotted!",
+				"title": "😀 Big smile!",
+				"message": "Copy me! 😀 Give a big happy smile!",
+				"hint": "Push your cheeks up high, like you just got a present 🎁",
+				"encouragement": "Even a teeny smile counts! 🙂",
+				"congratulation": "😀 Yay! Super smile!",
 				"points": 10,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -29,13 +29,13 @@
 			},
 			{
 				"id": "plot-twist",
-				"title": "Oh! A dragon!",
-				"message": "Make an 'O' with your mouth. A tiny dragon just sneezed.",
-				"hint": "Open your mouth into a gentle 'O' and let your smile relax.",
-				"encouragement": "A tiny dragon only needs a little surprise.",
-				"congratulation": "Oh! There it is!",
+				"title": "😮 Say Ooh!",
+				"message": "Copy me! 😮 Make your mouth round like an O!",
+				"hint": "Pretend you just saw a dog on a skateboard 🐶🛹",
+				"encouragement": "Make your mouth into a little circle ⭕",
+				"congratulation": "😮 Ooh! Brilliant!",
 				"points": 12,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -49,13 +49,13 @@
 			},
 			{
 				"id": "comet-post",
-				"title": "Send a kiss",
-				"message": "Pucker your lips, as if blowing a kiss.",
-				"hint": "Gently bring your lips forward. You do not need to make a sound.",
-				"encouragement": "Take your time. This kiss can travel at its own speed.",
-				"congratulation": "Mwah! Got it.",
+				"title": "😗 Fishy lips!",
+				"message": "Copy me! 😗 Push your lips out like a fish!",
+				"hint": "Squish your lips together and push them forward 🐟",
+				"encouragement": "Blub blub! You've got this 🐠",
+				"congratulation": "😘 Mwah! Fin-tastic!",
 				"points": 12,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -68,13 +68,13 @@
 			},
 			{
 				"id": "secret-signal",
-				"title": "Secret signal",
-				"message": "Try a wink, if it feels comfortable. Secret signal time.",
-				"hint": "Close one eye while keeping the other open. Either eye can wink.",
-				"encouragement": "Tricky one? You can let it pass and keep playing.",
-				"congratulation": "Signal received!",
+				"title": "😉 Wink!",
+				"message": "Copy me! 😉 Close just one eye!",
+				"hint": "Keep one eye open and close the other. Either eye is fine 👁️",
+				"encouragement": "Winks are tricky! Try a slow one 😉",
+				"congratulation": "😉 Secret wink spotted!",
 				"points": 15,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -84,13 +84,13 @@
 			},
 			{
 				"id": "mischief-maker",
-				"title": "Time for mischief",
-				"message": "Stick your tongue out gently. Very serious music-making.",
-				"hint": "Let your tongue peek out. No need to stretch.",
-				"encouragement": "A little silliness goes a long way.",
-				"congratulation": "Excellent silliness!",
+				"title": "😛 Cheeky tongue!",
+				"message": "Copy me! 😛 Stick your tongue out!",
+				"hint": "Just let the tip of your tongue poke out 👅",
+				"encouragement": "Be as silly as you like! 🤪",
+				"congratulation": "😛 Hee hee! So silly!",
 				"points": 15,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -102,13 +102,13 @@
 			},
 			{
 				"id": "quiet-island",
-				"title": "Take a breather",
-				"message": "Let your face relax. Even musicians take a breather.",
-				"hint": "Let your mouth and eyebrows rest, with your eyes open.",
-				"encouragement": "There is no hurry. Get comfy.",
-				"congratulation": "And... relax.",
+				"title": "😐 Statue face!",
+				"message": "Copy me! 😐 Freeze like a statue!",
+				"hint": "No smiling! Keep your face still and calm 🗿",
+				"encouragement": "Shhh... stay very still 🤫",
+				"congratulation": "😐 Perfect statue!",
 				"points": 10,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -123,13 +123,13 @@
 		"default": [
 			{
 				"id": "first-spark",
-				"title": "Smile time",
-				"message": "Try a smile. Imagine your favourite song just came on.",
-				"hint": "Gently lift the corners of your mouth and hold for a moment.",
-				"encouragement": "A little smile is welcome too. Take your time.",
-				"congratulation": "Smile spotted!",
+				"title": "😀 Big smile!",
+				"message": "Copy me! 😀 Give a big happy smile!",
+				"hint": "Push your cheeks up high, like you just got a present 🎁",
+				"encouragement": "Even a teeny smile counts! 🙂",
+				"congratulation": "😀 Yay! Super smile!",
 				"points": 10,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -145,13 +145,13 @@
 			},
 			{
 				"id": "plot-twist",
-				"title": "Oh! A dragon!",
-				"message": "Make an 'O' with your mouth. A tiny dragon just sneezed.",
-				"hint": "Open your mouth into a gentle 'O' and let your smile relax.",
-				"encouragement": "A tiny dragon only needs a little surprise.",
-				"congratulation": "Oh! There it is!",
+				"title": "😮 Say Ooh!",
+				"message": "Copy me! 😮 Make your mouth round like an O!",
+				"hint": "Pretend you just saw a dog on a skateboard 🐶🛹",
+				"encouragement": "Make your mouth into a little circle ⭕",
+				"congratulation": "😮 Ooh! Brilliant!",
 				"points": 12,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -165,13 +165,13 @@
 			},
 			{
 				"id": "comet-post",
-				"title": "Send a kiss",
-				"message": "Pucker your lips, as if blowing a kiss.",
-				"hint": "Gently bring your lips forward. You do not need to make a sound.",
-				"encouragement": "Take your time. This kiss can travel at its own speed.",
-				"congratulation": "Mwah! Got it.",
+				"title": "😗 Fishy lips!",
+				"message": "Copy me! 😗 Push your lips out like a fish!",
+				"hint": "Squish your lips together and push them forward 🐟",
+				"encouragement": "Blub blub! You've got this 🐠",
+				"congratulation": "😘 Mwah! Fin-tastic!",
 				"points": 12,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -184,13 +184,13 @@
 			},
 			{
 				"id": "secret-signal",
-				"title": "Secret signal",
-				"message": "Try a wink, if it feels comfortable. Secret signal time.",
-				"hint": "Close one eye while keeping the other open. Either eye can wink.",
-				"encouragement": "Tricky one? You can let it pass and keep playing.",
-				"congratulation": "Signal received!",
+				"title": "😉 Wink!",
+				"message": "Copy me! 😉 Close just one eye!",
+				"hint": "Keep one eye open and close the other. Either eye is fine 👁️",
+				"encouragement": "Winks are tricky! Try a slow one 😉",
+				"congratulation": "😉 Secret wink spotted!",
 				"points": 15,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -200,13 +200,13 @@
 			},
 			{
 				"id": "mischief-maker",
-				"title": "Time for mischief",
-				"message": "Stick your tongue out gently. Very serious music-making.",
-				"hint": "Let your tongue peek out. No need to stretch.",
-				"encouragement": "A little silliness goes a long way.",
-				"congratulation": "Excellent silliness!",
+				"title": "😛 Cheeky tongue!",
+				"message": "Copy me! 😛 Stick your tongue out!",
+				"hint": "Just let the tip of your tongue poke out 👅",
+				"encouragement": "Be as silly as you like! 🤪",
+				"congratulation": "😛 Hee hee! So silly!",
 				"points": 15,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -218,13 +218,13 @@
 			},
 			{
 				"id": "quiet-island",
-				"title": "Take a breather",
-				"message": "Let your face relax. Even musicians take a breather.",
-				"hint": "Let your mouth and eyebrows rest, with your eyes open.",
-				"encouragement": "There is no hurry. Get comfy.",
-				"congratulation": "And... relax.",
+				"title": "😐 Statue face!",
+				"message": "Copy me! 😐 Freeze like a statue!",
+				"hint": "No smiling! Keep your face still and calm 🗿",
+				"encouragement": "Shhh... stay very still 🤫",
+				"congratulation": "😐 Perfect statue!",
 				"points": 10,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -234,13 +234,13 @@
 			},
 			{
 				"id": "curious-detective",
-				"title": "Hmm... interesting",
-				"message": "Try raising one eyebrow. Who put a trumpet in the biscuit tin?",
-				"hint": "Gently lift one eyebrow and let your mouth relax.",
-				"encouragement": "This one takes practice. You can try again later.",
-				"congratulation": "That eyebrow has questions!",
+				"title": "🤨 One eyebrow up!",
+				"message": "Copy me! 🤨 Lift just one eyebrow!",
+				"hint": "Look like a detective with a tricky clue 🔍",
+				"encouragement": "This one is super tricky! Skip it if you like 😊",
+				"congratulation": "🤨 Hmm! Great detective face!",
 				"points": 18,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -250,13 +250,13 @@
 			},
 			{
 				"id": "front-row-wonder",
-				"title": "Wow moment",
-				"message": "Lift both eyebrows. Imagine the biggest cake you have ever seen.",
-				"hint": "Raise both eyebrows with your eyes open and your mouth gently closed.",
-				"encouragement": "Take your time with your wow face.",
-				"congratulation": "Wow! Eyebrows spotted!",
+				"title": "😳 Big eyes!",
+				"message": "Copy me! 😳 Open your eyes wide and lift your eyebrows!",
+				"hint": "Pretend you just saw a GIANT cake 🎂",
+				"encouragement": "Eyes wide open! 👀",
+				"congratulation": "😳 Wowee! Huge eyes!",
 				"points": 18,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [
@@ -266,13 +266,13 @@
 			},
 			{
 				"id": "crooked-cadence",
-				"title": "Sideways smile",
-				"message": "Try a sideways smile. Lift one corner of your mouth.",
-				"hint": "Let one corner of your mouth lift more than the other. Keep it gentle.",
-				"encouragement": "A small sideways smile is plenty to try.",
-				"congratulation": "A smile with a twist!",
+				"title": "😏 Sneaky smile!",
+				"message": "Copy me! 😏 Smile with just one side of your mouth!",
+				"hint": "Lift one corner of your mouth, like you know a secret 🤫",
+				"encouragement": "A tiny side smile is fine! 😏",
+				"congratulation": "😏 Sneaky! Love it!",
 				"points": 18,
-				"retryMessage": "Let's try another one. We can come back to this.",
+				"retryMessage": "No worries! 👋 Let's try a different face.",
 				"expects": {
 					"type": "expression",
 					"emoji": [

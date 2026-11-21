@@ -115,7 +115,8 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='
 				speech.rate = rate
 				//0 to 2
 				speech.pitch = pitch
-				speech.text = text
+				// Emojis are visual cues, so don't read their names aloud
+				speech.text = String(text).replace(/\p{Extended_Pictographic}|[\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\uFE0F\u200D\u20E3]/gu, '').replace(/\s{2,}/g, ' ').trim()
 
 				// console.error("specific voices", {
 				//   speech, lang,
