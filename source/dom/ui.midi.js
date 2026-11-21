@@ -174,7 +174,7 @@ const createInputIntegrationHTML = (port, people, name, partner) => {
 	const integration = getMIDIDeviceIntegration(port)
 	const choosers = integration.mode === INTEGRATION_MONITOR ? '' : `<fieldset class="midi-device-people"><legend>Augments</legend>${people.map((person, i) => `<label><input type="checkbox" data-midi-integration-person value="${person.playerNumber ?? i}"${integration.people.includes(person.playerNumber ?? i) ? ' checked' : ''}> ${escapeHTML(personLabel(person, i))}</label>`).join('')}<small>None ticked follows the active person.</small></fieldset>`
 	// Only devices PhotoSYNTH can send to could bounce notes back
-	const echo = partner ? `<label class="midi-device-echo"><input type="checkbox" data-midi-integration-echo${integration.echoes ? ' checked' : ''}> Sends back what it receives</label><small>Leave ticked unless MIDI thru or echo is switched off on the device. While ticked, notes it is holding are never sent back to it.</small>` : ''
+	const echo = partner ? `<label class="midi-device-echo"><input type="checkbox" data-midi-integration-echo${integration.echoes ? ' checked' : ''}> Loop protection (recommended)</label><small>Assumes the device plays back whatever it receives (MIDI thru or echo), so it is never sent a note it is holding. Only untick if you have switched MIDI thru and echo off on the device.</small>` : ''
 	return `<p>Device → PhotoSYNTH · ${escapeHTML(describeMIDIDeviceIntegration(integration, people))}</p><label class="midi-device-channel">Plays<select data-midi-integration aria-label="How ${name} plays">${optionsHTML(INTEGRATION_MODES.map(([mode, title]) => [mode, title]), integration.mode)}</select></label>${choosers}${echo}`
 }
 

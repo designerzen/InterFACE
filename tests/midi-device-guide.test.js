@@ -40,7 +40,7 @@ test('guides a new input and saves who it augments', async () => {
 	expect(setToast).toHaveBeenCalledWith('Guide Strum connected · Play its notes · Grace')
 })
 
-test('asks whether a device that can be sent notes echoes them back', async () => {
+test('loop protection is on for a device that can be sent notes, and can be switched off', async () => {
 	const input = { id: 'echo-in', name: 'Echo Keys', manufacturer: 'Acme' }
 	const output = { id: 'echo-out', name: 'Echo Keys', manufacturer: 'Acme' }
 	await offerMIDIDeviceGuides([input], [output], people)
@@ -54,7 +54,7 @@ test('asks whether a device that can be sent notes echoes them back', async () =
 	expect(getMIDIDeviceIntegration(input).echoes).toBe(false)
 })
 
-test('does not ask about echo for a device PhotoSYNTH cannot send to', async () => {
+test('does not offer loop protection for a device PhotoSYNTH cannot send to', async () => {
 	await offerMIDIDeviceGuides([{ id: 'solo-in', name: 'Solo Pads', manufacturer: 'Acme' }], [], people)
 	expect(document.querySelector('[name="midi-guide-echo"]')).toBeNull()
 })

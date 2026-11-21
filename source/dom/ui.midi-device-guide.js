@@ -55,7 +55,7 @@ const createModesHTML = selected => `<fieldset class="midi-device-guide-modes"><
 
 const createPeopleHTML = (people, selected) => `<fieldset class="midi-device-guide-people"><legend>Who does it augment?</legend>${people.length ? people.map((person, index) => `<label><input type="checkbox" name="midi-guide-person" value="${person.playerNumber ?? index}"${selected.includes(person.playerNumber ?? index) ? ' checked' : ''}> ${escapeHTML(personLabel(person, index))}</label>`).join('') : ''}<small>Leave everyone unticked to follow whoever is active.</small></fieldset>`
 
-const createEchoHTML = echoes => `<label class="midi-device-guide-echo"><input type="checkbox" name="midi-guide-echo"${echoes ? ' checked' : ''}> It sends back what it receives</label><small>Most devices have a MIDI thru or echo setting. Leave this ticked unless it is switched off; while ticked, notes the device is holding are never sent back to it.</small>`
+const createEchoHTML = echoes => `<label class="midi-device-guide-echo"><input type="checkbox" name="midi-guide-echo"${echoes ? ' checked' : ''}> Loop protection (recommended)</label><small>Assumes the device plays back whatever it receives (MIDI thru or echo), so it is never sent a note it is holding. Only untick if you have switched MIDI thru and echo off on the device.</small>`
 
 const createGuideHTML = (group, people) => {
 	const { profile, input, output } = group
