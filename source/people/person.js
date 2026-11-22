@@ -1612,9 +1612,10 @@ export default class Person extends EventTarget{
 	 */
 	update(prediction, timeNow, forceRefresh=false){
 		const shouldTrackActivity = !!prediction && !forceRefresh
+		const eyeGesturesDisabled = typeof document !== 'undefined' && document.documentElement?.classList?.contains('a11y-disableEyeGestures')
 		const eyeAction = this.eyeInstrumentGesture.update(
 			shouldTrackActivity ? prediction : null, this.now, this.getBarDuration?.(),
-			this.instrumentLoading || this.eyeInstrumentLoading
+			this.instrumentLoading || this.eyeInstrumentLoading || eyeGesturesDisabled
 		)
 		if (eyeAction) {
 			this.loadEyeGesturePreset(eyeAction).catch(error => console.error('Eye instrument change failed', error))

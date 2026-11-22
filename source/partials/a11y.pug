@@ -77,6 +77,10 @@ dialog#accessibility-panel(aria-labelledby="a11y-title" aria-describedby="a11y-d
 				input(type="checkbox" data-preference="disableShortcuts" aria-describedby="a11y-shortcuts-hint")
 				span Disable single-key app shortcuts
 			p#a11y-shortcuts-hint.a11y-hint Prevents single letter and number keys from triggering app controls when you are using speech input or assistive keyboards.
+			label.a11y-check
+				input(type="checkbox" data-preference="disableEyeGestures" aria-describedby="a11y-eye-gestures-hint")
+				span Disable eye-closure instrument switching
+			p#a11y-eye-gestures-hint.a11y-hint Prevents holding eyes closed from automatically changing instruments.
 			details
 				summary Focus, borders and links
 				#a11y-outlines.a11y-fields

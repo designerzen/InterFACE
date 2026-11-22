@@ -60,7 +60,7 @@ export const showError = (error, solution, fatal=false, details="", options={} )
 		// Keep the error alert audio available with user controls, playing gently
 		// only when not muted and reduced motion is not requested.
 		if (audioElement) {
-			const isMuted = Boolean(document.getElementById('button-mute')?.checked)
+			const isMuted = Boolean(audioElement.muted || document.getElementById('button-mute')?.checked)
 			const reduceMotion = Boolean(
 				body.classList.contains('a11y-reduce-motion') ||
 				window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches

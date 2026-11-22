@@ -44,7 +44,7 @@ export const colours = [
 export const defaults = {
 	theme: 'original', textSize: '100', motion: 'system', readableFont: false,
 	textSpacing: false, largeTargets: false, underlineLinks: false, strongFocus: false,
-	photoSensitive: false, disableShortcuts: false,
+	photoSensitive: false, disableShortcuts: false, disableEyeGestures: false,
 	...Object.fromEntries(typography.map(([key]) => [key, 'original'])),
 	...Object.fromEntries(outlines.map(([key, , , values]) => [key, values[0]])),
 	...Object.fromEntries(colours.map(([key, , , , value]) => [key, value])),
