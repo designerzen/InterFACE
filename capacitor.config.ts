@@ -5,7 +5,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
 	"appId": "photosynth.com.designerzen",
-	"appName": "photosynth#interface",
+	"appName": "PhotoSYNTH InterFACE",
 	"bundledWebRuntime": false,
 	"npmClient": "npm",
 	"webDir": "dist",

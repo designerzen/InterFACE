@@ -28,7 +28,7 @@ fieldset#head-movement-settings.head-movement-settings.control-settings.app-inpu
 					path(d="M41 62 Q50 68 59 62")
 			label(for="head-vertical-range") Octave travel
 			input#head-vertical-range.vertical(type="range" min="20" max="120" step="1" value="90" list="head-note-range-ticks" aria-describedby="head-vertical-range-help")
-			.volume-step-controls(aria-label="Nod range adjustment controls")
+			.volume-step-controls(role="group" aria-label="Nod range adjustment controls")
 				button.volume-step-button(type="button" data-head-target="head-vertical-range" data-head-step="-5" aria-label="Decrease nod range") −
 				button.volume-step-button(type="button" data-head-target="head-vertical-range" data-head-step="5" aria-label="Increase nod range") +
 			output#head-vertical-range-output(for="head-vertical-range") 90°
@@ -45,7 +45,7 @@ fieldset#head-movement-settings.head-movement-settings.control-settings.app-inpu
 					path(d="M41 62 Q50 68 59 62")
 			label(for="head-vertical-offset") Middle height
 			input#head-vertical-offset.vertical(type="range" min="-30" max="30" step="1" value="10" list="head-vertical-offset-ticks" aria-describedby="head-vertical-offset-help")
-			.volume-step-controls(aria-label="Neutral height adjustment controls")
+			.volume-step-controls(role="group" aria-label="Neutral height adjustment controls")
 				button.volume-step-button(type="button" data-head-target="head-vertical-offset" data-head-step="-1" aria-label="Lower neutral height") −
 				button.volume-step-button(type="button" data-head-target="head-vertical-offset" data-head-step="1" aria-label="Raise neutral height") +
 			output#head-vertical-offset-output(for="head-vertical-offset") +10°

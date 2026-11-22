@@ -11,11 +11,11 @@ block preload
 	
 block header 
 	
-	a#hero(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})") Jump straight to the app
+	a#hero(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'})") Jump straight to the app
 		include /assets/diagrams/hero.svg 
 
 	#summary
-		p(aria-label="summary").new-client
+		p(data-summary).new-client
 			block summary
 				| It can be hard work playing a musical instrument...
 				| So, how about letting the musical instrument play you instead?
@@ -29,7 +29,7 @@ block header
 					li Speakers, headphones or a <abbr title="Musical Instrument Digital Interface">MIDI</abbr> instrument 
 
 		//- In Javascript we show this if the user already has this installed
-		p(aria-label="Summary" hidden).returning-client.
+		p(data-summary hidden).returning-client.
 			Welcome back old friend! It is so nice to see your face again! Continuing session.
 	
 		p Use your motions and emotions to make music! The <strong>original</strong> mood-controlled musical instrument! 
@@ -60,9 +60,9 @@ block header
 		You do not have all of the requirements to continue
 
 
-	nav#pwa
+	nav#pwa(aria-label="App actions")
 		.pwa-actions
-			a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'})")
+			a.button.button-push.button-start.text-always#start(href="#button-start-label" onclick="document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'})")
 				| Play Online!
 			button#install-pwa.button-push.button-install.icon-right.text-always(hidden type="button" title="Install this application to your homescreen")
 				| Install
@@ -86,7 +86,7 @@ block header
 			
 			tr.capability-speakers
 				th(scope="row") Speakers / Headset
-					small Make sure that the vvolume is not too quiet or muted
+					small Make sure that the volume is not too quiet or muted
 				//- td.not-available Not Available
 				//- td.available Available
 				td.result.checking Checking...
@@ -105,7 +105,7 @@ block header
 
 			tr.capability-gpu
 				th(scope="row") Graphics Processing Unit <abbr title="Graphics Processing Unit">GPU</abbr>
-					small Powerful computer prefered, desktop or gaming machines wrk best
+					small Powerful computer preferred, desktop or gaming machines work best
 				td.result.checking Checking...
 
 			tr.capability-view-transitions

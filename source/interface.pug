@@ -11,12 +11,12 @@ block above
 	#load-progress
 		label(for="progress-bar") Please wait <br>loading may take a long time
 			span.load-percent 0%
-		progress(max=1 role="progressbar" aria-describedby="app" title="Load progress" value=0 )#progress-bar.donut
+		progress(max=1 role="progressbar" title="Load progress" value=0 )#progress-bar.donut
 		
 block nav
 	ul
-		li: a#link-about(href="#fund" aria-label="Learn more about this project" onclick="window.fund.showModal()") About<span class="hide-text"> this project and how to help fund it<span>
-		li: a(href="#help" aria-label="Show some helpful information" onclick="window.help.showModal()") Help!
+		li: a#link-about(href="#fund" role="button" aria-haspopup="dialog" aria-controls="fund" aria-label="About PhotoSYNTH and how to help fund it" onclick="event.preventDefault(); window.fund.showModal()" onkeydown="if(event.key===' '){event.preventDefault(); window.fund.showModal()}") About<span class="hide-text"> this project and how to help fund it</span>
+		li: a(href="#help" role="button" aria-haspopup="dialog" aria-controls="help" aria-label="Help: show helpful information" onclick="event.preventDefault(); window.help.showModal()" onkeydown="if(event.key===' '){event.preventDefault(); window.help.showModal()}") Help!
 
 block preload
 	script document.documentElement.classList.add("loading","app")
@@ -80,14 +80,14 @@ block main
 
 			#stage
 				//- THE video element fed by video camera			
-				video#webcam(autoplay, playsinline, loop, muted="muted", oncanplay="this.muted=true", width="640", height="480")
+				video#webcam(autoplay, playsinline, loop, muted="muted", oncanplay="this.muted=true", width="640", height="480", aria-label="Live camera feed for facial expression tracking")
 					p No Video available - unable to playback emoji
 
 				//- we clone the video onto the canvas every frame - this has a JS helper
 				//- that deletes this node and re-creates it with a different context
-				canvas#photosynth-canvas.canvas-full-size(width="640", height="480")
-				canvas#photosynth-sandwich.canvas-full-size(width="640", height="480")
-				canvas#photosynth-overlay.canvas-full-size(width="640", height="480")
+				canvas#photosynth-canvas.canvas-full-size(width="640", height="480", role="img", aria-label="Interactive PhotoSYNTH musical performance stage")
+				canvas#photosynth-sandwich.canvas-full-size(width="640", height="480", aria-hidden="true")
+				canvas#photosynth-overlay.canvas-full-size(width="640", height="480", aria-hidden="true")
 				
 	
 			//- control panel with multi-levels
@@ -106,8 +106,7 @@ block main
 		//-  For users with javascript disabled 
 		noscript
 			p.
-				This application requires javascript to work unfortunately and doesn't do much without it. 
-				You can install 
+				This application requires JavaScript to run. Please enable JavaScript in your browser settings to play PhotoSYNTH.
 				
 	section#contact(aria-labelledby="contact-title")
 		.contact-intro
@@ -361,39 +360,39 @@ block main
 			ul.connection-list
 				li: a(href="https://www.rixinclusiveresearch.org/" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Supported by</small>RIX
-						img(src="./assets/logos/rix.svg" alt="RIX")
+						figcaption <small>Supported by </small>RIX
+						img(src="./assets/logos/rix.svg" alt="" aria-hidden="true")
 				
 				//- li: a(href="https://www.drakemusic.org/pages-that-are-currently-not-live-on-the-site/instrument-led-projects/photosynth-by-zenon-olenski/" rel="noopener noreferrer" target="_blank")
 				li: a(href="https://www.drakemusic.org/blog/nickevans/accessible-instrument-development-fund-blog-zen-olenski-and-the-_photosynth-4d_/" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Supported by</small>Drake Music
-						img(src="./assets/logos/drakemusic.svg" alt="Drake Music")
+						figcaption <small>Supported by </small>Drake Music
+						img(src="./assets/logos/drakemusic.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://www.sound-connections.org.uk/" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Supported by</small>Sound Connections
-						img(src="./assets/logos/sound-connections.svg" alt="Sound Connections")
+						figcaption <small>Supported by </small>Sound Connections
+						img(src="./assets/logos/sound-connections.svg" alt="" aria-hidden="true")
 				
-				li: a(href="https://https://midi.org/the-music-accessibility-standard-special-interest-group-massig" rel="noopener noreferrer" target="_blank")
+				li: a(href="https://midi.org/the-music-accessibility-standard-special-interest-group-massig" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Supported by</small> the MASSIG : MIDI Association Standards Special Interest Group
-						img(src="./assets/logos/massig.svg" alt="MIDI Association Standards Special Interest Group")
+						figcaption <small>Supported by </small>the MASSIG : MIDI Association Standards Special Interest Group
+						img(src="./assets/logos/massig.svg" alt="" aria-hidden="true")
 	
 				li: a(href="https://browserstack.com/" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Supported by</small>Browserstack
-						img(src="./assets/logos/browserstack.svg" alt="Browserstack")
+						figcaption <small>Supported by </small>BrowserStack
+						img(src="./assets/logos/browserstack.svg" alt="" aria-hidden="true")
 			
 				li: a(href="https://futureeverything.org" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Supported by</small>Future Everything
-						img(src="./assets/logos/future-everything.svg" alt="Future Everything")
+						figcaption <small>Supported by </small>FutureEverything
+						img(src="./assets/logos/future-everything.svg" alt="" aria-hidden="true")
 
 				li: a(href="https://royalsociety.org/science-events-and-lectures/summer-science-exhibition/all-exhibits/" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Presented at</small> the Royal Society Summer Exhibition 2025
-						img(src="./assets/logos/royal_society-crest.svg" alt="Royal Society Summer Exhibition")
+						figcaption <small>Presented at </small>the Royal Society Summer Exhibition 2025
+						img(src="./assets/logos/royal_society-crest.svg" alt="" aria-hidden="true")
 
 	section#affiliates.connections
 		block affiliates
@@ -403,58 +402,58 @@ block main
 				li: a(href="https://accessiblemusicalinstrumentcollection.org/case_studies/photosynth/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Available at </small>Accessible Musical Instrument Collection
-						img(src="./assets/logos/amic.svg" alt="Accessible Misical Instrument Collection")
+						img(src="./assets/logos/amic.svg" alt="" aria-hidden="true")
 					
 				li: a(href="https://youtu.be/hRglC84nWoc/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Featured at </small>Audio Developers Conference
-						img(src="./assets/logos/adc.svg" alt="ADC")
+						img(src="./assets/logos/adc.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://audienceofthefuture.live/interface/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Represented by </small>Audience of the Future
-						img(src="./assets/logos/aotf.svg" alt="Audience of the Future")
+						img(src="./assets/logos/aotf.svg" alt="" aria-hidden="true")
 				
 			
 				li: a(href="https://www.emfcamp.org/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Presented at </small>Electromagnetic Fields
-						img(src="./assets/logos/emf.svg" alt="Electromagnetic Fields")
+						img(src="./assets/logos/emf.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://internetofsounds.net/1st-international-workshop-on-the-musical-metaverse/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Showcased at </small>IEEE 1st International Meeting of the Musical Metaverse
-						img(src="./assets/logos/ieee-logo.svg" alt="IEEE 1st International Meeting of the Musical Metaverse")
+						img(src="./assets/logos/ieee-logo.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://www.midi.org/component/zoo/item/photosynth-interface?Itemid=1423" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Finalist at </small>MIDI Innovation Awards 2021
-						img(src="./assets/logos/midi-innovation-finalist-21.svg" alt="MIDI Innovation Award Finalist 2021")
+						img(src="./assets/logos/midi-innovation-finalist-21.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://www.makermusicfestival.com/projectdirectory/interface/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Presented at </small>Music Maker Festival
-						img(src="./assets/logos/mmf.svg" alt="Music Maker Festival")
+						img(src="./assets/logos/mmf.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://www.sxsw.com/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Showcased at </small>SXSW21<br>South By South West
-						img(src="./assets/logos/sxsw-logo.svg" alt="South By South West")
+						img(src="./assets/logos/sxsw-logo.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://wac2022.i3s.univ-cotedazur.fr/node/27" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Showcased at </small>Web Audio Conference
-						img(src="./assets/logos/wac.svg" alt="Web Audio Conference")
+						img(src="./assets/logos/wac.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://www.vam.ac.uk/event/oqmdb7zoY0/photosynth-oct-2025" rel="noopener noreferrer" target="_blank")
 					figure
-						figcaption <small>Showcased at </small>Victoria & Albert Museum
-						img(src="./assets/logos/va.svg" alt="Victoria and Albert Museum")
+						figcaption <small>Showcased at </small>Victoria &amp; Albert Museum
+						img(src="./assets/logos/va.svg" alt="" aria-hidden="true")
 				
 				li: a(href="https://web.mit.edu/" rel="noopener noreferrer" target="_blank")
 					figure
 						figcaption <small>Showcased at </small>MIT<br>Massachusetts Institute of Technology
-						img(src="./assets/logos/mit-logo.svg" alt="Massachusetts Institute of Technology")
+						img(src="./assets/logos/mit-logo.svg" alt="" aria-hidden="true")
 
 	small#attributions
 		block attributions

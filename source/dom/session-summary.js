@@ -1,4 +1,4 @@
-const SUMMARY_SELECTOR = 'p[aria-label="summary" i]'
+const SUMMARY_SELECTOR = 'p[data-summary], p[aria-label="summary" i]'
 
 export const isReturningUser = (storage = globalThis.localStorage) => {
 	return getVisitCount(storage) > 0

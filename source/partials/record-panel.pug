@@ -1,14 +1,15 @@
 fieldset#record-panel
-	button#button-photograph(type="button" aria-label="Take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
+	legend.sr-only Recording
+	button#button-photograph(type="button" aria-label="Photo: take a photograph" ) <span class="hide-text">Take </span>Photo<span class="hide-text">graph</span>
 
 	label.button.keyboard-shortcut-control(for="button-record-audio" ) Audio<span class="hide-text"> Record</span>
 		kbd.keyboard-shortcut(aria-hidden="true") R
-		input#button-record-audio(type="checkbox" aria-label="Record Your Performance as an Audio File")
+		input#button-record-audio(type="checkbox" aria-label="Audio: record your performance as an audio file")
 
-	button#button-record(hidden type="button" aria-label="Record a loop or two" ) Record Loop
+	button#button-record(hidden type="button" aria-label="Record Loop: record a musical loop" ) Record Loop
 
 	label.button.hide(for="button-record-video" ) Video<span class="hide-text"> Record</span>
-		input#button-record-video(type="checkbox" aria-label="Record Your Performance as an Video File")
+		input#button-record-video(type="checkbox" aria-label="Video: record your performance as a video file")
 
 	//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
 	//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File

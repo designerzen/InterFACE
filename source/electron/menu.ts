@@ -1,120 +1,85 @@
 /**
- * CTRL to expost the menu or run in debug mode
+ * CTRL to expose the menu or run in debug mode
  */
 import { app, shell, Menu } from "electron"
 
 const IS_MAC = process.platform === "darwin"
-const template:MenuItem[] = []
+const template: any[] = []
 const name = app.getName()
 
 template.push({
 	label: "Edit",
 	submenu: [
+		{ role: "undo" },
+		{ role: "redo" },
+		{ type: "separator" },
+		{ role: "cut" },
+		{ role: "copy" },
+		{ role: "paste" },
+		{ role: "selectAll" },
+		{ type: "separator" },
 		{
 			label: "Reload",
-			accelerator: "Cmd+R",
+			accelerator: "CmdOrCtrl+R",
 			role: "reload"
 		},
-		{ role: 'forceReload' },
-
+		{ role: "forceReload" },
 		// FIXME: only if DEV MODE
-		{ role: 'toggleDevTools' },
+		{ role: "toggleDevTools" },
 	]
 })
 
-const menuView = {
-	label: 'View',
-    submenu: [
-      { role: 'fullscreen' },
-	  { role: "minimize" },
+const menuView: any = {
+	label: "View",
+	submenu: [
+		{ role: "resetZoom" },
+		{ role: "zoomIn" },
+		{ role: "zoomOut" },
+		{ type: "separator" },
+		{ role: "togglefullscreen" },
+		{ role: "minimize" },
 	]
 }
 
-// mac only menu
-if (IS_MAC)
-{
+if (IS_MAC) {
 	menuView.submenu.push(
-		{ type: 'separator' },
+		{ type: "separator" },
 		{ role: "zoom" }
-		//   { role: 'resetZoom' },
-		 //   { role: 'zoomIn' },
-		 //   { role: 'zoomOut' },
-	)	
+	)
 }
 
-template.push( menuView )
+template.push(menuView)
 
 template.push({
-	role: 'Help',
+	role: "help",
 	submenu: [
-	{
-		label: 'Learn More',
-		click: async () => {
-			await shell.openExternal('https://github.com/designerzen/interface')
+		{
+			label: "Learn More",
+			click: async () => {
+				await shell.openExternal("https://github.com/designerzen/interface")
+			},
 		},
-	},{
-		label: 'Upgrade',
-		click: async () => {
-			await shell.openExternal('https://github.com/designerzen/interface/releases')
+		{
+			label: "Upgrade",
+			click: async () => {
+				await shell.openExternal("https://github.com/designerzen/interface/releases")
+			}
 		}
-	}]
+	]
 })
-
-
-// append apple specific menu item at start position
-// pretty much using https://github.com/stefansl/image-shrinker/blob/master/menu/mainmenu.js
-if (IS_MAC) 
-{ 
-    template.push(...[ { 
-      label: 'Edit', 
-      submenu: [{ 
-        label: 'Undo', 
-        accelerator: 'CmdOrCtrl+Z', 
-        selector: 'undo:' 
-      }, { 
-        label: 'Redo', 
-        accelerator: 'Shift+CmdOrCtrl+Z', 
-        selector: 'redo:' 
-      }, { 
-        type: 'separator'
-      }, { 
-        label: 'Cut', 
-        accelerator: 'CmdOrCtrl+X', 
-        selector: 'cut:' 
-      }, { 
-        label: 'Copy', 
-        accelerator: 'CmdOrCtrl+C', 
-        selector: 'copy:'
-      }, { 
-        label: 'Paste', 
-        accelerator: 'CmdOrCtrl+V', 
-        selector: 'paste:' 
-      }, { 
-        label: 'Select All', 
-        accelerator: 'CmdOrCtrl+A', 
-        selector: 'selectAll:' 
-      }] 
-    }])
-    
-  
-}
-
 
 // About & Quit
 template.unshift({
 	label: name,
 	submenu: [
 		{
-			label: 'About ' + name,
-			role: 'about'
-		}, 
-		// { 
-		// 	type: "separator" 
-		// },
+			label: "About " + name,
+			role: "about"
+		},
 		{
-			label: 'Quit',
-			role: 'quit' ,
-			accelerator: 'CmdOrCtrl+Q',
+			label: "Quit",
+			role: "quit",
+			accelerator: "CmdOrCtrl+Q",
 			click() { app.quit() }
 		}
 	]

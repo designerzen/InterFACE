@@ -115,7 +115,7 @@ dialog#help(aria-label="Help")
 			h5 Tempo
 			button(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog") Return 
 
-dialog#dialog-share
+dialog#dialog-share(aria-label="Share PhotoSYNTH QR code")
 	form(method="dialog")
 		div#qr-code
 		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="button" title="Close dialog" aria-label="Close dialog")
@@ -164,11 +164,11 @@ dialog#fund(aria-labelledby="fund-title")
 				//- 	li: a.mmf(href="https://www.makermusicfestival.com/" rel="noopener noreferrer" target="_blank") Maker Music Festival
 
 				ul.links
-					li: a.link-copyright(href="copyright.pug" target="_blank") Copyright
-					li: a.link-licenses(href="licenses.pug" target="_blank") Licenses
-					li: a.github(href="https://github.com/designerzen/interface" target="_blank") Sources
-					li: a(href="roadmap.pug" target="_blank") Roadmap
-					li: a.contact(href="https://designerzen.com" target="_blank") Contact Creator
+					li: a.link-copyright(href="copyright.pug" rel="noopener noreferrer" target="_blank") Copyright
+					li: a.link-licenses(href="licenses.pug" rel="noopener noreferrer" target="_blank") Licenses
+					li: a.github(href="https://github.com/designerzen/interface" rel="noopener noreferrer" target="_blank") Sources
+					li: a(href="roadmap.pug" rel="noopener noreferrer" target="_blank") Roadmap
+					li: a.contact(href="https://designerzen.com" rel="noopener noreferrer" target="_blank") Contact Creator
 
 					//- li(hidden): a.tests(href="tests.pug" target="_blank") Tests
 
@@ -181,10 +181,10 @@ dialog#fund(aria-labelledby="fund-title")
 		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" aria-label="Close dialog")
 
 
-dialog#pwa-updates
+dialog#pwa-updates(aria-labelledby="pwa-updates-title")
 	//-iframe#changelog(src="./changes.html" title="Changes")
 	form(method="dialog")
-		h5 Updates available!
+		h5#pwa-updates-title Updates available!
 		#changelog
 
 		button.button-push.text-always#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
@@ -215,11 +215,10 @@ dialog#errors(aria-labelledby="error-title" aria-describedby="error-message erro
 		button.close.button-close.if-recoverable(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
 
 
-dialog#select-midi
+dialog#select-midi(aria-labelledby="select-midi-title")
 	form(method="dialog")
-		h5 Select your MIDI device
-		label(for="select-midi-output") <span class="hide-text">Connect to </span>MIDI
-		div#select-midi-output
+		h5#select-midi-title Select your MIDI device
+		div#select-midi-output(role="group" aria-label="Connect to MIDI outputs")
 			input.midi-output(type="checkbox" aria-label="Select MIDI Device to play")
 
 		button.close.button-close(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")

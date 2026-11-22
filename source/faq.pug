@@ -6,7 +6,7 @@ mixin faq(question, answer)
 		if block
 			block
 		else
-			p #{answer}
+			p!= answer
 
 block title
 	+title('Frequently Asked Questions')
@@ -22,7 +22,7 @@ block main
 			h4 Frequently Asked Questions
 			ul.faq(role="list")
 				li: +faq("Is this private? What happens to the video stream","No video frames ever leave the software meaning that each session is 100% private and nobody can watch you or see your performance. It is possible to record the sessions using external software such as <a href='https://obsproject.com/'>OBS</a>")
-				li: +faq("Why can't I use MIDI with Safari?","https://webkit.org/tracking-prevention/ You can using plugin Jazzsoft")
+				li: +faq("Why can't I use MIDI with Safari?","Apple WebKit restricts Web MIDI under <a href='https://webkit.org/tracking-prevention/' rel='noopener noreferrer'>WebKit Tracking Prevention</a>. You can use a browser with Web MIDI support such as Chrome or Edge, or the Jazz-Soft plugin.")
 				li: +faq("How does this work?","Music notes are connected to your natural facial gestures")
 				li: +faq("I have specific requirements that prevent me from using this, can you add X feature?","Yes! Please get in touch to discuss how we can improve the project to meet your needs")
 				li: +faq("How can we support the development?","Patreon and Paypal are both ways to put money towards development")

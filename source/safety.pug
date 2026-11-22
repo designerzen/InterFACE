@@ -125,6 +125,9 @@ html(lang="en-GB", class=classes)
 			}
 
 			html { box-sizing: border-box; scroll-behavior: smooth; }
+			@media (prefers-reduced-motion: reduce) {
+			html { scroll-behavior: auto; }
+			}
 			*, *::before, *::after { box-sizing: inherit; }
 			body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 1rem; }
 			button, input, textarea { font: inherit; }
@@ -624,7 +627,7 @@ html(lang="en-GB", class=classes)
 						span.icon.section-heading__icon.icon--people(aria-hidden="true")
 						span 3. Responsibilities and operating controls
 					p The four-person PhotoSYNTH team uses the four combined roles below. Each role must be assigned to a named team member before work starts. The Team Lead also names one of the other three people as deputy.
-					.table-scroll(tabindex="0", aria-label="Scrollable table: 3. Responsibilities and operating controls")
+					.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: 3. Responsibilities and operating controls")
 						table
 							caption 3. Responsibilities and operating controls
 							thead
@@ -652,9 +655,9 @@ html(lang="en-GB", class=classes)
 					p
 						strong Method: 
 						| Risk score = likelihood × severity. Scores are recorded before and after the specified controls. Severity is not reduced merely because controls make occurrence less likely.
-					.table-scroll(tabindex="0", aria-label="Scrollable table: 4. Risk scoring and acceptance")
+					.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: 4. Risk scoring and acceptance")
 						table
-							caption 4. Risk scoring and acceptance
+							caption 4a. Risk scoring matrix (likelihood × severity)
 							thead
 								tr
 									th(scope="col") Likelihood / Severity
@@ -665,43 +668,43 @@ html(lang="en-GB", class=classes)
 									th(scope="col") 5 Catastrophic
 							tbody
 								tr
-									td 5 Almost certain
-									td.score-moderate 5
-									td.score-high 10
-									td.score-very-high 15
-									td.score-very-high 20
-									td.score-very-high 25
+									th(scope="row") 5 Almost certain
+									td.score-moderate 5 (Moderate)
+									td.score-high 10 (High)
+									td.score-very-high 15 (Very high)
+									td.score-very-high 20 (Very high)
+									td.score-very-high 25 (Very high)
 								tr
-									td 4 Likely
-									td.score-low 4
-									td.score-moderate 8
-									td.score-high 12
-									td.score-very-high 16
-									td.score-very-high 20
+									th(scope="row") 4 Likely
+									td.score-low 4 (Low)
+									td.score-moderate 8 (Moderate)
+									td.score-high 12 (High)
+									td.score-very-high 16 (Very high)
+									td.score-very-high 20 (Very high)
 								tr
-									td 3 Possible
-									td.score-low 3
-									td.score-moderate 6
-									td.score-moderate 9
-									td.score-high 12
-									td.score-very-high 15
+									th(scope="row") 3 Possible
+									td.score-low 3 (Low)
+									td.score-moderate 6 (Moderate)
+									td.score-moderate 9 (Moderate)
+									td.score-high 12 (High)
+									td.score-very-high 15 (Very high)
 								tr
-									td 2 Unlikely
-									td.score-low 2
-									td.score-low 4
-									td.score-moderate 6
-									td.score-moderate 8
-									td.score-high 10
+									th(scope="row") 2 Unlikely
+									td.score-low 2 (Low)
+									td.score-low 4 (Low)
+									td.score-moderate 6 (Moderate)
+									td.score-moderate 8 (Moderate)
+									td.score-high 10 (High)
 								tr
-									td 1 Rare
-									td.score-low 1
-									td.score-low 2
-									td.score-low 3
-									td.score-low 4
-									td.score-moderate 5
-					.table-scroll(tabindex="0", aria-label="Scrollable table: 4. Risk scoring and acceptance")
+									th(scope="row") 1 Rare
+									td.score-low 1 (Low)
+									td.score-low 2 (Low)
+									td.score-low 3 (Low)
+									td.score-low 4 (Low)
+									td.score-moderate 5 (Moderate)
+					.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: 4. Risk scoring and acceptance")
 						table
-							caption 4. Risk scoring and acceptance
+							caption 4b. Risk bands and required decisions
 							thead
 								tr
 									th(scope="col") Score
@@ -734,7 +737,7 @@ html(lang="en-GB", class=classes)
 					p#action-plan-instructions.source-note
 						strong How to use this table:
 						|  Leave an action unticked while it is outstanding. Tick its “Complete” box only when the required evidence is held, then enter the actual completion date.
-					.table-scroll(tabindex="0", aria-label="Scrollable table: 5. Pre-issue action plan")
+					.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: 5. Pre-issue action plan")
 						table
 							caption 5. Pre-issue action plan
 							thead
@@ -783,7 +786,7 @@ html(lang="en-GB", class=classes)
 					p#risk-empty.empty-state(hidden) No risks match this filter. Clear the filter to restore the full register.
 					article.risk-card#r01(data-risk="r01 — coordination, competence and uncontrolled change")
 						h3 R01 — Coordination, competence and uncontrolled change
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R01 — Coordination, competence and uncontrolled change")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R01 — Coordination, competence and uncontrolled change")
 							table
 								caption R01 — Coordination, competence and uncontrolled change
 								thead
@@ -802,10 +805,10 @@ html(lang="en-GB", class=classes)
 										td Staff, contractors, visitors
 										td 3
 										td 4
-										td.score-high 12
+										td.score-high 12 (High)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Conflicting instructions, missed controls, unsafe improvisation or delayed emergency response.
@@ -824,7 +827,7 @@ html(lang="en-GB", class=classes)
 							| Team Lead before access to site; daily briefing record and dynamic log.
 					article.risk-card#r02(data-risk="r02 — vehicle movements during load-in and load-out")
 						h3 R02 — Vehicle movements during load-in and load-out
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R02 — Vehicle movements during load-in and load-out")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R02 — Vehicle movements during load-in and load-out")
 							table
 								caption R02 — Vehicle movements during load-in and load-out
 								thead
@@ -843,10 +846,10 @@ html(lang="en-GB", class=classes)
 										td Crew, contractors, pedestrians
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Collision, crushing, trapping or fatal injury where vehicles and people share routes.
@@ -865,7 +868,7 @@ html(lang="en-GB", class=classes)
 							| Operations & Logistics Lead / festival traffic team at each vehicle movement.
 					article.risk-card#r03(data-risk="r03 — manual handling of instruments, cases and furniture")
 						h3 R03 — Manual handling of instruments, cases and furniture
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R03 — Manual handling of instruments, cases and furniture")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R03 — Manual handling of instruments, cases and furniture")
 							table
 								caption R03 — Manual handling of instruments, cases and furniture
 								thead
@@ -884,10 +887,10 @@ html(lang="en-GB", class=classes)
 										td Crew and authorised helpers
 										td 3
 										td 4
-										td.score-high 12
+										td.score-high 12 (High)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Staff may be injured while moving instruments, furniture or equipment. Harm ranges from knocks, scratches, cuts and bruises to sprains, strains, fractures, crush injury or a serious head injury from a dropped or falling item.
@@ -905,7 +908,7 @@ html(lang="en-GB", class=classes)
 							| Operations & Logistics Lead before each handling task; individuals stop and ask for help.
 					article.risk-card#r04(data-risk="r04 — work at height and overhead installation")
 						h3 R04 — Work at height and overhead installation
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R04 — Work at height and overhead installation")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R04 — Work at height and overhead installation")
 							table
 								caption R04 — Work at height and overhead installation
 								thead
@@ -924,10 +927,10 @@ html(lang="en-GB", class=classes)
 										td Crew, contractors, people below
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Falls, head injury or objects falling from ladders, tent frames or overhead mounts.
@@ -944,7 +947,7 @@ html(lang="en-GB", class=classes)
 							| Team Lead; visual check before the exclusion zone is removed.
 					article.risk-card#r05(data-risk="r05 — tent, temporary structure and severe weather")
 						h3 R05 — Tent, temporary structure and severe weather
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R05 — Tent, temporary structure and severe weather")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R05 — Tent, temporary structure and severe weather")
 							table
 								caption R05 — Tent, temporary structure and severe weather
 								thead
@@ -963,10 +966,10 @@ html(lang="en-GB", class=classes)
 										td Everyone in or near the tent
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Structural movement or collapse, falling components, flooding, lightning exposure, impact injury or entrapment.
@@ -983,7 +986,7 @@ html(lang="en-GB", class=classes)
 							| Tent supplier for structure; Team Lead for opening and weather checks.
 					article.risk-card#r06(data-risk="r06 — temporary electrical supply and powered equipment")
 						h3 R06 — Temporary electrical supply and powered equipment
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R06 — Temporary electrical supply and powered equipment")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R06 — Temporary electrical supply and powered equipment")
 							table
 								caption R06 — Temporary electrical supply and powered equipment
 								thead
@@ -1002,10 +1005,10 @@ html(lang="en-GB", class=classes)
 										td Staff, participants, contractors
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Staff, partners or participants could suffer electric shock, burns, fire, equipment failure or loss of essential lighting from unsafe, damaged or unverified electronic equipment, assistive music technology, instruments, monitors, leads or the temporary supply.
@@ -1025,7 +1028,7 @@ html(lang="en-GB", class=classes)
 							| Competent electrical contractor before energisation; Team Lead daily visual check.
 					article.risk-card#r07(data-risk="r07 — rechargeable batteries, chargers and overheating")
 						h3 R07 — Rechargeable batteries, chargers and overheating
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R07 — Rechargeable batteries, chargers and overheating")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R07 — Rechargeable batteries, chargers and overheating")
 							table
 								caption R07 — Rechargeable batteries, chargers and overheating
 								thead
@@ -1044,10 +1047,10 @@ html(lang="en-GB", class=classes)
 										td Staff and visitors
 										td 2
 										td 5
-										td.score-high 10
+										td.score-high 10 (High)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Thermal burns, smoke, fire or exposure to damaged battery contents.
@@ -1063,7 +1066,7 @@ html(lang="en-GB", class=classes)
 							| Technical & Privacy Lead; charging log and end-of-day isolation check.
 					article.risk-card#r08(data-risk="r08 — cables, uneven ground, mud and housekeeping")
 						h3 R08 — Cables, uneven ground, mud and housekeeping
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R08 — Cables, uneven ground, mud and housekeeping")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R08 — Cables, uneven ground, mud and housekeeping")
 							table
 								caption R08 — Cables, uneven ground, mud and housekeeping
 								thead
@@ -1082,10 +1085,10 @@ html(lang="en-GB", class=classes)
 										td Staff, participants, mobility-aid users
 										td 4
 										td 4
-										td.score-very-high 16
+										td.score-very-high 16 (Very high)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Cables, leads, bags, cases, paper, furniture, instruments, mud or loose objects may cause trips, slips and falls ranging from bruises and cuts to sprains, fractures or head injury; they may also obstruct wheelchairs, damage cables or delay evacuation.
@@ -1104,7 +1107,7 @@ html(lang="en-GB", class=classes)
 							| Operations & Logistics Lead; hourly checklist and immediate defect response.
 					article.risk-card#r09(data-risk="r09 — unstable, sharp, pinching or breakable equipment")
 						h3 R09 — Unstable, sharp, pinching or breakable equipment
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R09 — Unstable, sharp, pinching or breakable equipment")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R09 — Unstable, sharp, pinching or breakable equipment")
 							table
 								caption R09 — Unstable, sharp, pinching or breakable equipment
 								thead
@@ -1123,10 +1126,10 @@ html(lang="en-GB", class=classes)
 										td Participants, supporters, staff
 										td 3
 										td 4
-										td.score-high 12
+										td.score-high 12 (High)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Cuts, trapped fingers, impact, crush injury or falling displays/instruments.
@@ -1142,7 +1145,7 @@ html(lang="en-GB", class=classes)
 							| Technical & Privacy Lead before opening and after any impact or fault.
 					article.risk-card#r10(data-risk="r10 — participant use, involuntary movement and unsuitable adjustment")
 						h3 R10 — Participant use, involuntary movement and unsuitable adjustment
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R10 — Participant use, involuntary movement and unsuitable adjustment")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R10 — Participant use, involuntary movement and unsuitable adjustment")
 							table
 								caption R10 — Participant use, involuntary movement and unsuitable adjustment
 								thead
@@ -1161,10 +1164,10 @@ html(lang="en-GB", class=classes)
 										td Disabled and non-disabled participants, supporters
 										td 3
 										td 3
-										td.score-moderate 9
+										td.score-moderate 9 (Moderate)
 										td 1
 										td 3
-										td.score-low 3
+										td.score-low 3 (Low)
 						p
 							strong Potential harm: 
 							| Pain, fatigue, collision, distress or aggravation of an existing condition during interaction.
@@ -1180,7 +1183,7 @@ html(lang="en-GB", class=classes)
 							| Facilitator for each interaction; participant controls pace and stopping.
 					article.risk-card#r11(data-risk="r11 — amplified sound and hearing exposure")
 						h3 R11 — Amplified sound and hearing exposure
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R11 — Amplified sound and hearing exposure")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R11 — Amplified sound and hearing exposure")
 							table
 								caption R11 — Amplified sound and hearing exposure
 								thead
@@ -1199,10 +1202,10 @@ html(lang="en-GB", class=classes)
 										td Participants, staff, nearby exhibitors
 										td 3
 										td 4
-										td.score-high 12
+										td.score-high 12 (High)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Temporary or permanent hearing damage, tinnitus, sensory overload, communication difficulty or masking of alarms.
@@ -1218,7 +1221,7 @@ html(lang="en-GB", class=classes)
 							| Technical & Privacy Lead before opening and after audio changes; Team Lead monitors exposure.
 					article.risk-card#r12(data-risk="r12 — photosensitivity, flicker, bright imagery and sensory overload")
 						h3 R12 — Photosensitivity, flicker, bright imagery and sensory overload
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R12 — Photosensitivity, flicker, bright imagery and sensory overload")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R12 — Photosensitivity, flicker, bright imagery and sensory overload")
 							table
 								caption R12 — Photosensitivity, flicker, bright imagery and sensory overload
 								thead
@@ -1237,10 +1240,10 @@ html(lang="en-GB", class=classes)
 										td Photosensitive or sensory-sensitive participants and staff
 										td 2
 										td 5
-										td.score-high 10
+										td.score-high 10 (High)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Seizure, migraine, nausea, disorientation, panic or distress.
@@ -1256,7 +1259,7 @@ html(lang="en-GB", class=classes)
 							| Technical & Privacy Lead verifies settings; all team members warn and monitor each user.
 					article.risk-card#r13(data-risk="r13 — accessibility barriers, restricted circulation and poor ergonomics")
 						h3 R13 — Accessibility barriers, restricted circulation and poor ergonomics
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R13 — Accessibility barriers, restricted circulation and poor ergonomics")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R13 — Accessibility barriers, restricted circulation and poor ergonomics")
 							table
 								caption R13 — Accessibility barriers, restricted circulation and poor ergonomics
 								thead
@@ -1275,10 +1278,10 @@ html(lang="en-GB", class=classes)
 										td Wheelchair users, ambulant disabled people, people with sensory or cognitive access needs
 										td 3
 										td 4
-										td.score-high 12
+										td.score-high 12 (High)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Exclusion, collision, falls, fatigue, inability to use equipment or delayed evacuation.
@@ -1294,7 +1297,7 @@ html(lang="en-GB", class=classes)
 							| Access & Safeguarding Lead before opening and throughout; festival access team for site controls.
 					article.risk-card#r14(data-risk="r14 — crowding, queueing and loss of safe capacity")
 						h3 R14 — Crowding, queueing and loss of safe capacity
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R14 — Crowding, queueing and loss of safe capacity")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R14 — Crowding, queueing and loss of safe capacity")
 							table
 								caption R14 — Crowding, queueing and loss of safe capacity
 								thead
@@ -1313,10 +1316,10 @@ html(lang="en-GB", class=classes)
 										td Visitors, staff, mobility-aid users
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Crowding or poor lines of sight may cause collisions, minor injury, crushing, falls, blocked exits, anxiety, equipment damage/loss or displacement of portable equipment, including a speaker left with a wheelchair user.
@@ -1333,7 +1336,7 @@ html(lang="en-GB", class=classes)
 							| Operations & Logistics Lead continuously; festival stewarding for external queue/crowd support.
 					article.risk-card#r15(data-risk="r15 — safeguarding children and adults at risk")
 						h3 R15 — Safeguarding children and adults at risk
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R15 — Safeguarding children and adults at risk")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R15 — Safeguarding children and adults at risk")
 							table
 								caption R15 — Safeguarding children and adults at risk
 								thead
@@ -1352,10 +1355,10 @@ html(lang="en-GB", class=classes)
 										td Children, adults at risk, staff
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Abuse, exploitation, neglect, inappropriate contact, allegation or unsafe one-to-one situation.
@@ -1374,7 +1377,7 @@ html(lang="en-GB", class=classes)
 							| Access & Safeguarding Lead each shift; all team members report without delay.
 					article.risk-card#r16(data-risk="r16 — private on-device camera use and participant distress")
 						h3 R16 — Private on-device camera use and participant distress
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R16 — Private on-device camera use and participant distress")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R16 — Private on-device camera use and participant distress")
 							table
 								caption R16 — Private on-device camera use and participant distress
 								thead
@@ -1393,10 +1396,10 @@ html(lang="en-GB", class=classes)
 										td Participants and supporters
 										td 3
 										td 3
-										td.score-moderate 9
+										td.score-moderate 9 (Moderate)
 										td 1
 										td 3
-										td.score-low 3
+										td.score-low 3 (Low)
 						p
 							strong Potential harm: 
 							| Distress, loss of trust, safeguarding concern or conflict if participants believe they are being recorded, identified or monitored beyond the live interaction.
@@ -1416,7 +1419,7 @@ html(lang="en-GB", class=classes)
 							| Technical & Privacy Lead verifies the deployed on-device configuration, maintains the participant notice and confirms the absence of video storage/transmission; the data controller confirms the proportionate assessment and lawful-basis record; all team members obtain participant agreement and enforce the opt-out.
 					article.risk-card#r17(data-risk="r17 — shared-touch hygiene and respiratory infection")
 						h3 R17 — Shared-touch hygiene and respiratory infection
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R17 — Shared-touch hygiene and respiratory infection")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R17 — Shared-touch hygiene and respiratory infection")
 							table
 								caption R17 — Shared-touch hygiene and respiratory infection
 								thead
@@ -1435,10 +1438,10 @@ html(lang="en-GB", class=classes)
 										td Staff, participants, clinically vulnerable people
 										td 3
 										td 3
-										td.score-moderate 9
+										td.score-moderate 9 (Moderate)
 										td 1
 										td 3
-										td.score-low 3
+										td.score-low 3 (Low)
 						p
 							strong Potential harm: 
 							| Transmission of COVID-19 or another respiratory, gastrointestinal or skin infection; staff absence; or serious/long-term effects for disabled artists, participants and others with pre-existing health conditions.
@@ -1456,7 +1459,7 @@ html(lang="en-GB", class=classes)
 							| Operations & Logistics Lead sets the cleaning rota; each team member cleans between relevant users.
 					article.risk-card#r18(data-risk="r18 — heat, sun, cold, wind and wet conditions")
 						h3 R18 — Heat, sun, cold, wind and wet conditions
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R18 — Heat, sun, cold, wind and wet conditions")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R18 — Heat, sun, cold, wind and wet conditions")
 							table
 								caption R18 — Heat, sun, cold, wind and wet conditions
 								thead
@@ -1475,10 +1478,10 @@ html(lang="en-GB", class=classes)
 										td Staff and visitors, especially people with health conditions
 										td 3
 										td 4
-										td.score-high 12
+										td.score-high 12 (High)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Hot temperatures may cause fatigue, overheating, exhaustion, dehydration, heat illness or worsening of a health condition; cold, wind and wet conditions may cause hypothermia, slips or loss of safe equipment operation.
@@ -1494,7 +1497,7 @@ html(lang="en-GB", class=classes)
 							| Team Lead at briefing and during weather changes; all team members report symptoms/conditions.
 					article.risk-card#r19(data-risk="r19 — staff fatigue, long standing, lone working and welfare")
 						h3 R19 — Staff fatigue, long standing, lone working and welfare
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R19 — Staff fatigue, long standing, lone working and welfare")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R19 — Staff fatigue, long standing, lone working and welfare")
 							table
 								caption R19 — Staff fatigue, long standing, lone working and welfare
 								thead
@@ -1513,10 +1516,10 @@ html(lang="en-GB", class=classes)
 										td Staff and volunteers
 										td 4
 										td 3
-										td.score-high 12
+										td.score-high 12 (High)
 										td 1
 										td 3
-										td.score-low 3
+										td.score-low 3 (Low)
 						p
 							strong Potential harm: 
 							| Standing for long periods may cause discomfort or worsen disability or injury; fatigue may also reduce judgement, increase stress, delay response or lead to unsafe lone intervention.
@@ -1534,7 +1537,7 @@ html(lang="en-GB", class=classes)
 							| Team Lead prepares the rota and confirms cover and breaks.
 					article.risk-card#r20(data-risk="r20 — challenging behaviour, harassment, theft and unauthorised access")
 						h3 R20 — Challenging behaviour, harassment, theft and unauthorised access
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R20 — Challenging behaviour, harassment, theft and unauthorised access")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R20 — Challenging behaviour, harassment, theft and unauthorised access")
 							table
 								caption R20 — Challenging behaviour, harassment, theft and unauthorised access
 								thead
@@ -1553,10 +1556,10 @@ html(lang="en-GB", class=classes)
 										td Staff, participants, equipment
 										td 2
 										td 4
-										td.score-moderate 8
+										td.score-moderate 8 (Moderate)
 										td 1
 										td 4
-										td.score-low 4
+										td.score-low 4 (Low)
 						p
 							strong Potential harm: 
 							| Assault, distress, discriminatory harassment, conflict, loss/damage or unsafe interference with controls.
@@ -1573,7 +1576,7 @@ html(lang="en-GB", class=classes)
 							| Team Lead and festival security; Operations & Logistics Lead checks inventory at opening/close.
 					article.risk-card#r21(data-risk="r21 — fire, smoke and combustible materials")
 						h3 R21 — Fire, smoke and combustible materials
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R21 — Fire, smoke and combustible materials")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R21 — Fire, smoke and combustible materials")
 							table
 								caption R21 — Fire, smoke and combustible materials
 								thead
@@ -1592,10 +1595,10 @@ html(lang="en-GB", class=classes)
 										td Everyone in or near the tent
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Burns, smoke inhalation, panic, structural involvement or fatal injury.
@@ -1612,7 +1615,7 @@ html(lang="en-GB", class=classes)
 							| Team Lead pre-opening/close; festival fire arrangements remain controlling. In addition, the fire responsible person approves the activity fire-risk assessment and coordinated arrangements.
 					article.risk-card#r22(data-risk="r22 — emergency evacuation, medical incident and loss of power")
 						h3 R22 — Emergency evacuation, medical incident and loss of power
-						.table-scroll(tabindex="0", aria-label="Scrollable table: R22 — Emergency evacuation, medical incident and loss of power")
+						.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: R22 — Emergency evacuation, medical incident and loss of power")
 							table
 								caption R22 — Emergency evacuation, medical incident and loss of power
 								thead
@@ -1631,10 +1634,10 @@ html(lang="en-GB", class=classes)
 										td Staff, participants, disabled visitors
 										td 3
 										td 5
-										td.score-very-high 15
+										td.score-very-high 15 (Very high)
 										td 1
 										td 5
-										td.score-moderate 5
+										td.score-moderate 5 (Moderate)
 						p
 							strong Potential harm: 
 							| Fire, flood, structural collapse, terrorist incident, medical emergency or power loss may cause delayed escape or treatment, separation from supporters, panic, injury in darkness, serious injury or unsafe restart.
@@ -1658,7 +1661,7 @@ html(lang="en-GB", class=classes)
 					h2
 						span.icon.section-heading__icon.icon--checklist(aria-hidden="true")
 						span 7. Daily opening, monitoring and closing checklist
-					.table-scroll(tabindex="0", aria-label="Scrollable table: 7. Daily opening, monitoring and closing checklist")
+					.table-scroll(tabindex="0", role="region", aria-label="Scrollable table: 7. Daily opening, monitoring and closing checklist")
 						table
 							caption 7. Daily opening, monitoring and closing checklist
 							thead
