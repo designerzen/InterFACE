@@ -14,7 +14,7 @@
  *   testCameras=n        number of fake cameras to list (default 1)
  *   testControls=false   hide the floating source picker
  */
-const DEFAULT_VIDEO = './talk/photosynth.mp4'
+const DEFAULT_VIDEO = './video/photosynth.mp4'
 const DEVICE_PREFIX = 'test-video-feed-'
 const FRAME_RATE = 30
 
