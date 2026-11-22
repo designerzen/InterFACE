@@ -289,7 +289,8 @@
 	overflow: clip;
 
 	tbody{
-		background-color: var(--shade-cream);
+		background-color: var(--shade-white);
+		color: var(--shade-dark);
 		border-radius: var(--curve, var(--pad));
 	}
 

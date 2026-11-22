@@ -8,14 +8,22 @@ export const setButton = (buttonNameOrElement, callback, eventType="mousedown", 
 	// check to see that the button hasn't got the display:none!
 	if (element)
 	{
-		// element.addEventListener("click", (event) => {
-		// click was too unresponsive so lets use touch / mousedown
+		// Keep instant mousedown responsiveness while also allowing keyboard activation (Enter/Space)
 		element.addEventListener(eventType, (event) => {
 			if (preventDefault){
 				event.preventDefault()
 			}
 			callback && callback({element, event})
 		})
+		if (eventType === "mousedown" || eventType === "pointerdown") {
+			element.addEventListener("click", (event) => {
+				if (event.detail !== 0) return
+				if (preventDefault){
+					event.preventDefault()
+				}
+				callback && callback({element, event})
+			})
+		}
 		return element
 	}
 	
@@ -53,10 +61,18 @@ export const setPressureButton = (buttonNameOrElement, tapCallback, holdCallback
  */
 export const createButton = (label, tip, classes='' ) => {
 	const button = document.createElement('button')
-	button.classList.add(classes)
+	if (classes) button.classList.add(classes)
 	button.setAttribute("type", "button" )
-	button.setAttribute("aria-label", tip )
 	button.innerHTML = label
+	const plainTip = typeof tip === 'string' ? tip.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : ''
+	const visibleText = button.textContent?.trim() ?? ''
+	if (plainTip) {
+		button.setAttribute("title", plainTip)
+		// Preserve WCAG 2.5.3 Label in Name: only set aria-label if no visible text or it contains the visible text
+		if (!visibleText || plainTip.toLowerCase().includes(visibleText.toLowerCase())) {
+			button.setAttribute("aria-label", plainTip)
+		}
+	}
 	addTooltip(button)
 	return button
 }

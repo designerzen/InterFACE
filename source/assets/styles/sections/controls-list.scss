@@ -41,6 +41,7 @@ html.controls-list-open { overflow: hidden; }
 	justify-content: center;
 	align-content: start;
 	gap: .5rem;
+	scroll-padding-block: 4.5rem 5.5rem;
 	transition: none;
 
 	> :not(#shared-controls, #settings, #percussion-settings, #transport, .controls-list-header, .controls-list-section, .controls-list-footer) { display: none; }

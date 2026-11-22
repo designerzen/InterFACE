@@ -276,6 +276,11 @@ const addVerticalDrawerInteractivity = (panel, controls) => {
 		document.addEventListener("mouseup", onToggleComplete)
 	})
 
+	toggle.addEventListener("click", event => {
+		if (event.detail !== 0) return
+		setOpen(!isOpen)
+	})
+
 	toggle.addEventListener("touchstart", event => {
 		if (event.preventDefault)
 		{

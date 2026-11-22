@@ -131,3 +131,25 @@
 		transition-duration: 0.01ms !important;
 	}
 }
+
+// App-wide Windows High Contrast / Forced Colors baseline
+@media (forced-colors: active) {
+	:focus-visible {
+		outline: 3px solid Highlight !important;
+		outline-offset: 2px !important;
+		box-shadow: none !important;
+	}
+	:is(button, .button, select, input, textarea, summary, dialog) {
+		border: 2px solid ButtonText;
+	}
+	.warning {
+		border: 2px solid CanvasText;
+	}
+	.button-close::before,
+	.button-close::after {
+		border-top: 2px solid ButtonText;
+	}
+	input[type="range"] {
+		forced-color-adjust: auto;
+	}
+}

@@ -1279,12 +1279,19 @@ export default class Person extends EventTarget{
 			this.onInputModeDetermined = this.onInputModeDetermined.bind(this)
 			this.onInputTypeDetermined = this.onInputTypeDetermined.bind(this)
 
-			// Face button events
-			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )			
-			this.buttonChangeInstrument.addEventListener( 'pointerdown', this.onInstrumentChangeRequested, {signal:this.abortController.signal} )
-			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
-			this.buttonChangeInputMode.addEventListener( 'pointerdown', this.onInputModeChangeRequested, {signal:this.abortController.signal} )
-			this.buttonToggleChordDisplay.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
+			// Face button events (also bind keyboard click when event.detail === 0)
+			const bindPointerAndKeyboard = (el, handler) => {
+				if (!el) return
+				el.addEventListener('pointerdown', handler, {signal:this.abortController.signal})
+				el.addEventListener('click', event => {
+					if (event.detail === 0) handler(event)
+				}, {signal:this.abortController.signal})
+			}
+			bindPointerAndKeyboard(this.button, this.onFaceTouchStart)
+			bindPointerAndKeyboard(this.buttonChangeInstrument, this.onInstrumentChangeRequested)
+			bindPointerAndKeyboard(this.buttonChangeOperatingMode, this.onOperatingModeChangeRequested)
+			bindPointerAndKeyboard(this.buttonChangeInputMode, this.onInputModeChangeRequested)
+			bindPointerAndKeyboard(this.buttonToggleChordDisplay, this.onInputTypeChangeRequested)
 						
 			for (const [selector, direction] of [
 				[".previous-operating-mode-button", -1],

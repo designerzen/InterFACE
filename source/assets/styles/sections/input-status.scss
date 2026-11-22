@@ -38,10 +38,12 @@ html.loading #input-status-overlay{
 .input-status-row{
 	position: relative;
 	display: inline-grid;
-	grid-template-columns: 0.82rem minmax(0, auto);
-	gap: 0.16rem;
+	grid-template-columns: 1rem minmax(0, auto);
+	gap: 0.3rem;
 	align-items: center;
-	max-width: 7.5rem;
+	min-height: 24px;
+	padding: 0.15rem 0.3rem;
+	max-width: 11rem;
 	border-radius: 0.2rem;
 	pointer-events: auto;
 	cursor: help;
@@ -126,17 +128,17 @@ html.loading #input-status-overlay{
 }
 
 .input-status-label{
-	font-size: 0.42rem;
+	font-size: 0.75rem;
 	font-weight: 700;
-	line-height: 1;
+	line-height: 1.2;
 	letter-spacing: 0.02em;
 }
 
 .input-status-detail{
 	display: block;
-	font-size: 0.42rem;
+	font-size: 0.72rem;
 	font-weight: 700;
-	line-height: 1;
+	line-height: 1.2;
 	color: inherit;
 	letter-spacing: 0.015em;
 }

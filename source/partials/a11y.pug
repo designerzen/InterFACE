@@ -73,6 +73,10 @@ dialog#accessibility-panel(aria-labelledby="a11y-title" aria-describedby="a11y-d
 			label.a11y-check
 				input(type="checkbox" data-preference="strongFocus")
 				span Extra visible keyboard focus
+			label.a11y-check
+				input(type="checkbox" data-preference="disableShortcuts" aria-describedby="a11y-shortcuts-hint")
+				span Disable single-key app shortcuts
+			p#a11y-shortcuts-hint.a11y-hint Prevents single letter and number keys from triggering app controls when you are using speech input or assistive keyboards.
 			details
 				summary Focus, borders and links
 				#a11y-outlines.a11y-fields

@@ -88,9 +88,16 @@ button#button-quartet{
 		display: none;
 	}
 
-	&:hover, &:focus-visible{
+	&:hover{
 		background-color: transparent;
 		outline: none;
+	}
+
+	&:focus-visible{
+		opacity: 1;
+		background-color: rgba(0, 0, 0, 0.45);
+		outline: 3px solid var(--shade-yellow, #ffc76a);
+		outline-offset: 2px;
 	}
 
 	&:active{

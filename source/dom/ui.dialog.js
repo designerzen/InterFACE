@@ -11,6 +11,14 @@ const dialogOpeningEvent = new Event('opening')
 const dialogOpenedEvent  = new Event('opened')
 const dialogRemovedEvent = new Event('removed')
 
+const dialogOpeners = new WeakMap()
+let lastFocusedOutsideDialog = null
+document.addEventListener('focusin', event => {
+  if (!event.target?.closest?.('dialog[open]')) {
+    lastFocusedOutsideDialog = event.target
+  }
+}, true)
+
 // track opening
 const dialogAttrObserver = new MutationObserver((mutations, observer) => {
   mutations.forEach(async mutation => {
@@ -21,12 +29,13 @@ const dialogAttrObserver = new MutationObserver((mutations, observer) => {
       if (!isOpen) return
 
       dialog.removeAttribute('inert')
+      if (lastFocusedOutsideDialog && !dialog.contains(lastFocusedOutsideDialog)) {
+        dialogOpeners.set(dialog, lastFocusedOutsideDialog)
+      }
 
       // set focus
-      const focusTarget = dialog.querySelector('[autofocus]')
-      focusTarget
-        ? focusTarget.focus({ focusVisible: false })
-        : dialog.querySelector('button').focus({ focusVisible: false })
+      const focusTarget = (dialog.id === 'accessibility-panel' || dialog.id === 'command-palette') ? null : (dialog.querySelector('[autofocus]') ?? dialog.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+      focusTarget?.focus?.()
 
       dialog.dispatchEvent(dialogOpeningEvent)
       await animationsComplete(dialog)
@@ -54,17 +63,23 @@ const animationsComplete = element =>
 
 // click outside the dialog handler
 const lightDismiss = ({target:dialog, clientX, clientY}) => {
-  if (dialog.nodeName === 'DIALOG' && dialog.classList.contains('session-dialog')) {
-    const bounds = dialog.getBoundingClientRect()
-    if (clientX >= bounds.left && clientX <= bounds.right &&
-        clientY >= bounds.top && clientY <= bounds.bottom) return
-  }
-  if (dialog.nodeName === 'DIALOG')
-    dialog.close('dismiss')
+  if (dialog.nodeName !== 'DIALOG') return
+  const bounds = dialog.getBoundingClientRect()
+  if (bounds.right > bounds.left && bounds.bottom > bounds.top &&
+      clientX >= bounds.left && clientX <= bounds.right &&
+      clientY >= bounds.top && clientY <= bounds.bottom) return
+  dialog.close('dismiss')
 }
 
 const dialogClose = async ({target:dialog}) => {
   dialog.setAttribute('inert', '')
+  if (dialog.id !== 'accessibility-panel' && dialog.id !== 'command-palette') {
+    const opener = dialogOpeners.get(dialog)
+    dialogOpeners.delete(dialog)
+    if (opener?.isConnected && typeof opener.focus === 'function') {
+      opener.focus()
+    }
+  }
   dialog.dispatchEvent(dialogClosingEvent)
 
   await animationsComplete(dialog)

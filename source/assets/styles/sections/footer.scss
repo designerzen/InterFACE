@@ -4,7 +4,7 @@
 	--border:1px solid var(--shade-gray);
 	--icon-height:27px;
 
-	color:var(--shade-brown);
+	color:var(--shade-white);
 	
 	border-top:var(--border);
 	border-color: transparent;
@@ -52,46 +52,32 @@
 		}
 	}
 
-	// allow the contents to hide until hover or focus
+	// Keep associate links in the accessibility tree and keyboard tab order
 	.associates {
-		// position: relative;
-	    
-		h5{
-			cursor: pointer;
-			&::before{
-				content:'+';
-				color:inherit;
-			}
-		}
-
 		ul{
-			visibility: hidden;
 			display: grid;
 			justify-items: center;
-    		align-items: center;
-			position: absolute;
-			background: inherit;
-			display: grid;
+			align-items: center;
 			position: absolute;
 			bottom: 69%;
 			background-color:var(--shade-dark);
 			z-index: 909;
 			left:0;
 			max-width: 100%;
+			opacity: 0;
+			pointer-events: none;
 		}
 
-		h5:hover ~ ul,
+		&:hover ul,
+		&:focus-within ul,
 		ul:hover,
 		ul:focus,
 		ul:focus-within{
 			--y:10%;
-			visibility: visible;
+			opacity: 1;
+			pointer-events: auto;
 			animation: Fade var(--ease-s) 1 0.1s linear both normal,
 						TranslateY var(--ease-s) 1 0s ease-out both normal;
-		}
-		
-		ul:is(:hover,:focus,:focus-within){
-			
 		}
 	}
 	
@@ -129,7 +115,7 @@
 				border:1px solid var(--shade-cream);
 				background-color:var(--shade-white);
 				padding:var(--pad);
-				color:var(--shade-grey);
+				color:var(--shade-dark);
 				visibility: hidden;
 				order:-1;
 				position: absolute;
@@ -170,12 +156,17 @@
 	}
 
 	.link-news{
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 24px;
+		min-height: 24px;
 		&::before{
 			content:'';
 			display: inline-block;
 			vertical-align: middle;
-			width: 1rem;
-			height: 1rem;
+			width: 1.25rem;
+			height: 1.25rem;
 			background: url(./assets/icons/rss_feed_black_24dp.svg) no-repeat center;
 			background-size: contain;
 			filter:invert(100%);

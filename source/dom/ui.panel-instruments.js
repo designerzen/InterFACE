@@ -712,6 +712,12 @@ export const createDraggablePanel = (person, controls, onLeftSide=true, activeCl
 		document.addEventListener("mouseup", onDragCompleteOrCancelled)
 	})
 
+	drawerToggle.addEventListener("click", event => {
+		if (event.detail !== 0) return
+		setDrawerState( !isDrawerOpen )
+		drawerToggle.setAttribute("aria-expanded", String(isDrawerOpen))
+	})
+
 	drawerToggle.addEventListener("touchstart", event => {
 		if (event.preventDefault)
 		{

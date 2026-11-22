@@ -174,12 +174,16 @@ export const setupTempoInterface = (timer, midiManager, MIDIConnectionClasses, o
 	}
 
 	const inputTempoReset = document.getElementById('tempo-reset')
-	inputTempoReset.onmousedown = e => {
+	const resetTempo = () => {
 		timer.BPM = 100
 		timer.bar = 0
 		inputTempoRange.value = inputTempoField.value = timer.BPM
 		onTimerChanged && onTimerChanged( timer.BPM )
 	}
+	inputTempoReset.onmousedown = resetTempo
+	inputTempoReset.addEventListener('click', event => {
+		if (event.detail === 0) resetTempo()
+	})
 
 	const inputTempoIncrease = document.getElementById('tempo-increase-button')
 	const increaseTempo = (event, details) => {

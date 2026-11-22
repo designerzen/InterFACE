@@ -7,8 +7,9 @@ fieldset#mouth-dynamics-settings.mouth-dynamics-settings.control-settings
 
 	figure#mouth-curve-editor.mouth-curve-editor
 		figcaption.sr-only Loudness curve. Opening runs left to right, loudness bottom to top.
-	p#mouth-curve-help Drag a handle to reshape the curve. Click the graph to add a handle; double-click a handle or press Delete to remove it. Arrow keys move the focused handle. A flat start gives more room for quiet notes.
+	p#mouth-curve-help Drag a handle to reshape the curve. Click the graph or use Add handle to insert a point; double-click a handle or press Delete to remove it. Arrow keys move the focused handle. A flat start gives more room for quiet notes.
 	div.mouth-curve-actions
+		button#mouth-curve-add(type="button") Add handle
 		button#mouth-curve-reset(type="button") Reset curve
 	output#mouth-curve-status(role="status" aria-live="polite")
 

@@ -208,9 +208,11 @@ input[type="range" i] {
 		opacity: 1;
 	}
 
-	&:focus {
-		outline: none;
-		color: var(--col-accent, yellow);
+	&:focus-visible {
+		outline: 3px solid var(--shade-yellow, #ffc76a);
+		outline-offset: 2px;
+		box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.75);
+		color: var(--shade-yellow, #ffc76a);
 		
 		&::-webkit-slider-thumb {
 			@include thumb-focus;

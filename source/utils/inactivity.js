@@ -99,23 +99,27 @@ export const observeInteractivityThroughUserEvents = async (activityElement, onA
 
 	const abortController = new AbortController()
 
-	// after a period of inactivity...
-	activityElement.addEventListener("mousemove", (event) => {
+	const markActivity = () => {
+		clearTimeout(interval)
 
-		clearInterval(interval)
-
-		if (!isUserBusy) {
+		if (!isUserBusy || !isUserActive) {
+			isUserActive = true
 			isUserBusy = true
 			onActive && onActive()
-			return
 		}
 
 		interval = setTimeout(() => {
 			isUserBusy = false
 			onInactive && onInactive()
 		}, timeOut)
+	}
 
-	}, { signal: abortController.signal } )
+	// Monitor pointer, touch, keyboard, and focus activity so non-mouse users aren't hidden
+	activityElement.addEventListener("mousemove", markActivity, { signal: abortController.signal })
+	document.addEventListener("keydown", markActivity, { signal: abortController.signal })
+	document.addEventListener("pointerdown", markActivity, { signal: abortController.signal })
+	document.addEventListener("touchstart", markActivity, { signal: abortController.signal, passive: true })
+	document.addEventListener("focusin", markActivity, { signal: abortController.signal })
 
 	activityElement.addEventListener("mouseout", (event) => {
 		clearInterval(interval)

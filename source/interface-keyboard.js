@@ -1166,8 +1166,11 @@ export const addKeyboardEvents = application => {
 			return
 		}
 
-		const focusedControl = event.target?.closest?.('button, a, input, summary')
+		const focusedControl = event.target?.closest?.('button, a[href], input, select, summary, [role="tab"], [role="option"], [role="slider"], [role="button"], [role="switch"], [role="listbox"]')
 		if (focusedControl && [' ', 'Enter'].includes(event.key)) return
+		if (focusedControl && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) {
+			if (focusedControl.matches?.('input[type="radio"], input[type="range"], select, [role="tab"], [role="option"], [role="slider"], [role="listbox"]')) return
+		}
 		if (event.metaKey || event.ctrlKey || event.altKey) return
 
 		if (isEditableKeyboardEvent(event)) {
@@ -1256,6 +1259,7 @@ export const addKeyboardEvents = application => {
 		}
 
 		if (mode.type === KEYBOARD_TYPE_OPERATIONAL) {
+			if (document.documentElement.classList.contains('a11y-disableShortcuts')) return
 			state.numberSequence = ''
 			const padNumber = getKeyboardNumber(event)
 			if (padNumber != null) {

@@ -296,7 +296,7 @@ label[for="timing-elapsed"]{
 		box-shadow:none;
 		&:focus-visible{outline:3px solid var(--shade-orange, orange);outline-offset:1px}
 	}
-	[data-session-error]{color:hsl(var(--hue-red) 80% 75%)}
+	[data-session-error]{color:hsl(var(--hue-red) 75% 32%);font-weight:700}
 	[data-session-error]:empty{display:none}
 }
 

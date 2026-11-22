@@ -1,6 +1,7 @@
 @use "../gadgets/_button.scss";
 @use "../_ease.scss";
 @use "sass:color";
+@use "sass:list";
 
 // Hide icons when they are being concealed
 // unless they are focused then reshow them
@@ -632,31 +633,27 @@
 		padding:0;
 	}
 	
-	@each $family, $colour in (
-		"Piano": #4477aa,
-		"Percussion": #ee7733,
-		"Organ": #aa66cc,
-		"Guitar": #228866,
-		"Bass": #336688,
-		"Strings": #cc6677,
-		"Ensemble": #882255,
-		"Brass": #ddaa33,
-		"Reed": #669933,
-		"Pipe": #44aaaa,
-		"Synth Lead": #cc44aa,
-		"Synth Pad": #7777cc,
-		"Synth Effects": #aa4499,
-		"Folk": #aa7744,
-		"Percussive": #cc5533,
-		"Sound Effects": #667788
+	@each $family, $pair in (
+		"Piano": (#336699, #ffffff),
+		"Percussion": (#ee7733, #171717),
+		"Organ": (#8844aa, #ffffff),
+		"Guitar": (#1b7355, #ffffff),
+		"Bass": (#2c5a7a, #ffffff),
+		"Strings": (#b84a5e, #ffffff),
+		"Ensemble": (#882255, #ffffff),
+		"Brass": (#ddaa33, #171717),
+		"Reed": (#48731f, #ffffff),
+		"Pipe": (#44aaaa, #171717),
+		"Synth Lead": (#a62c85, #ffffff),
+		"Synth Pad": (#5555aa, #ffffff),
+		"Synth Effects": (#8f2d80, #ffffff),
+		"Folk": (#8a5a2b, #ffffff),
+		"Percussive": (#b03d1e, #ffffff),
+		"Sound Effects": (#4c5d6d, #ffffff)
 	){
 		[data-instrument-family="#{$family}"]{
-			--instrument-colour: #{$colour};
-			@if color.channel($colour, "lightness", $space: hsl) >= 45% {
-				--instrument-foreground: #171717;
-			} @else {
-				--instrument-foreground: #fff;
-			}
+			--instrument-colour: #{list.nth($pair, 1)};
+			--instrument-foreground: #{list.nth($pair, 2)};
 		}
 	}
 

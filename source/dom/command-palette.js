@@ -110,8 +110,11 @@ export const setupCommandPalette = (document = globalThis.document) => {
 		})
 	}
 
+	let executedCommand = false
+
 	const runCommand = command => {
 		if (!command || command.isDisabled?.()) return
+		executedCommand = true
 		dialog.close()
 		command.run()
 	}
@@ -131,6 +134,7 @@ export const setupCommandPalette = (document = globalThis.document) => {
 			}
 			const option = document.createElement("button")
 			option.type = "button"
+			option.tabIndex = -1
 			option.id = `command-palette-option-${index}`
 			option.className = "command-palette-option"
 			option.setAttribute("role", "option")
@@ -184,6 +188,10 @@ export const setupCommandPalette = (document = globalThis.document) => {
 	})
 	dialog.addEventListener("close", () => {
 		input.value = ""
+		if (executedCommand) {
+			executedCommand = false
+			return
+		}
 		launcher.focus()
 	})
 

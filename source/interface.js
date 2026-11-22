@@ -3208,7 +3208,9 @@ export const createInterface = (
 			const seconds = recordedDuration % 60
 			const milliseconds = (seconds % 1) * 1000
 			//const recordString = (minutes>>0) + ':' + (seconds>>0)
-			const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
+			// Format at whole-second resolution so aria-live="#feedback" is not spammed at 60Hz
+			const totalSeconds = Math.floor(recordedDuration)
+			const recordString = `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`
 			setFeedback(recordString, false, 'none', false)
 
 		}else if ( !setFeedback() ){

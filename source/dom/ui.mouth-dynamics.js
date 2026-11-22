@@ -62,6 +62,10 @@ export const setupMouthDynamicsInterface = ({get, set, apply, getOpening=() => n
 		editor.setPoints(preset.points)
 		applyCurve(preset.points, true)
 	})
+	document.getElementById('mouth-curve-add')?.addEventListener('click', () => {
+		const inserted = editor.addMidpoint?.()
+		if (inserted < 0 && status) status.value = 'Maximum number of curve handles reached.'
+	})
 	document.getElementById('mouth-curve-reset')?.addEventListener('click', () => {
 		const points = parseMouthCurve(basePreset)
 		editor.setPoints(points)
