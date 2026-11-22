@@ -65,6 +65,7 @@
 		
 		svg{
 			grid-area: logo;
+			position: static;
 			// Size from the column, not the spanning grid rows (Safari).
 			align-self: start;
 			aspect-ratio: 3018 / 2502;

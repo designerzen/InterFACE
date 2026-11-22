@@ -208,6 +208,7 @@ $viewport-max:math.div(840, 16);//740/16;	// about 16x
 		--font-scale:var(--s3);
 	}
 	h5,
+	p[data-summary],
 	p[aria-label="summary" i]{
 		--font-scale:var(--s2);
 	}

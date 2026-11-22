@@ -4,7 +4,7 @@
 	--border:1px solid var(--shade-gray);
 	--icon-height:27px;
 
-	color:var(--shade-white);
+	color:var(--shade-brown);
 	
 	border-top:var(--border);
 	border-color: transparent;
@@ -194,6 +194,10 @@
 }
 
 // ariants of the footbar depending on the state
+html:not(.loading):not(.player-selection) #foot{
+	color: var(--shade-white);
+}
+
 .loading #foot{
 	border-color:var(--shade-dark, black);
 }
