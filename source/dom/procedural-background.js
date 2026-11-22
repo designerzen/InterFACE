@@ -52,7 +52,7 @@ export const createProceduralBackground = ({ root = document.documentElement, ap
 		}
 		frame = requestAnimationFrame(draw)
 	}
-	const sensitive = () => app?.classList.contains('flag-photoSensitive') || getLocationParam('photoSensitive') === 'true'
+	const sensitive = () => app?.classList.contains('flag-photoSensitive') || root.classList.contains('a11y-photoSensitive') || getLocationParam('photoSensitive') === 'true'
 	const update = () => {
 		if (disposed) return
 		if (root.classList.contains('a11y-reduce-motion')) { release(); return }

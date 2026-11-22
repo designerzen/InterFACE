@@ -256,6 +256,12 @@ const flashPicadeButton = (application, gamePad, button, isButtonHeld, heldFor) 
 const pulsePicadeClock = (application, isBar) => {
 	const picadeLeds = application.picadeLeds
 	if (!picadeLeds?.connected) return
+	const isPhotoSensitive = Boolean(
+		getApplicationState(application, 'photoSensitive') ||
+		globalThis.document?.documentElement?.classList?.contains('a11y-photoSensitive') ||
+		globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion')
+	)
+	if (isPhotoSensitive) return
 
 	const isMetronomeEnabled = getApplicationState(application, 'metronome')
 	const isBackingTrackEnabled = getApplicationState(application, 'backingTrack')

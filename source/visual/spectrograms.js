@@ -12,13 +12,21 @@ export const drawBars = (canvasContext, dataArray, bufferLength)=>{
 	let barHeight
 	let x = 0
 
-	colourCycle = ( colourCycle + 1 ) % 360
+	const reduceFlash = Boolean(
+		globalThis.document?.documentElement?.classList?.contains('a11y-photoSensitive') ||
+		globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion') ||
+		globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+	)
+	if (!reduceFlash) {
+		colourCycle = ( colourCycle + 1 ) % 360
+	}
 
 	for(let i = 0; i < section; i++) 
 	{
 		barHeight = dataArray[i]
 
-		canvasContext.fillStyle = 'hsla(' + ( colourCycle + (barHeight/ height *360 ))%360 + ',50%,50%,0.3)'
+		const barHue = reduceFlash ? 205 : ( colourCycle + (barHeight/ height *360 ))%360
+		canvasContext.fillStyle = 'hsla(' + barHue + ',50%,50%,0.3)'
 		// canvasContext.fillRect(x, 0, barWidth, barHeight )
 		canvasContext.fillRect(x, height - barHeight, barWidth, barHeight )
 		x += barWidth + 1

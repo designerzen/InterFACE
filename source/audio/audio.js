@@ -312,6 +312,9 @@ export const setupAudio = async (onlineAudioContext, offlineAudioContext, analys
 		//await createDub(audioContext)
 		//await createDistortion(audioContext)
 		
+		// Transparent master safety limiter to protect headphones/hearing aids from
+		// sudden multi-player gain spikes or digital clipping without altering normal levels.
+		await createCompressor( audioContext, -1, 0, 20, 0.001, 0.05 ),
 		analyser,
 		mixer,
 

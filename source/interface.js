@@ -1546,6 +1546,12 @@ export const createInterface = (
 		const isEnabled = stateMachine.toggle( 'backingTrack', updateGUI ? buttonPercussion : null )
 		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, isEnabled ? 'beats' : 'silence' )
 	}
+	const isPhotosensitiveSafe = () => Boolean(
+		stateMachine.get("photoSensitive") ||
+		document.documentElement.classList.contains('a11y-photoSensitive') ||
+		document.documentElement.classList.contains('a11y-reduce-motion')
+	)
+
 	/**
 	 * Control the "visualiser" feedback
 	 * @param {Boolean} enabled 
@@ -1555,12 +1561,19 @@ export const createInterface = (
 		{
 			enabled = !stateMachine.get("disco")
 		}
+		if (enabled && isPhotosensitiveSafe())
+		{
+			enabled = false
+			setFeedback("Disco Mode is disabled while photosensitive-safe mode is active", 0, 'disco')
+		}
 		if (enabled)
 		{
 			setFeedback("Disco Mode UNLOCKED!",0, 'disco')
 			display.nextFilter( )
 		}else{
-			setFeedback("Disco Mode disabled",0, 'disco')
+			if (!isPhotosensitiveSafe()) {
+				setFeedback("Disco Mode disabled",0, 'disco')
+			}
 			display.resetFilter( )
 		}
 		stateMachine.set("disco", enabled, updateGUI ? buttonDiscoModeToggle : null )
@@ -1572,7 +1585,6 @@ export const createInterface = (
 	const toggleDiscoMode = () => {
 		const isEnabled = !stateMachine.get( 'disco' )
 		setDiscoMode( isEnabled )
-		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, isEnabled ? 'beats' : 'silence' )
 	}
 	/**
 	 * FIXME: Update GUI
@@ -2279,7 +2291,7 @@ export const createInterface = (
 		{
 			person.lastNoteRepeatedTick = repeatTick
 		}
-		if (person.singing && person.noteVelocity > 0 && (isFreshAttack || shouldRepeatNote) && !stateMachine.get('muted')) {
+		if (person.singing && person.noteVelocity > 0 && (isFreshAttack || shouldRepeatNote) && !stateMachine.get('muted') && !isPhotosensitiveSafe()) {
 			display?.emitNoteParticles?.(person, {
 				at: performance.now() + (Number.isFinite(scheduledTime) ? (scheduledTime - audioContext.currentTime) * 1000 : 0),
 				velocity: person.noteVelocity
@@ -2936,7 +2948,7 @@ export const createInterface = (
 				display.clearFaceFeatures?.()
 				display.clear()
 				display.drawElement(inputElement, 0, 0, true, display.width, display.height)
-			} else if (discoMode)
+			} else if (discoMode && !isPhotosensitiveSafe())
 			{	
 				// FUNKY DISCO MODE...
 				// switch effect type?
@@ -2981,7 +2993,7 @@ export const createInterface = (
 				}
 			}	
 			
-			if (mtvMode) {
+			if (mtvMode && !isPhotosensitiveSafe()) {
 				const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height, mtvMode.preset)
 				if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mtvMode.blendMode, opacity:normaliseMTVStrength(stateMachine.get('mtvStrength')) })
 			}

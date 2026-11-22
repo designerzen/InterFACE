@@ -317,6 +317,16 @@ block styles
 			}
 		}
 
+		@media (prefers-reduced-motion: reduce) {
+			#poster-figure,
+			#poster-figure .poster-wallpaper > *,
+			#poster-figure .mouth,
+			#poster-figure .note-animated.active,
+			#poster-figure .note-animated.active::before {
+				animation: none !important;
+			}
+		}
+
 		@keyframes Shouting {
 			0%{
 				filter:blur(120px);
@@ -513,7 +523,15 @@ block scripts
 			}     
 		}
 
-		revealText( h1, H1S, 0, 500 )
-		revealText( h2, H2S, 0, 1000 )
-		revealText( h3, H3S, 0, 1500 )
-		revealText( h4, H4S, 0, 2000 )
+		const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+		if (prefersReducedMotion) {
+			if (h1) h1.textContent = H1S[0]
+			if (h2) h2.textContent = H2S[0]
+			if (h3) h3.textContent = H3S[0]
+			if (h4) h4.textContent = H4S[0]
+		} else {
+			revealText( h1, H1S, 0, 500 )
+			revealText( h2, H2S, 0, 1000 )
+			revealText( h3, H3S, 0, 1500 )
+			revealText( h4, H4S, 0, 2000 )
+		}

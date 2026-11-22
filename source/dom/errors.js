@@ -44,20 +44,39 @@ export const showError = (error, solution, fatal=false, details="", options={} )
 		else dialog.open = true
 	}
 
+	const audioElement = dialog.querySelector("audio")
+	if (audioElement && !dialog.dataset.errorAudioBound) {
+		dialog.dataset.errorAudioBound = 'true'
+		dialog.addEventListener('close', () => {
+			if (typeof audioElement.pause === 'function') {
+				audioElement.pause()
+			}
+			try { audioElement.currentTime = 0 } catch {}
+		})
+	}
+
 	if (fatal)
 	{
-		// if fatal then we can't continue so show reload button?	
-		// add a reload button to the feedback node
-		// const form = dialog.querySelector("form")
-		// form.appendChild( showReloadButton(true) )
-
-		// remove existing button
-		
-		// play audio files located...
-		// lemmings sound effect sounds best
-		const audioElement = dialog.querySelector("audio")
-		audioElement.setAttribute("autoplay", true)
-		audioElement.setAttribute("start", true)
+		// Keep the error alert audio available with user controls, playing gently
+		// only when not muted and reduced motion is not requested.
+		if (audioElement) {
+			const isMuted = Boolean(document.getElementById('button-mute')?.checked)
+			const reduceMotion = Boolean(
+				body.classList.contains('a11y-reduce-motion') ||
+				window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+			)
+			audioElement.controls = true
+			audioElement.removeAttribute("autoplay")
+			audioElement.removeAttribute("start")
+			if (!isMuted && !reduceMotion && typeof audioElement.play === 'function') {
+				try {
+					audioElement.volume = Math.min(Number.isFinite(audioElement.volume) ? audioElement.volume : 1, 0.5)
+					audioElement.currentTime = 0
+					const playPromise = audioElement.play()
+					playPromise?.catch?.(() => {})
+				} catch {}
+			}
+		}
 
 		// add root class
 		body.classList.add("fatal")

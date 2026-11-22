@@ -104,9 +104,10 @@
 	// no animation 
 	// NB. this is also passed into JS as a safety net
 	@media (prefers-reduced-motion: reduce) {
-		--ease-s:1ms;
-		--ease-m:1ms;
-		--ease-q:1ms;
+		--ease-s:0.01ms;
+		--ease-m:0.01ms;
+		--ease-q:0.01ms;
+		--duration-l:0.01ms;
 	}
 
 	
@@ -117,4 +118,16 @@
 		}
 	}
 
+}
+
+// Global reduced-motion safety net: stop infinite/decorative CSS animations and smooth scrolling
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto !important;
+	}
+	*, *::before, *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
 }

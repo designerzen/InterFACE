@@ -204,15 +204,15 @@ dialog#errors(aria-labelledby="error-title" aria-describedby="error-message erro
 			summary#error-details-label Technical details
 			p#error-details
 
-		audio(src="./assets/audio/lemmings.wav" controls=false)
+		audio(src="./assets/audio/lemmings.wav" controls preload="none" aria-label="Error alert sound")
 
 		menu
-			button.button.button-push.text-always.reload-app(autofocus type="button")
+			li: button.button.button-push.text-always.reload-app(autofocus type="button")
 				span#error-primary-label Try again
-			button.button.button-push.text-always.camera-help(type="button")
+			li: button.button.button-push.text-always.camera-help(type="button")
 				span#error-secondary-label Camera help
 	
-		button.close.button-close.if-recoverable(autofocus onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
+		button.close.button-close.if-recoverable(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
 
 
 dialog#select-midi

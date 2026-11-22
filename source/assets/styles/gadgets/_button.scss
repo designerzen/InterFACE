@@ -753,14 +753,15 @@
 		opacity: 1;
 	}
 	
-	// 	:focus ,give it an awesome focus ring that animates!
+	// Steady, high-contrast focus ring (avoids flashing/strobing OutlineFocus animation)
 	&:is(
 		:target, 
 		:focus-visible
 	){
-		outline-color:var(--col-ring, var(--col-accent, black));
-		outline-style: dotted;
-		animation:OutlineFocus var(--ease-s) ease-in 0s both infinite alternate-reverse;
+		outline: 3px solid var(--col-ring, var(--shade-yellow, #ffc76a));
+		outline-offset: 2px;
+		box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.75);
+		animation: none;
 	}
 
 	// if an anchor has been linked here...

@@ -112,10 +112,7 @@
 @use "./assets/styles/utils.scss";
 @use "./assets/styles/gadgets/close-button.scss";
 
-// Temporarily hide unfinished accessibility and recording panels in every controls view.
-#accessibility-tab,
-#accessibility-panel,
-#button-accessibility,
+// Temporarily hide unfinished recording panels in every controls view.
 #transport,
 #control-panel-record,
 #record-panel,

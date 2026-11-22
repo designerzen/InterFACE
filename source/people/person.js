@@ -1825,8 +1825,13 @@ export default class Person extends EventTarget{
 		// allows us to use the metronome to shape the colours
 		const saturation = clamp(this.saturation + (this.isMouseOver ? 50 : 0), 0, 100)
 
-		// Extra luminosity on beat just played
-		const luminosity = clamp(this.luminosity + (beatJustPlayed ? 33 : 0), 0, 100)
+		// Extra luminosity on beat just played (disabled in photosensitive-safe mode)
+		const isPhotoSensitive = Boolean(
+			options?.photoSensitive ||
+			globalThis.document?.documentElement?.classList?.contains('a11y-photoSensitive') ||
+			globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion')
+		)
+		const luminosity = clamp(this.luminosity + (beatJustPlayed && !isPhotoSensitive ? 33 : 0), 0, 100)
 		
 		//console.log( this.getPhase( 1 ), this.getPhase( 2 ), this.getPhase( 3 ), this.getPhase( 4 ))
 	

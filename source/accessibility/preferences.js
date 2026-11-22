@@ -3,7 +3,7 @@ export const PRESETS_KEY = 'photosynth.accessibility.presets.v1'
 
 // Values are allowlisted before they reach CSS or storage, including imported files.
 export const typography = [
-	['fontFamily', 'Font family', '--a11y-font-family', ['original', 'Arial', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Georgia', 'Times New Roman', 'Courier New', 'monospace']],
+	['fontFamily', 'Font family', '--a11y-font-family', ['original', 'Arial', 'Verdana', 'Tahoma', 'Trebuchet MS', 'ReadexPro', 'OpenDyslexic', 'Georgia', 'Times New Roman', 'Courier New', 'monospace']],
 	['fontWeight', 'Font weight', '--a11y-font-weight', ['original', 'normal', 'bold']],
 	['fontStyle', 'Font style', '--a11y-font-style', ['original', 'normal', 'italic', 'oblique']],
 	['fontVariant', 'Letter case style', '--a11y-font-variant', ['original', 'normal', 'small-caps']],
@@ -44,6 +44,7 @@ export const colours = [
 export const defaults = {
 	theme: 'original', textSize: '100', motion: 'system', readableFont: false,
 	textSpacing: false, largeTargets: false, underlineLinks: false, strongFocus: false,
+	photoSensitive: false,
 	...Object.fromEntries(typography.map(([key]) => [key, 'original'])),
 	...Object.fromEntries(outlines.map(([key, , , values]) => [key, values[0]])),
 	...Object.fromEntries(colours.map(([key, , , , value]) => [key, value])),

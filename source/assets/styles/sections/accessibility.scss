@@ -43,7 +43,7 @@ $palettes: (
 }
 
 html[data-a11y-theme]:not([data-a11y-theme='original']) {
-	body, #app, #onboarding, .control-panel, dialog, .a11y-content {
+	body, #app, #onboard, #control-panel, dialog, .a11y-content {
 		background: var(--a11y-background) !important;
 		color: var(--a11y-text) !important;
 	}
@@ -59,12 +59,6 @@ html[data-a11y-theme]:not([data-a11y-theme='original']) {
 		border-radius: var(--a11y-corner-radius, .4rem) !important;
 		text-shadow: none !important;
 		box-shadow: none !important;
-	}
-	:is(button, .button, summary):hover,
-	:is(button, .button)[aria-pressed='true'],
-	:is(button, .button)[aria-selected='true'] {
-		color: var(--a11y-background) !important;
-		background: var(--a11y-accent) !important;
 	}
 	:is(button, input, select):disabled { opacity: .55; }
 	input { accent-color: var(--a11y-accent); }
@@ -84,7 +78,7 @@ html[data-a11y-theme]:not([data-a11y-theme='original']) {
 	}
 	dialog {
 		border: var(--a11y-border-size, 2px) solid var(--a11y-popup-border) !important;
-		:is(h1, h2, h3, h4, p, legend, summary) { color: var(--a11y-popup-text) !important; }
+		:is(h1, h2, h3, h4, h5, h6, p, legend, summary) { color: var(--a11y-popup-text) !important; }
 	}
 	label { background: var(--a11y-label-background) !important; color: var(--a11y-label-text) !important; }
 	input[type='range'] {
@@ -161,7 +155,7 @@ html[data-a11y-text-size='150'] { font-size: 150%; }
 html[data-a11y-text-size='175'] { font-size: 175%; }
 html[data-a11y-text-size='200'] { font-size: 200%; }
 html.a11y-readableFont :is(body, h1, h2, h3, h4, h5, h6, p, a, label, legend, button, input, select, textarea, summary) { font-family: Arial, Helvetica, sans-serif !important; }
-html.a11y-textSpacing :is(p, a, label, legend, button, input, textarea, select, summary, output) { letter-spacing: .12em !important; word-spacing: .16em !important; line-height: 1.6 !important; }
+html.a11y-textSpacing :is(h1, h2, h3, h4, h5, h6, p, a, li, td, th, dt, dd, figcaption, label, legend, button, input, textarea, select, summary, output) { letter-spacing: .12em !important; word-spacing: .16em !important; line-height: 1.6 !important; }
 html.a11y-textSpacing p { margin-bottom: 2em !important; }
 html.a11y-largeTargets :is(button, .button, select, summary, input:not([type='checkbox']):not([type='radio']):not([type='range'])) { min-height: 48px !important; min-width: 48px !important; }
 html.a11y-largeTargets label:has(input[type='checkbox'], input[type='radio']) { display: flex; align-items: center; min-height: 48px; }
@@ -170,8 +164,8 @@ html[data-a11y-bordersize] :is(button, .button, select, textarea, input:not([typ
 html[data-a11y-cornerradius] :is(button, .button, select, textarea, input:not([type='checkbox']):not([type='radio']):not([type='range']), summary) { border-radius: var(--a11y-corner-radius) !important; }
 html[data-a11y-underlinestyle] a { text-decoration-style: var(--a11y-underline-style) !important; }
 html[data-a11y-underlineoffset] a { text-underline-offset: var(--a11y-underline-offset) !important; }
-html[data-a11y-theme] :focus-visible { outline: var(--a11y-focus-size, 3px) var(--a11y-focus-style, solid) var(--a11y-focus) !important; outline-offset: 3px !important; box-shadow: 0 0 0 2px #111, 0 0 0 4px white !important; }
-html.a11y-strongFocus :focus-visible { outline-width: max(4px, var(--a11y-focus-size, 3px)) !important; outline-offset: 4px !important; box-shadow: 0 0 0 3px #111, 0 0 0 8px white !important; }
+html[data-a11y-theme] :focus-visible { outline: var(--a11y-focus-size, 3px) var(--a11y-focus-style, solid) var(--a11y-focus) !important; outline-offset: 3px !important; box-shadow: 0 0 0 2px #111, 0 0 0 4px white !important; animation: none !important; }
+html.a11y-strongFocus :focus-visible { outline-width: max(4px, var(--a11y-focus-size, 3px)) !important; outline-offset: 4px !important; box-shadow: 0 0 0 3px #111, 0 0 0 8px white !important; animation: none !important; }
 
 // Explicit typography choices take priority over the simple reading switches.
 $typography: (fontfamily: font-family, fontweight: font-weight, fontstyle: font-style, fontvariant: font-variant, texttransform: text-transform, letterspacing: letter-spacing, wordspacing: word-spacing, linespacing: line-height);

@@ -32,15 +32,20 @@ export const getLipPaint = (person, options, colours = {}, beatJustPlayed = fals
 	}
 	const pulse = Math.max(0, 1 - (now - beat.time) / 220)
 	const amplitude = person.singing ? Math.max(0, Math.min(1, person.data?.mouthRatio ?? 0)) : 0
+	const isPhotoSensitive = Boolean(
+		options.photoSensitive ||
+		globalThis.document?.documentElement?.classList?.contains('a11y-photoSensitive') ||
+		globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion')
+	)
 	let hue = solidHues[style] ?? colours.h ?? person.hue ?? 0
 	let lightness = 50
 	let alpha = 0.9
-	if (style === 'rainbow') hue = (now / 35) % 360
+	if (style === 'rainbow' && !isPhotoSensitive) hue = (now / 35) % 360
 	if (style === 'pulse') {
 		lightness = 35 + amplitude * 25
 		alpha = 0.55 + amplitude * 0.4
 	}
-	if ((style === 'beat' || style === 'beat-rainbow') && !options.photoSensitive) {
+	if ((style === 'beat' || style === 'beat-rainbow') && !isPhotoSensitive) {
 		alpha = pulse * 0.95
 		lightness = 50 + pulse * 20
 		if (style === 'beat-rainbow') hue = beat.hue
