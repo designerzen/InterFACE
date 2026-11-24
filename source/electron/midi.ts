@@ -1,5 +1,5 @@
 import type { BrowserWindow, IpcMain } from 'electron'
-import { createNativeMIDIBackend, loadNativeMIDIBinding, validateUMPWords } from './windows-midi-services-backend'
+import { createNativeMIDIBackend, getSerializablePorts, loadNativeMIDIBinding, validateUMPWords } from './windows-midi-services-backend'
 
 type MIDIPort = {
 	id:string
@@ -36,8 +36,16 @@ export const registerMIDI = (mainWindow:BrowserWindow, ipcMain:IpcMain) => {
 	if (binding) {
 		try {
 			setMIDIBackend(createNativeMIDIBackend(binding, {
-				onMessage:message => mainWindow.webContents.send('midi:message', message),
-				onPortsChanged:ports => mainWindow.webContents.send('midi:ports-changed', ports),
+				onMessage:message => {
+					if (!mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+						mainWindow.webContents.send('midi:message', message)
+					}
+				},
+				onPortsChanged:ports => {
+					if (!mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+						mainWindow.webContents.send('midi:ports-changed', ports)
+					}
+				},
 			}))
 		} catch (error) {
 			console.error('Native MIDI 2.0 failed to initialize; using Web MIDI', error)
@@ -49,7 +57,7 @@ export const registerMIDI = (mainWindow:BrowserWindow, ipcMain:IpcMain) => {
 		event.returnValue = backend !== null
 	})
 
-	ipcMain.handle('midi:get-ports', () => backend ?? emptyPorts())
+	ipcMain.handle('midi:get-ports', () => getSerializablePorts(backend))
 	ipcMain.handle('midi:send', async (_event, payload:{portId:string,words:number[],timestamp?:number}) => {
 		if (!backend?.send) throw new Error('Native MIDI output is unavailable')
 		const words = validateUMPWords(payload?.words)

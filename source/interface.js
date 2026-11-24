@@ -256,6 +256,7 @@ import { setLoadWaitingMessage } from './dom/load-progress.js'
 // MIDI
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import { getMIDIOutputs, isMIDIEnabled } from './audio/midi/midi-ports.js'
 import { WebMidi } from 'webmidi'
 
 // FIXME: 
@@ -921,7 +922,7 @@ export const createInterface = (
 	const killMIDI = (source = 'interface-killMIDI') =>{
 		personManager.people.forEach(stopMIDIEyebrowsForPerson)
 		stopAllActiveMIDIOutputNotes(source)
-		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, source) )
+		getMIDIOutputs().forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, source) )
 	}
 	
 	// performance indicators
@@ -2327,7 +2328,7 @@ export const createInterface = (
 		}
 
 		// dispatch midi to devices based on the above outputs
-		if ( WebMidi.enabled && stateMachine.get("midiControl") )
+		if ( isMIDIEnabled() && stateMachine.get("midiControl") )
 		{
 			updateWebMIDIWithPerson(person, personManager.people, audioOutput, undefined, {
 				mode:stateMachine.get('midiEyebrowMode'),
@@ -3791,13 +3792,13 @@ export const createInterface = (
 		// }
 
 		// Send MIDI clock
-		if (isMIDIAvailable && WebMidi && !clock.isUsingExternalTrigger && stateMachine.get("midiClock"))
+		if (isMIDIEnabled() && !clock.isUsingExternalTrigger && stateMachine.get("midiClock"))
 		{
 			// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
 			// midi.setSongPosition( clock.barProgress * 16383 , {})
 			// SEND OUT Midi to every connected MIDI device
 			//sendMIDIEventToAllDevices("clock")
-			WebMidi.outputs.forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-midiClock') ) // {time:clock.now}
+			getMIDIOutputs().forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-midiClock') ) // {time:clock.now}
 			//console.info("midi clock",  WebMidi.time)
 		}
 
@@ -4426,29 +4427,36 @@ export const createInterface = (
 		
 		// MIDI is optional so a refusal or failure here must never stop the app
 		let isMIDIRefused = false
+		const activeMIDIConnectionClasses = MIDIConnectionClasses?.length ? MIDIConnectionClasses : [WebMIDIClass]
+		const hasNativeElectronMIDI = Boolean(globalThis.electron?.midi?.available)
 
 		// FIXME: Hangs here on certain devices....
-		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
+		if ((hasNativeElectronMIDI || capabilities.webMIDIAvailable) && stateMachine.get("midi"))
 		{
 			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
 
-			// this has a timeout!
-			try{
-				isMIDIAvailable = await establishMIDI()
-				if (!isMIDIAvailable)
-				{
-					setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
+			if (hasNativeElectronMIDI)
+			{
+				isMIDIAvailable = true
+			}else{
+				// this has a timeout!
+				try{
+					isMIDIAvailable = await establishMIDI()
+					if (!isMIDIAvailable)
+					{
+						setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
+					}
+				}catch(error){
+					isMIDIAvailable = false
+					isMIDIRefused = true
+					console.warn("MIDI could not be enabled, continuing without MIDI", error)
+					const message = error?.name === "NotAllowedError" || error?.name === "SecurityError" ?
+						"MIDI access was refused<br>PhotoSYNTH will continue without MIDI" :
+						"MIDI could not be started<br>PhotoSYNTH will continue without MIDI"
+					main.classList.add('no-midi', 'midi-unavailable')
+					setToast(message, 0)
+					setFeedback(message, 0, 'midi')
 				}
-			}catch(error){
-				isMIDIAvailable = false
-				isMIDIRefused = true
-				console.warn("MIDI could not be enabled, continuing without MIDI", error)
-				const message = error?.name === "NotAllowedError" || error?.name === "SecurityError" ?
-					"MIDI access was refused<br>PhotoSYNTH will continue without MIDI" :
-					"MIDI could not be started<br>PhotoSYNTH will continue without MIDI"
-				main.classList.add('no-midi', 'midi-unavailable')
-				setToast(message, 0)
-				setFeedback(message, 0, 'midi')
 			}
 
 			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
@@ -4475,7 +4483,6 @@ export const createInterface = (
 			}
 		}
 
-		// FIXME: ONLY Use webmidi?
 		// This first tests for functions to exist
 		if (!isMIDIRefused && stateMachine.get("midi") && midiManager.available)
 		{
@@ -4484,10 +4491,12 @@ export const createInterface = (
 
 			// then we attempt to connect to it
 			try{
-				const MIDIConnectionClasses = [WebMIDIClass]
-			
 				// rather than enabling midi directly we show a button to enable it
-				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, personManager.people, { autoConnect:isMIDIAvailable }, setFeedback, inputStatusOverlay )
+				let hasMIDI = await setMIDIControls( midiManager, activeMIDIConnectionClasses, personManager.people, { autoConnect:isMIDIAvailable }, setFeedback, inputStatusOverlay )
+				if (!hasMIDI && hasNativeElectronMIDI && capabilities.webMIDIAvailable)
+				{
+					hasMIDI = await setMIDIControls( midiManager, [WebMIDIClass], personManager.people, { autoConnect:true }, setFeedback, inputStatusOverlay )
+				}
 				
 				console.info("MIDIManager", {hasMIDI,midiManager})
 			

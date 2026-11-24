@@ -1,4 +1,4 @@
-import { WebMidi } from "webmidi"
+import { getMIDIInputs, getMIDIOutputs } from "./audio/midi/midi-ports.js"
 import { forgetMIDIInputNotes, isMIDIDebugEnabled, isRecentMIDIOutputEcho, logMIDIDebug, recordMIDIInputNote, sendGuardedMIDIOutput } from "./audio/midi/midi-echo-guard.js"
 import { getMusicalDetailsFromEmoji } from "./models/emoji-to-music.js"
 import { EVENT_EMOTION_CHANGED } from "./people/person-event.js"
@@ -195,9 +195,10 @@ const setMIDIInputStatus = (statusAPI, input, id, detail, active = false, ttl = 
 
 const sendMIDIEventToAllDevices = (type, noteNumber, source = 'input-relay') => {
 	let sent = 0
+	const outputs = getMIDIOutputs()
 	switch(type){
 		case "noteon":
-			WebMidi.outputs.forEach(output => {
+			outputs.forEach(output => {
 				recordMIDIOutputDebug(output, type, noteNumber, source)
 				if (sendGuardedMIDIOutput(output, 'playNote', noteNumber, undefined, source))
 				{
@@ -206,7 +207,7 @@ const sendMIDIEventToAllDevices = (type, noteNumber, source = 'input-relay') => 
 			})
 			break
 		case "noteoff":
-			WebMidi.outputs.forEach(output => {
+			outputs.forEach(output => {
 				recordMIDIOutputDebug(output, type, noteNumber, source)
 				if (sendGuardedMIDIOutput(output, 'stopNote', noteNumber, undefined, source))
 				{
@@ -215,7 +216,7 @@ const sendMIDIEventToAllDevices = (type, noteNumber, source = 'input-relay') => 
 			})
 			break
 		case "clock":
-			WebMidi.outputs.forEach(output => {
+			outputs.forEach(output => {
 				recordMIDIOutputDebug(output, type, noteNumber, source)
 				if (sendGuardedMIDIOutput(output, 'sendClock', 'clock', undefined, source))
 				{
@@ -305,15 +306,18 @@ export const observeMIDIInputs = ({
 		return false
 	}
 
+	const allInputs = getMIDIInputs()
+	const allOutputs = getMIDIOutputs()
+
 	logMIDIDebug("MIDI:Observing inputs", {
-		inputs: WebMidi.inputs.map(input => ({
+		inputs: allInputs.map(input => ({
 			id: input.id,
 			name: input.name,
 			manufacturer: input.manufacturer,
 			connection: input.connection,
 			state: input.state
 		})),
-		outputs: WebMidi.outputs.map(output => ({
+		outputs: allOutputs.map(output => ({
 			id: output.id,
 			name: output.name,
 			manufacturer: output.manufacturer,
@@ -323,7 +327,7 @@ export const observeMIDIInputs = ({
 	})
 
 	// Forget unplugged inputs so this can run again whenever devices change
-	const currentInputs = new Set(WebMidi.inputs.filter(input => input.state !== 'disconnected'))
+	const currentInputs = new Set(allInputs.filter(input => input.state !== 'disconnected'))
 	midiInputObservers.forEach((observer, statusId) => {
 		if (!currentInputs.has(observer.input))
 		{
@@ -332,7 +336,7 @@ export const observeMIDIInputs = ({
 	})
 
 	currentInputs.forEach(input => {
-		const inputIndex = WebMidi.inputs.indexOf(input)
+		const inputIndex = allInputs.indexOf(input)
 		logMIDIDebug("MIDI:Observing input device", {
 			id: input.id,
 			name: input.name,
@@ -385,7 +389,7 @@ export const observeMIDIInputs = ({
 			for (const chord of chordDetails)
 			{
 				let sent = 0
-				WebMidi.outputs.forEach(output => {
+				getMIDIOutputs().forEach(output => {
 					recordMIDIOutputDebug(output, "noteon", chord.noteNumber, 'midi-sympathiser')
 					if (sendGuardedMIDIOutput(output, 'playNote', chord.noteNumber, undefined, 'midi-sympathiser'))
 					{
@@ -408,7 +412,7 @@ export const observeMIDIInputs = ({
 			for (const chord of chordDetails)
 			{
 				releaseOutputNote(chord.noteNumber)
-				WebMidi.outputs.forEach(output => {
+				getMIDIOutputs().forEach(output => {
 					recordMIDIOutputDebug(output, "noteoff", chord.noteNumber, 'midi-sympathiser')
 					sendGuardedMIDIOutput(output, 'stopNote', chord.noteNumber, undefined, 'midi-sympathiser')
 				})
@@ -743,5 +747,5 @@ export const observeMIDIInputs = ({
 		}, 'info')
 	})
 
-	return WebMidi.inputs.length > 0
+	return allInputs.length > 0
 }

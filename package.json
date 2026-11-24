@@ -64,7 +64,7 @@
 			"sourceMap": true
 		},
 		"web": {
-			"source": ["source/index.pug", "source/404.pug"],
+			"source": ["source/index.pug", "source/app.pug", "source/404.pug"],
 			"distDir": "./releases/web/",
 			"publicUrl": "./",
 			"context": "browser",

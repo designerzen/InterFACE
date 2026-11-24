@@ -1,5 +1,6 @@
 import { setMIDIPortTransport } from './midi-routing.js'
 import { isMIDIDebugEnabled, logMIDIDebug } from './midi-echo-guard.js'
+import { notifyMIDIPortsChanged, registerActiveMIDIManager } from './midi-ports.js'
 
 /**
  * Pass in some connections to monitor and this manager 
@@ -175,6 +176,7 @@ export default class MIDIConnectionManager{
 
 		this.devices = midiConnections
 		this.connections = midiConnections.filter( device => !device.error )
+		if (this.connections.length) registerActiveMIDIManager(this)
 			
 		logMIDIDebug("MIDI:Manager enable complete", {
 			afterMs: Math.round(performance.now() - enableStartedAt),
@@ -201,6 +203,7 @@ export default class MIDIConnectionManager{
 		this.inputDevices = []
 		this.outputDevices = []
 		this.onDeviceListUpdated([], [], [], null)
+		notifyMIDIPortsChanged()
 		onUpdate?.([], [])
 	}
 
@@ -223,6 +226,7 @@ export default class MIDIConnectionManager{
 		const updated = [...before.filter(port => !after.includes(port)), ...after.filter(port => !before.includes(port))]
 		// Notify even for an empty snapshot so the zero-device state stays accurate.
 		this.onDeviceListUpdated(this.outputs, this.inputs, updated, event)
+		notifyMIDIPortsChanged()
 		return updated
 	}
 

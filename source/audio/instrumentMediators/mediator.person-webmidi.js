@@ -1,6 +1,6 @@
 import { getPersonMIDIOutputs, getPersonMIDIChannel } from '../midi/midi-routing.js'
 import { stopMIDIEyebrowsForPerson, updateMIDIEyebrowsForPerson } from '../midi/person-eyebrow-expression.js'
-import { WebMidi } from "webmidi"
+import { getMIDIOutputs } from '../midi/midi-ports.js'
 import { STATE_INSTRUMENT_ATTACK, STATE_INSTRUMENT_DECAY, STATE_INSTRUMENT_PITCH_BEND, STATE_INSTRUMENT_RELEASE, STATE_INSTRUMENT_SILENT, STATE_INSTRUMENT_SUSTAIN } from "../../people/person-states.js"
 import { ROLI_PIANO } from "../midi/midi-devices-constants.js"
 import { isMIDIDebugEnabled, sendGuardedMIDIOutput, stopActiveMIDIOutputNotes } from "../midi/midi-echo-guard.js"
@@ -150,10 +150,10 @@ export const stopWebMIDIForPerson = (person, useSendAllNotesOff = false) => {
 	return true
 }
 
-export const resolveMIDIOutputsForPerson = person => getPersonMIDIOutputs(person, WebMidi.outputs)
+export const resolveMIDIOutputsForPerson = person => getPersonMIDIOutputs(person, getMIDIOutputs())
 
 export const resolveMIDIPortOptionsForPerson = (person, people = []) => {
-	const channel = getPersonMIDIChannel(person, WebMidi.outputs, people)
+	const channel = getPersonMIDIChannel(person, getMIDIOutputs(), people)
 	return channel === 'all' ? {} : { channels: channel }
 }
 

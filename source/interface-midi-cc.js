@@ -1,4 +1,4 @@
-import { WebMidi } from 'webmidi'
+import { getMIDIInputs, getMIDIOutputs, subscribeMIDIPorts } from './audio/midi/midi-ports.js'
 import { dispatchMIDIActivity } from './audio/midi/midi-echo-guard.js'
 import { getPitchClassForKey, normaliseKeyName } from './audio/tuning/keys.js'
 import { optionLabel } from './dom/option-label.js'
@@ -105,7 +105,7 @@ export const setupMIDICC = ({ stateMachine, root = document }) => {
 	const publish = (control, value) => {
 		if (!enabled() || applying || value === null || values.get(control.cc) === value) return
 		values.set(control.cc, value)
-		for (const output of WebMidi.outputs) {
+		for (const output of getMIDIOutputs()) {
 			if (!output.sendControlChange) continue
 			const options = { channels: [channel()] }
 			// Record before sending: virtual ports can echo synchronously.
@@ -147,13 +147,14 @@ export const setupMIDICC = ({ stateMachine, root = document }) => {
 		} finally { applying = false }
 	}
 	const refreshInputs = () => {
+		const currentInputs = getMIDIInputs()
 		for (const [input, listener] of inputs) {
-			if (!WebMidi.inputs.includes(input)) {
+			if (!currentInputs.includes(input)) {
 				input.removeListener('controlchange', listener)
 				inputs.delete(input)
 			}
 		}
-		for (const input of WebMidi.inputs) {
+		for (const input of currentInputs) {
 			if (inputs.has(input)) continue
 			input.addListener('controlchange', receive)
 			inputs.set(input, receive)
@@ -253,8 +254,7 @@ export const setupMIDICC = ({ stateMachine, root = document }) => {
 	stateMachine.addEventListener(onState)
 	root.addEventListener('input', onUI)
 	root.addEventListener('change', onUI)
-	WebMidi.addListener('connected', refreshInputs)
-	WebMidi.addListener('disconnected', refreshInputs)
+	const unsubscribePorts = subscribeMIDIPorts(refreshInputs)
 	refreshInputs()
 	const dispose = () => {
 		active = false
@@ -263,8 +263,7 @@ export const setupMIDICC = ({ stateMachine, root = document }) => {
 		stateMachine.removeEventListener(onState)
 		root.removeEventListener('input', onUI)
 		root.removeEventListener('change', onUI)
-		WebMidi.removeListener('connected', refreshInputs)
-		WebMidi.removeListener('disconnected', refreshInputs)
+		unsubscribePorts()
 		for (const [input, listener] of inputs) input.removeListener('controlchange', listener)
 		enableInput?.removeEventListener('change', onEnabled)
 		channelInput?.removeEventListener('change', onChannel)

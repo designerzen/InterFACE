@@ -57,6 +57,10 @@ export const createNativeMIDIBackend = (
 	}
 }
 
+export const getSerializablePorts = backend => (
+	backend ? { inputs: backend.inputs, outputs: backend.outputs } : { inputs: [], outputs: [] }
+)
+
 export const createWindowsMIDIServicesBackend = createNativeMIDIBackend
 
 export const getNativeMIDIAddon = platform => ({

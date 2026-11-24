@@ -27,6 +27,9 @@ jobs:
           - name: macOS x64
             os: macos-15-intel
             artifact: photosynth-macos-x64
+          - name: macOS arm64
+            os: macos-15
+            artifact: photosynth-macos-arm64
           - name: Linux x64
             os: ubuntu-latest
             artifact: photosynth-linux-x64

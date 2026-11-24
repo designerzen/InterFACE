@@ -75,13 +75,23 @@ public:
 		portsCallback_ = Napi::ThreadSafeFunction::New(info.Env(), callbacks.Get("onPortsChanged").As<Napi::Function>(), "CoreMIDI ports", 0, 1);
 
 		auto host = this;
-		ThrowStatus(info.Env(), MIDIClientCreateWithBlock(CFSTR("PhotoSYNTH MIDI 2.0"), &client_, ^(const MIDINotification*) {
-			host->RefreshPorts(true);
-		}), "MIDIClientCreateWithBlock");
-		ThrowStatus(info.Env(), MIDIInputPortCreateWithProtocol(client_, CFSTR("PhotoSYNTH MIDI 2.0 Input"), kMIDIProtocol_2_0, &inputPort_, ^(const MIDIEventList* eventList, void* sourceContext) {
-			host->Receive(eventList, static_cast<SourceContext*>(sourceContext));
-		}), "MIDIInputPortCreateWithProtocol");
-		ThrowStatus(info.Env(), MIDIOutputPortCreate(client_, CFSTR("PhotoSYNTH MIDI 2.0 Output"), &outputPort_), "MIDIOutputPortCreate");
+		try {
+			ThrowStatus(info.Env(), MIDIClientCreateWithBlock(CFSTR("PhotoSYNTH MIDI 2.0"), &client_, ^(const MIDINotification*) {
+				host->RefreshPorts(true);
+			}), "MIDIClientCreateWithBlock");
+			ThrowStatus(info.Env(), MIDIInputPortCreateWithProtocol(client_, CFSTR("PhotoSYNTH MIDI 2.0 Input"), kMIDIProtocol_2_0, &inputPort_, ^(const MIDIEventList* eventList, void* sourceContext) {
+				host->Receive(eventList, static_cast<SourceContext*>(sourceContext));
+			}), "MIDIInputPortCreateWithProtocol");
+			ThrowStatus(info.Env(), MIDIOutputPortCreate(client_, CFSTR("PhotoSYNTH MIDI 2.0 Output"), &outputPort_), "MIDIOutputPortCreate");
+		} catch (...) {
+			if (inputPort_) MIDIPortDispose(inputPort_);
+			if (outputPort_) MIDIPortDispose(outputPort_);
+			if (client_) MIDIClientDispose(client_);
+			inputPort_ = outputPort_ = client_ = 0;
+			messageCallback_.Release();
+			portsCallback_.Release();
+			throw;
+		}
 
 		started_ = true;
 		RefreshPortsLocked();
