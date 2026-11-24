@@ -667,6 +667,16 @@ importers:
         specifier: workspace:*
         version: link:source/electron/lib/windows-midi-services
 
+  packages/photosynth:
+    dependencies:
+      '@mediapipe/tasks-vision':
+        specifier: 1.2.3
+        version: 1.2.3
+    devDependencies:
+      jsdom:
+        specifier: 26.1.0
+        version: 26.1.0(bufferutil@4.1.0)(supports-color@10.2.2)(utf-8-validate@6.0.3)
+
   packages/looking-glass:
     dependencies:
       three:

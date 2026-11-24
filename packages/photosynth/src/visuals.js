@@ -1,0 +1,5 @@
+export { drawFaceFeatures } from './visual/2d.face-features.js'
+export { drawEyes, drawEye, getEyeExpression } from './visual/2d.eyes.js'
+export { drawEyebrows } from './visual/2d.eyebrows.js'
+export * from './visual/lip-styles.js'
+export * from './visual/eyebrow-styles.js'
