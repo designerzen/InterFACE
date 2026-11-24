@@ -4,62 +4,6 @@
 @use "../gadgets/_button.scss";
 
 // container (and colour of folder menus)
-#control-panel #shared-controls > .music-factory-mode {
-	--control-span: 4;
-	visibility: visible;
-	grid-column: span 4;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: .65rem;
-	padding: .7rem;
-	font-size: .85rem;
-	white-space: normal;
-	&::before, &::after { display: none; }
-	input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-	.music-factory-switch {
-		position: relative;
-		flex: 0 0 2.8rem;
-		height: 1.5rem;
-		border: 1px solid currentColor;
-		border-radius: 2rem;
-		&::after {
-			content: '';
-			position: absolute;
-			width: 1.1rem;
-			height: 1.1rem;
-			left: .15rem;
-			top: .15rem;
-			border-radius: 50%;
-			background: currentColor;
-			transition: transform .15s;
-		}
-	}
-	input:checked + .music-factory-switch::after { transform: translateX(1.25rem); }
-	input:focus-visible + .music-factory-switch { outline: 3px solid currentColor; outline-offset: 3px; }
-}
-#control-panel #music-factory-controls {
-	visibility: visible;
-	grid-column: 1 / -1;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: .8rem;
-	padding: .75rem;
-	background: var(--shade-dark, #181818);
-	color: var(--shade-white, white);
-	&[hidden] { display: none !important; }
-	label { display: flex; align-items: center; gap: .5rem; }
-	label select { position: static; opacity: 1; min-width: 0; max-width: 18rem; padding: .5rem; appearance: auto; }
-	output { flex: 1 1 18rem; font-size: .85rem; }
-	.music-factory-actions { display: flex; gap: .5rem; }
-	button { padding: .6rem; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: .5rem; }
-}
-#control-panel:not(.controls-list-open) #shared-controls > #music-factory-controls { grid-column: 1 / -1; }
-@media (prefers-reduced-motion: reduce) {
-	#control-panel .music-factory-switch::after { transition: none; }
-}
-
 #shared-controls{
 	// above all other controls!
 	z-index: 1080;

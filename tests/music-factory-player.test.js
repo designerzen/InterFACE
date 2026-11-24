@@ -1,5 +1,6 @@
 import {createMusicFactoryPlayer} from '../source/audio/music-factory-player.js'
 import {setupMusicFactory} from '../source/dom/ui.music-factory.js'
+import pug from 'pug'
 
 const parameter = () => ({value:0, setValueAtTime:jest.fn(), linearRampToValueAtTime:jest.fn(), setTargetAtTime:jest.fn(), cancelScheduledValues:jest.fn()})
 const node = () => ({connect:jest.fn(), disconnect:jest.fn()})
@@ -68,7 +69,8 @@ test('delayed recording callbacks cannot outlive a stop, even after audio nodes 
 })
 
 const interfaceHarness = (initial={}) => {
-	document.body.innerHTML='<label><input id="button-music-factory" type="checkbox"></label><div id="music-factory-controls" hidden><select id="music-factory-genre"></select><output id="music-factory-status"></output><button id="music-factory-finish"></button><button id="music-factory-new"></button></div><input id="timer-toggle" type="checkbox" checked>'
+	document.body.innerHTML=pug.renderFile('source/partials/control-panel.pug')
+	document.getElementById('timer-toggle').checked=true
 	const {context,oscillators}=audio()
 	const values=new Map(Object.entries({musicFactory:false,musicFactoryGenre:'ambient',musicFactorySeed:'saved',players:4,bpm:90,...initial}))
 	const onMode=jest.fn(),onProfile=jest.fn()
@@ -78,12 +80,17 @@ const interfaceHarness = (initial={}) => {
 
 test('the switch selects the saved style, exposes controls and restores instrument mode',()=>{
 	const h=interfaceHarness(),toggle=document.getElementById('button-music-factory')
+	expect(toggle.parentElement.parentElement.id).toBe('settings')
+	expect(toggle.parentElement.classList.contains('type-music')).toBe(true)
+	expect(document.querySelector('#shared-controls #button-music-factory')).toBeNull()
+	expect(document.querySelector('.music-factory-switch')).toBeNull()
+	expect(document.querySelector('#music-factory-controls .folder-content.settings-folder .control-settings')).not.toBeNull()
 	expect(document.getElementById('music-factory-genre').options).toHaveLength(12)
-	toggle.checked=true;toggle.dispatchEvent(new Event('change'))
+	toggle.parentElement.click()
 	expect(h.values.get('musicFactory')).toBe(true)
 	expect(h.onProfile).toHaveBeenLastCalledWith(expect.objectContaining({id:'ambient'}))
 	expect(document.getElementById('music-factory-controls').hidden).toBe(false)
-	toggle.checked=false;toggle.dispatchEvent(new Event('change'))
+	toggle.parentElement.click()
 	expect(h.onMode.mock.calls).toEqual([[true],[false]])
 	expect(document.getElementById('music-factory-controls').hidden).toBe(true)
 	h.api.destroy()

@@ -128,7 +128,6 @@ menu#control-panel
 	
 	//- Controls for all players
 	div#shared-controls.controls
-		include music-factory-panel.pug
 
 		p.sr-only Shared controls that apply to all players
 
@@ -374,6 +373,7 @@ menu#control-panel
 	//- Settings for all users --------------------------------------------------------------- 
 	section#settings.controls(aria-labelledby="settings-title")
 		span#settings-title(hidden) Global settings and options
+		include music-factory-panel.pug
 
 		#control-panel-mtv.folder-menu.bottom.horizontal.right.secondary.type-visual.group-overlay
 			a.folder-link.secondary.type-visual.group-overlay(href="#folder-mtv" aria-label="Show MTV settings") MTV settings
