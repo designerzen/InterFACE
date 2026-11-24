@@ -1,27 +1,74 @@
 @use "../_palette.scss";
 
 .theme-high-contrast{
-	
+	--shade-white: #ffffff;
+	--shade-dark: #000000;
+	--shade-grey: #d4d4d4;
+	--shade-gray: #e5e5e5;
+	--shade-cream: #1a1a1a;
+	--shade-brown: #ffffff;
+	--shade-brand: #ffff00;
+	--shade-active: #ffff00;
+	--shade-selected: #00ffff;
+	color-scheme: dark;
+	background: #000000 !important;
+	color: #ffffff !important;
+
+	#intro,
+	#app,
+	#onboard,
+	#control-panel,
+	#foot,
+	dialog,
+	section.mixed-content,
+	section article {
+		background: #000000 !important;
+		color: #ffffff !important;
+		border-color: #ffffff !important;
+		text-shadow: none !important;
+	}
+
+	:is(h1, h2, h3, h4, h5, h6, p, label, legend, summary, small, td, th, figcaption) {
+		color: #ffffff !important;
+		text-shadow: none !important;
+	}
+
+	a {
+		color: #ffff00 !important;
+		text-decoration: underline !important;
+	}
+
 	:is(
 		button,
 		.button,
-		input[type=list],
-		.controls > *:not(div), 
+		select,
+		input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+		textarea,
+		.controls > *:not(div),
 		.controls .folder-link
 	){
-		--range:0%;
-		--button-border-size:4px;
+		--range: 0%;
+		--button-border-size: 3px;
+		--col-top: #000000;
+		--col-bottom: #000000;
+		--col-border: #ffff00;
+		background: #000000 !important;
+		color: #ffffff !important;
+		border: 3px solid #ffff00 !important;
+		text-shadow: none !important;
+		box-shadow: none !important;
 
-		--hue: #{palette.$hue-red};
-		--hue-selected: #{palette.$hue-blue};
-		--hue-active: #{palette.$hue-yellow};
-	
-		--s:8%;
-		--s-selected:58%;
-		--s-active:58%;
-	
-		--l:8%;
-		--l-selected:58%;
-		--l-active:58%;
+		&:is(:hover, :active, [aria-pressed="true"], [aria-selected="true"]) {
+			background: #ffff00 !important;
+			color: #000000 !important;
+			border-color: #ffffff !important;
+		}
+	}
+
+	:focus-visible {
+		outline: 4px solid #00ffff !important;
+		outline-offset: 3px !important;
+		box-shadow: 0 0 0 2px #000000, 0 0 0 6px #ffffff !important;
+		animation: none !important;
 	}
 }

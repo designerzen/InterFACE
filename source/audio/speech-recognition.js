@@ -24,7 +24,7 @@ export const initSpeechRecognition = ( language="en-US", callback=null ) => {
 	recognition.onresult = (event) => {
 		const data = event.results[0][0].transcript
 		isBusy = true
-		callback & callback({data, event})
+		callback && callback({data, event})
 	}
 
 	recognition.onspeechend = (event) => {

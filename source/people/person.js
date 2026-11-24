@@ -1,4 +1,5 @@
 import EyeInstrumentGesture from './eye-instrument-gesture.js'
+import { findMIDIOutput, getMIDIOutputs } from '../audio/midi/midi-ports.js'
 import { updateStereoPan } from './stereo-pan.js'
 import { getPersonInstrumentChoices, choosePersonInstrument } from './person-instrument-choices.js'
 import { eyebrowStyleOptions } from '../visual/eyebrow-styles.js'
@@ -841,11 +842,9 @@ export default class Person extends EventTarget{
 		}
 		if (midiDevice === MIDI_ROUTING_ALL)
 		{
-			return WebMidi.outputs
+			return getMIDIOutputs()
 		}
-		const selectedOutput = WebMidi.getOutputById?.(midiDevice) ??
-			WebMidi.getOutputByName?.(midiDevice) ??
-			WebMidi.outputs.find(output => output.id === midiDevice || output.name === midiDevice)
+		const selectedOutput = findMIDIOutput(midiDevice)
 		return selectedOutput ? [selectedOutput] : []
 	}
 
@@ -1279,12 +1278,19 @@ export default class Person extends EventTarget{
 			this.onInputModeDetermined = this.onInputModeDetermined.bind(this)
 			this.onInputTypeDetermined = this.onInputTypeDetermined.bind(this)
 
-			// Face button events
-			this.button.addEventListener( 'pointerdown', this.onFaceTouchStart, {signal:this.abortController.signal} )			
-			this.buttonChangeInstrument.addEventListener( 'pointerdown', this.onInstrumentChangeRequested, {signal:this.abortController.signal} )
-			this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested, {signal:this.abortController.signal} )
-			this.buttonChangeInputMode.addEventListener( 'pointerdown', this.onInputModeChangeRequested, {signal:this.abortController.signal} )
-			this.buttonToggleChordDisplay.addEventListener( 'pointerdown', this.onInputTypeChangeRequested, {signal:this.abortController.signal} )
+			// Face button events (also bind keyboard click when event.detail === 0)
+			const bindPointerAndKeyboard = (el, handler) => {
+				if (!el) return
+				el.addEventListener('pointerdown', handler, {signal:this.abortController.signal})
+				el.addEventListener('click', event => {
+					if (event.detail === 0) handler(event)
+				}, {signal:this.abortController.signal})
+			}
+			bindPointerAndKeyboard(this.button, this.onFaceTouchStart)
+			bindPointerAndKeyboard(this.buttonChangeInstrument, this.onInstrumentChangeRequested)
+			bindPointerAndKeyboard(this.buttonChangeOperatingMode, this.onOperatingModeChangeRequested)
+			bindPointerAndKeyboard(this.buttonChangeInputMode, this.onInputModeChangeRequested)
+			bindPointerAndKeyboard(this.buttonToggleChordDisplay, this.onInputTypeChangeRequested)
 						
 			for (const [selector, direction] of [
 				[".previous-operating-mode-button", -1],
@@ -1605,9 +1611,10 @@ export default class Person extends EventTarget{
 	 */
 	update(prediction, timeNow, forceRefresh=false){
 		const shouldTrackActivity = !!prediction && !forceRefresh
+		const eyeGesturesDisabled = typeof document !== 'undefined' && document.documentElement?.classList?.contains('a11y-disableEyeGestures')
 		const eyeAction = this.eyeInstrumentGesture.update(
 			shouldTrackActivity ? prediction : null, this.now, this.getBarDuration?.(),
-			this.instrumentLoading || this.eyeInstrumentLoading
+			this.instrumentLoading || this.eyeInstrumentLoading || eyeGesturesDisabled
 		)
 		if (eyeAction) {
 			this.loadEyeGesturePreset(eyeAction).catch(error => console.error('Eye instrument change failed', error))
@@ -1825,8 +1832,13 @@ export default class Person extends EventTarget{
 		// allows us to use the metronome to shape the colours
 		const saturation = clamp(this.saturation + (this.isMouseOver ? 50 : 0), 0, 100)
 
-		// Extra luminosity on beat just played
-		const luminosity = clamp(this.luminosity + (beatJustPlayed ? 33 : 0), 0, 100)
+		// Extra luminosity on beat just played (disabled in photosensitive-safe mode)
+		const isPhotoSensitive = Boolean(
+			options?.photoSensitive ||
+			globalThis.document?.documentElement?.classList?.contains('a11y-photoSensitive') ||
+			globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion')
+		)
+		const luminosity = clamp(this.luminosity + (beatJustPlayed && !isPhotoSensitive ? 33 : 0), 0, 100)
 		
 		//console.log( this.getPhase( 1 ), this.getPhase( 2 ), this.getPhase( 3 ), this.getPhase( 4 ))
 	

@@ -13,6 +13,11 @@ const electronAPI = Object.freeze({
 		debug: process.argv.some(argument => argument === '--debug=true'),
 		platform: process.platform,
 	}),
+	accessibility: Object.freeze({
+		getPreferences: () => ipcRenderer.invoke('accessibility:get-preferences'),
+		toggleDarkMode: () => ipcRenderer.invoke('dark-mode:toggle'),
+		useSystemTheme: () => ipcRenderer.invoke('dark-mode:system'),
+	}),
 	midi: Object.freeze({
 		available: ipcRenderer.sendSync('midi:is-available') === true,
 		getPorts: () => ipcRenderer.invoke('midi:get-ports'),

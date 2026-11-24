@@ -8,7 +8,7 @@ block nav
 block preload 
 
 block main
-	main(style="color:darkcyan;")
+	main
 		section 
 			header
 				h3 Installation Presets 
@@ -18,17 +18,17 @@ block main
 				include partials/time-presets.pug
 				
 			article
-				h4 Newham Citizen's Science Fair Presets
-				nav.internal-links
+				h4 Newham Citizen’s Science Fair Presets
+				nav.internal-links(aria-label="Newham Citizen’s Science Fair presets")
 					a(href="/newham-citizens-science-fair?timeout=200000&referer=newham-citizens-science-fair") 3:20 4xPlayer
 					a(href="/newham-citizens-science-fair?timeout=120000&referer=newham-citizens-science-fair") 120 seconds 4xPlayer
 					a(href="/newham-citizens-science-fair?timeout=90000&referer=newham-citizens-science-fair") 90 seconds 4xPlayer
 					a(href="/newham-citizens-science-fair?timeout=60000&referer=newham-citizens-science-fair") 60 seconds 4xPlayer
-					a(href="/newham-citizens-science-fair?divisions=3&referer=newham-citizens-science-fair") 60 seconds 4xPlayer
+					a(href="/newham-citizens-science-fair?divisions=3&referer=newham-citizens-science-fair") 3 divisions 4xPlayer
 
 			article
-				h4 V&A Presets
-				nav.internal-links
+				h4 V&amp;A Presets
+				nav.internal-links(aria-label="V&A presets")
 					a(href="/va?timeout=200000&referer=va") 3:20 4xPlayer
 					a(href="/va?timeout=120000&referer=va") 120 seconds 4xPlayer
 					a(href="/va?timeout=90000&referer=va") 90 seconds 4xPlayer
@@ -36,14 +36,14 @@ block main
 
 			article
 				h4 Light Presets
-				nav.internal-links
+				nav.internal-links(aria-label="Light presets")
 					a(href="/app?lights=table") Table
 					a(href="/app?lights=picade") Picade
 
 			article
 				h4 MIDI Presets
 				p Play incoming MIDI notes through PhotoSYNTH and quantise accepted notes onto the percussion grid.
-				nav.internal-links
+				nav.internal-links(aria-label="MIDI presets")
 					a(href="/app?midi=true&midiInput=true&midiOnboard=true&quantise=true&midiRelay=false&midiClock=false&muted=false") Quantised MIDI Input
 					a(href="/bestival?midi=true&midiInput=true&midiOnboard=true&quantise=true&midiRelay=false&midiClock=false&muted=false&harmonyMode=global-key&key=A&keyScale=NATURAL_MINOR_SCALE") Bestival A minor
 			

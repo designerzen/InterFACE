@@ -21,7 +21,7 @@ menu#control-panel
 		h2#controls-list-application-title Accessibility and application
 	div.controls-list-footer(hidden aria-hidden="true")
 
-	div(hidden, aria-live="polite").ensemble-preset-panel
+	div(hidden).ensemble-preset-panel
 		button(type="button" aria-label="Toggle ensemble instrument presets" aria-expanded="false").ensemble-preset-toggle Ensemble presets
 		menu.ensemble-preset-controls
 
@@ -94,7 +94,7 @@ menu#control-panel
 	//- PERSON A ------------------------------------------------------------------------------
 	
 	//- the toggle button & panel is hidden until activated by user interaction
-	div(hidden, aria-live="polite").instrument-panel.person-a-panel
+	div(hidden).instrument-panel.person-a-panel
 		// FIXME: ADD ARIA
 		button(type="button" aria-label="Show the instrument control panel for top left user").person-a-toggle-controls.person-toggle-controls Show instrument panel for the person on the left
 		//- element that fills with instruments 
@@ -102,19 +102,19 @@ menu#control-panel
 			
 	//- PERSON B ------------------------------------------------------------------------------
 	
-	div(hidden, aria-live="polite").instrument-panel.person-b-panel
+	div(hidden).instrument-panel.person-b-panel
 		button(type="button" aria-label="Show the instrument control panel for top right user").person-b-toggle-controls.person-toggle-controls Show instrument panel for the person on the right 
 		menu.person-controls.person-b-controls
 			
 	//- PERSON C ------------------------------------------------------------------------------
 	
-	div(hidden, aria-live="polite").instrument-panel.person-c-panel
+	div(hidden).instrument-panel.person-c-panel
 		button(type="button" aria-label="Show the instrument control panel for lower left user").person-c-toggle-controls.person-toggle-controls Show instrument panel for the person on the lower left
 		menu.person-controls.person-c-controls
 			
 	//- PERSON D ------------------------------------------------------------------------------
 	
-	div(hidden, aria-live="polite").instrument-panel.person-d-panel
+	div(hidden).instrument-panel.person-d-panel
 		button(type="button" aria-label="Show the instrument control panel for lower right user").person-d-toggle-controls.person-toggle-controls Show instrument panel for the person on the lower right
 		menu.person-controls.person-d-controls
 			
@@ -136,7 +136,7 @@ menu#control-panel
 
 		button#button-help( type="button" aria-label="Show help screen" onclick="window.help.showModal();" ) Help!<span class="hide-text"> me</span>
 		
-		button#button-command-palette.command-palette-launcher(type="button" aria-haspopup="dialog" aria-controls="command-palette" aria-label="Open command palette" hidden)
+		button#button-command-palette.command-palette-launcher(type="button" aria-haspopup="dialog" aria-controls="command-palette" aria-label="Commands: open command palette" hidden)
 			| Commands
 			kbd(aria-hidden="true") Ctrl K
 				
@@ -190,7 +190,7 @@ menu#control-panel
 		
 		label.keyboard-shortcut-control(for="select-viz") Viz
 			kbd.keyboard-shortcut(aria-hidden="true") Y
-			select#select-viz(aria-label="Choose audio visualisation")
+			select#select-viz(aria-label="Viz: choose audio visualisation")
 				option(value="vu" selected) VU
 				option(value="spectrum") Spectrum
 				option(value="mirror") Mirror
@@ -244,7 +244,7 @@ menu#control-panel
 					option(value="400" data-detail="BPM") 400
 					option(value="500" data-detail="BPM") 500
 		#control-panel-tempo.folder-menu.bottom.horizontal.right
-			a.folder-link(href="#folder-tempo" aria-label="Show timing options") <span class="hide-text">Show </span>tempo<span class="hide-text"> options</span>
+			a.folder-link(href="#folder-tempo" aria-label="Tempo: show timing options") <span class="hide-text">Show </span>tempo<span class="hide-text"> options</span>
 			menu.folder-content#folder-tempo
 				include tempo-panel.pug
 				a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu
@@ -252,7 +252,7 @@ menu#control-panel
 		include looking-glass-panel.pug
 
 		label(for="select-key") <span class="hide-text">Choose </span>Key
-			select#select-key(aria-label="Select global musical tonic")
+			select#select-key(aria-label="Key: select global musical tonic")
 				option(value="free-range")&attributes({ 'data-detail': 'no shared key', 'data-icon': optionPath('M6 8a4 4 0 1 0 0 8c3.5 0 8.5-8 12-8a4 4 0 1 1 0 8c-3.5 0-8.5-8-12-8z') }) Free Range
 				hr
 				option(value="C") C
@@ -373,6 +373,7 @@ menu#control-panel
 	//- Settings for all users --------------------------------------------------------------- 
 	section#settings.controls(aria-labelledby="settings-title")
 		span#settings-title(hidden) Global settings and options
+		include music-factory-panel.pug
 
 		#control-panel-mtv.folder-menu.bottom.horizontal.right.secondary.type-visual.group-overlay
 			a.folder-link.secondary.type-visual.group-overlay(href="#folder-mtv" aria-label="Show MTV settings") MTV settings
@@ -412,10 +413,10 @@ menu#control-panel
 			kbd.keyboard-shortcut(aria-hidden="true") Space
 
 		label.secondary.type-music.group-timing(for="button-quantise") Quantise
-			input(type="checkbox" aria-label="Ensure that the notes are played at regular intervals")#button-quantise
+			input(type="checkbox" aria-label="Quantise: ensure notes are played at regular intervals")#button-quantise
 
 		label.tertiary.type-music.group-timing(for="select-arp-rate") ARP Rate
-			select#select-arp-rate(name="arp-rate" aria-label="Select the global arpeggio rate")
+			select#select-arp-rate(name="arp-rate" aria-label="ARP Rate: select global arpeggio rate")
 				option(value="auto") Auto
 				option(value="slow") Slow
 				option(value="medium") Medium
@@ -452,13 +453,13 @@ menu#control-panel
 			input#button-sync-video(type="checkbox" aria-label="Toggle whether to try to synch video to performance")
 
 		label.secondary.type-visual.group-video(for="button-flood") Flood<span class="hide-text"> fill the screen</span>
-			input#button-flood(type="checkbox" aria-label="Scale the live video and overlays to fill the screen without black bars")
+			input#button-flood(type="checkbox" aria-label="Flood: scale live video and overlays to fill the screen")
 
 		label.secondary.type-visual.group-overlay(for="button-hud") HUD<span class="hide-text"> input device overlay</span>
-			input#button-hud(type="checkbox" aria-label="Toggle the input device HUD")
+			input#button-hud(type="checkbox" aria-label="HUD: toggle input device overlay")
 
 		label.primary.type-visual.group-overlay(for="button-overlay" ) Overlay<span class="hide-text"> virtual reality</span>
-			input#button-overlay(type="checkbox" aria-label="Toggle augmented reality mode")
+			input#button-overlay(type="checkbox" aria-label="Overlay: toggle augmented reality mode")
 
 		//- label(for="button-pattern") Drum Pattern
 		//- 		input#button-pattern(type="checkbox" aria-label="Change percussion arrangement")
@@ -471,13 +472,13 @@ menu#control-panel
 	
 		label.keyboard-shortcut-control.secondary.type-visual.group-overlay(data-overlay-control for="button-subtitles") Subtitles<span class="hide-text"> text overlay</span>
 			kbd.keyboard-shortcut(aria-hidden="true") T
-			input#button-subtitles(type="checkbox" aria-label="Toggle text overlays")
+			input#button-subtitles(type="checkbox" aria-label="Subtitles: toggle text overlays")
 
 		label.secondary.type-visual.group-overlay(data-overlay-control for="button-toggle-overlay") Text &amp; symbols
-			input#button-toggle-overlay(type="checkbox" aria-label="Toggle the overlay canvas for text and symbols")
+			input#button-toggle-overlay(type="checkbox" aria-label="Text and symbols: toggle overlay canvas")
 		
 		label.tertiary.type-visual.group-overlay(data-overlay-control for="button-eyebrows") Brows
-			input#button-eyebrows(type="checkbox" aria-label="Toggle eyebrow overlays")
+			input#button-eyebrows(type="checkbox" aria-label="Brows: toggle eyebrow overlays")
 
 		label.tertiary.type-visual.group-overlay(data-overlay-control for="select-lips") Lips
 			select#select-lips(aria-label="Select a lip overlay style")
@@ -550,7 +551,7 @@ menu#control-panel
 				
 		label.keyboard-shortcut-control.secondary.type-application.group-accessibility(for="button-speak") <span class="hide-text">Toggle </span>Speech
 			kbd.keyboard-shortcut(aria-hidden="true") L
-			input#button-speak(type="checkbox" aria-label="Read out instructions and help")
+			input#button-speak(type="checkbox" aria-label="Speech: read out instructions and help")
 	
 		button#button-reset.tertiary.type-application.group-settings(data-advanced-mode-only  type="button" aria-label="Reset to Factory Defaults" ) Reset<span class="hide-text"> to Factory Defaults</span>
 	

@@ -65,6 +65,7 @@
 		
 		svg{
 			grid-area: logo;
+			position: static;
 			// Size from the column, not the spanning grid rows (Safari).
 			align-self: start;
 			aspect-ratio: 3018 / 2502;
@@ -289,7 +290,8 @@
 	overflow: clip;
 
 	tbody{
-		background-color: var(--shade-cream);
+		background-color: var(--shade-white);
+		color: var(--shade-dark);
 		border-radius: var(--curve, var(--pad));
 	}
 

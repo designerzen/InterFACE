@@ -22,6 +22,12 @@
 		anchor-name: --select-arp-rate;
 	}
 
+	label[for="button-music-factory"], #music-factory-controls > .folder-link {
+		--bg:url(/source/assets/icons/music_note-24px.svg);
+		--col-hover:var(--shade-blue);
+		--col-select:var(--shade-yellow);
+	}
+
 	#shared-controls > #button-controls-list {
 		order: -2;
 		grid-area: 1 / 1;

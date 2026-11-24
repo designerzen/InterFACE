@@ -27,7 +27,7 @@ export default class SVGKeyboard{
 		this.descriptionID = `${unique}-desc`
 		const {svg, whiteKeyElements, blackKeyElements} = this.createKeyboard(keys)
 		this.htmlElement = document.createElement("div")
-		this.htmlElement.classNames = "piano"
+		this.htmlElement.className = "piano"
 		this.htmlElement.innerHTML = svg
 		this.keyElements = Array.from(this.htmlElement.querySelectorAll(".piano-key"))
 		this.firstNoteNumber = keys[0].noteNumber
@@ -61,12 +61,20 @@ export default class SVGKeyboard{
 
 			const onPianoInteractionStarting = (event) => {
 					
-				if (
-					event instanceof KeyboardEvent &&
-					event.key !== "Enter" &&
-					event.key !== " "
-				) {
-					return
+				if (event instanceof KeyboardEvent) {
+					if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+						event.preventDefault()
+						keys[(i + 1) % keys.length]?.focus()
+						return
+					}
+					if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+						event.preventDefault()
+						keys[(i - 1 + keys.length) % keys.length]?.focus()
+						return
+					}
+					if (event.repeat || (event.key !== "Enter" && event.key !== " ")) {
+						return
+					}
 				}
 
 				if (event.preventDefault)
@@ -82,7 +90,7 @@ export default class SVGKeyboard{
 				this.active.set( button, noteNumber )
 				this.touches++
 
-				starting & toggleIndicator(true)
+				if (starting) toggleIndicator(true)
 				
 				document.addEventListener("pointerleave", onInterationComplete, false)
 				document.addEventListener("pointerup", onInterationComplete, false)
@@ -90,6 +98,10 @@ export default class SVGKeyboard{
 			}
 		
 			const onInterationComplete = (event) => {
+				if (event instanceof KeyboardEvent && event.key !== "Enter" && event.key !== " ") {
+					return
+				}
+				if (!this.active.has(button)) return
 				if (event.preventDefault)
 				{
 					event.preventDefault()
@@ -103,14 +115,17 @@ export default class SVGKeyboard{
 				// const noteNumber = this.active.get( button )
 				// const note = convertNoteNameToMIDINoteNumber(noteName)
 				// console.info("REQUEST END", {previousNote,note})
-				this.touches--
+				this.touches = Math.max(0, this.touches - 1)
 
 				noteOff(noteNumber,1,id)
 				toggleIndicator(false)
 				this.active.delete( button )
 			}
 		
-			button.addEventListener("pointerdown", onPianoInteractionStarting, false) 
+			button.addEventListener("pointerdown", onPianoInteractionStarting, false)
+			button.addEventListener("keydown", onPianoInteractionStarting, false)
+			button.addEventListener("keyup", onInterationComplete, false)
+			button.addEventListener("blur", onInterationComplete, false)
 			
 			// if the user has finger down but they change keys...
 			button.addEventListener("pointerenter", event => {
@@ -152,6 +167,9 @@ export default class SVGKeyboard{
 					x="${x}" 
 					y="${y}" 
 					rx="${r}" 
+					role="button"
+					tabindex="0"
+					aria-label="Play ${key.noteName}"
 					class="piano-key piano-key-black" 
 					width="${width}" height="${height}" 
 					title="${key.noteName}" 
@@ -183,6 +201,9 @@ export default class SVGKeyboard{
 					x="${x}" 
 					y="${y}" 
 					rx="${r}" 
+					role="button"
+					tabindex="0"
+					aria-label="Play ${key.noteName}"
 					class="piano-key piano-key-white" 
 					width="${width}" height="${height}" 
 					title="${key.noteName}" 
@@ -207,6 +228,7 @@ export default class SVGKeyboard{
 					cx="${x}" 
 					cy="${y}" 
 					r="${r}" 
+					aria-hidden="true"
 					class="piano-note-indicator" 
 					data-attribute-note="${key.noteName}" 
 					data-attribute-number="${key.noteNumber}" 

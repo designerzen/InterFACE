@@ -26,3 +26,20 @@ test('contrast uses sRGB luminance and retains unrounded ratios for threshold co
 	assert.ok(contrastRatio('#767676', '#ffffff') > 4.5)
 	assert.equal(contrastRatio('#102b36', '#edfaff'), contrastRatio('#edfaff', '#102b36'))
 })
+
+test('safety, shortcut, gesture, and bundled readable font preferences validate cleanly', () => {
+	const result = sanitisePreferences({
+		photoSensitive: true,
+		disableShortcuts: true,
+		disableEyeGestures: true,
+		fontFamily: 'OpenDyslexic',
+	}, true)
+	assert.equal(result.photoSensitive, true)
+	assert.equal(result.disableShortcuts, true)
+	assert.equal(result.disableEyeGestures, true)
+	assert.equal(result.fontFamily, 'OpenDyslexic')
+	assert.equal(sanitisePreferences({ fontFamily: 'ReadexPro' }, true).fontFamily, 'ReadexPro')
+	assert.throws(() => sanitisePreferences({ photoSensitive: 'yes' }, true))
+	assert.throws(() => sanitisePreferences({ disableShortcuts: 1 }, true))
+	assert.throws(() => sanitisePreferences({ disableEyeGestures: 'true' }, true))
+})

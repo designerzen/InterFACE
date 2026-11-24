@@ -73,6 +73,14 @@ dialog#accessibility-panel(aria-labelledby="a11y-title" aria-describedby="a11y-d
 			label.a11y-check
 				input(type="checkbox" data-preference="strongFocus")
 				span Extra visible keyboard focus
+			label.a11y-check
+				input(type="checkbox" data-preference="disableShortcuts" aria-describedby="a11y-shortcuts-hint")
+				span Disable single-key app shortcuts
+			p#a11y-shortcuts-hint.a11y-hint Prevents single letter and number keys from triggering app controls when you are using speech input or assistive keyboards.
+			label.a11y-check
+				input(type="checkbox" data-preference="disableEyeGestures" aria-describedby="a11y-eye-gestures-hint")
+				span Disable eye-closure instrument switching
+			p#a11y-eye-gestures-hint.a11y-hint Prevents holding eyes closed from automatically changing instruments.
 			details
 				summary Focus, borders and links
 				#a11y-outlines.a11y-fields
@@ -80,7 +88,11 @@ dialog#accessibility-panel(aria-labelledby="a11y-title" aria-describedby="a11y-d
 			select#a11y-motion(data-preference="motion" aria-describedby="a11y-motion-hint")
 				option(value="system") Follow device preference
 				option(value="reduce") Reduce motion
-			p#a11y-motion-hint.a11y-hint Reduces interface animation and hides the animated wallpaper. Live camera and musical visualisations continue.
+			p#a11y-motion-hint.a11y-hint Reduces interface animation and hides the animated wallpaper.
+			label.a11y-check
+				input(type="checkbox" data-preference="photoSensitive" aria-describedby="a11y-photosensitive-hint")
+				span Reduce flashing visuals (photosensitive-safe)
+			p#a11y-photosensitive-hint.a11y-hint Disables beat-synced flashes, disco/MTV shader effects, rainbow colour cycling, and hardware LED flashing during performance.
 		footer.a11y-actions
 			button(type="button" data-reset-accessibility) Reset accessibility preferences
 			button(type="button" data-close-accessibility) Done

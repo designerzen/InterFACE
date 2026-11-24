@@ -664,6 +664,12 @@ export const addPicadeMaxEvents = application => {
 			half: Math.max(1, Math.round(totalDivisions / 2)),
 			quarter: Math.max(1, Math.round(totalDivisions / 4)),
 		}
+		const isPhotoSensitive = Boolean(
+			application.state?.get?.('photoSensitive') ||
+			globalThis.document?.documentElement?.classList?.contains('a11y-photoSensitive') ||
+			globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion')
+		)
+		if (isPhotoSensitive) return
 		if (shouldPulsePicadeMetronome(previousDivision, division)) {
 			// Polling can skip the literal zero division, so detect the clock wrap instead.
 			const pulseOptions = {

@@ -165,8 +165,8 @@
 
 	// 
 
-	// Take SVG filters out of the flow
-	svg[aria-hidden='true'] { 
+	// Take SVG filter definitions out of the flow without affecting decorative inline SVGs
+	svg[aria-hidden='true']:has(filter) { 
 		position: fixed;
 	}
 

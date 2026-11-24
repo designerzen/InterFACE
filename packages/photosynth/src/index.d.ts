@@ -1,0 +1,11 @@
+export { Photosynth } from './runtime.js';
+export { Performer, DEFAULT_PERFORMER_OPTIONS } from './performer.js';
+export { planPersonPerformance, expandMusicEvent } from './performance.js';
+export { PredictionMatcher } from './matcher.js';
+export * from './events.js';
+export * from './people/lip-sensitivity.js';
+export * from './people/head-note-range.js';
+export { default as PersonMotion } from './people/person-motion.js';
+export { EmojiDetector } from './models/emoji-detection.js';
+export { getMusicalDetailsFromEmoji } from './models/emoji-to-music.js';
+export type * from './types.js';

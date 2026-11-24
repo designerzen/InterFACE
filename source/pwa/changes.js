@@ -3,7 +3,11 @@ import MANIFEST_PATH from "url:../manifest.webmanifest"
 
 export const fetchChangesAsText = async () => {
     const response = await fetch(changesPath)
-    return await response.text()
+    const html = await response.text()
+    // the url may resolve to a full page (header, logo, styles) so keep only the release sections
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const sections = doc.querySelectorAll('#changes section, body > section')
+    return sections.length ? Array.from(sections, section => section.outerHTML).join('') : ''
 }
 
 export const injectChangeLog = async (contentDiv) => {

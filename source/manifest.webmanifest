@@ -5,9 +5,9 @@
 	"dir": "ltr",
 	"lang": "en",
 	"display_override": [
-	  "fullscreen",
 	  "standalone",
-	  "window-controls-overlay"
+	  "window-controls-overlay",
+	  "fullscreen"
 	],
 	"start_url": "./index.html",
 	"short_name": "PhotoSYNTH",
@@ -159,7 +159,7 @@
 		},
 		{
 			"name": "Solo Expert",
-			"url": "./index.html?players=1",
+			"url": "./index.html?players=1&advancedMode=true",
 			"description": "Start 1 Player in expert mode with extra features such as MIDI"
 		},
 		{
@@ -169,7 +169,7 @@
 		},
 		{
 			"name": "Duet Expert",
-			"url": "./index.html?players=2",
+			"url": "./index.html?players=2&advancedMode=true",
 			"description": "Start 2 pro players"
 		},
 		{

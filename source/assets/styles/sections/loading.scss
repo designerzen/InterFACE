@@ -2,11 +2,12 @@
 // Loading screen ------------------------------
 
 // funky text animations where the colour fades...
-// NB. EXPENSIVE, use sparingly
-.loading .logo,
-.loading strong,
-p strong{
-	animation:TextColours 4s linear infinite 0.05s both;
+// NB. EXPENSIVE, use sparingly — scoped to loading state only and gated by reduced motion
+@media (prefers-reduced-motion: no-preference) {
+	.loading .logo,
+	.loading strong {
+		animation: TextColours 4s linear infinite 0.05s both;
+	}
 }
 
 .loading {

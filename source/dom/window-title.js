@@ -16,7 +16,7 @@ export default class Title{
 		
 		if (this.#title !== newTitle) {
 			document.title = newTitle
-			this.#title = title
+			this.#title = newTitle
 		}
 	}
 

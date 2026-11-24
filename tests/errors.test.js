@@ -44,4 +44,26 @@ describe('error dialog camera help', () => {
 		expect(document.getElementById('error-help').hidden).toBe(false)
 		expect(document.querySelector('.camera-help').hidden).toBe(false)
 	})
+
+	test('keeps error alert audio present, respects mute/reduced-motion, and stops on dialog close', () => {
+		const dialog = document.getElementById('errors')
+		const audio = dialog.querySelector('audio')
+		audio.play = jest.fn(() => Promise.resolve())
+		audio.pause = jest.fn()
+
+		// Muted audio should not auto-play
+		audio.muted = true
+		showError('Test error', 'Test solution', true)
+		expect(audio.play).not.toHaveBeenCalled()
+
+		// Unmuted audio plays gently and stops when dialog closes
+		audio.muted = false
+		showError('Test error', 'Test solution', true)
+		expect(audio.volume).toBeLessThanOrEqual(0.5)
+		expect(audio.play).toHaveBeenCalledTimes(1)
+
+		dialog.dispatchEvent(new Event('close'))
+		expect(audio.pause).toHaveBeenCalled()
+		expect(audio.currentTime).toBe(0)
+	})
 })

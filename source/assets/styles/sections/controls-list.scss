@@ -41,6 +41,7 @@ html.controls-list-open { overflow: hidden; }
 	justify-content: center;
 	align-content: start;
 	gap: .5rem;
+	scroll-padding-block: 4.5rem 5.5rem;
 	transition: none;
 
 	> :not(#shared-controls, #settings, #percussion-settings, #transport, .controls-list-header, .controls-list-section, .controls-list-footer) { display: none; }
@@ -74,7 +75,7 @@ html.controls-list-open { overflow: hidden; }
 	#controls-list-music > h2 { margin-block-start: .5rem; }
 
 	$sections: (
-		music: ('label[for="select-key"]', 'label[for="select-key-scale"]', '#control-panel-tempo', 'label[for="button-metronome"]', 'label[for="button-quantise"]', 'label[for="select-arp-rate"]', 'label[for="backing-melody-player"]'),
+		music: ('label[for="button-music-factory"]', '#music-factory-controls', 'label[for="select-key"]', 'label[for="select-key-scale"]', '#control-panel-tempo', 'label[for="button-metronome"]', 'label[for="button-quantise"]', 'label[for="select-arp-rate"]', 'label[for="backing-melody-player"]'),
 		beats: ('label[for="button-percussion"]', 'label[for="select-percussion-preset"]', 'label[for="select-percussion-pattern"]', 'label[for="select-percussion-sound"]', '#button-randomise-percussion', 'label[for="button-rapid-percussion"]', 'label[for="button-performance-drums"]', '.snare-reverb-control', 'label[for="select-percussion-panning"]', 'label[for="select-beat-viz"]', 'label[for="button-midi-percussion"]'),
 		sound: ('#control-panel-volume', '#control-panel-engine', '#control-panel-midi'),
 		visuals: ('label[for="select-display"]', '#control-panel-looking-glass', 'label[for="select-composite-layout"]', 'label[for="select-composite-displays"]', 'label[for="button-flood"]', 'label[for="button-clear"]', 'label[for="button-sync-video"]', 'label[for="select-viz"]', 'label[for="select-mtv"]', '#control-panel-mtv', 'label[for="button-meshes"]', 'label[for="select-eyes"]', 'label[for="button-eyebrows"]', 'label[for="select-lips"]', 'label[for="select-subdivisions"]', 'label[for="select-palette"]', 'label[for="button-toggle-overlay"]', 'label[for="button-subtitles"]', 'label[for="button-hud"]', 'label[for="button-overlay"]'),

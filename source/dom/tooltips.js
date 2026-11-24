@@ -91,7 +91,11 @@ const layoutEvents = ["transitionrun", "transitionend", "transitioncancel", "ani
 		
 	
 		// if the letterRate is 0, then we just show the message
-		if (letterRate < 1 )
+		const reduceMotion = Boolean(
+			globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion') ||
+			globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+		)
+		if (letterRate < 1 || reduceMotion )
 		{	
 			write( message.length, 10 )
 		}else{
@@ -248,8 +252,9 @@ export const addTooltip = element => {
 	if (tooltips.has(element)) return
 
 	const showTooltipCallback = event => {
-		if (!tooltipsEnabled || event.pointerType !== "mouse" ||
-			(event.relatedTarget && element.contains(event.relatedTarget))) return
+		if (!tooltipsEnabled) return
+		if (event.type === "pointerover" && event.pointerType !== "mouse") return
+		if (event.relatedTarget && element.contains(event.relatedTarget)) return
 
 		// Drain mutations queued earlier in this task before trusting the cache.
 		onMutations(mutationObserver.takeRecords())
@@ -272,15 +277,13 @@ export const addTooltip = element => {
 		if (supportsPopover) toastElement.hidePopover()
 	}
 
-	if (supportsPopover)
-	{
-		element.popoverTargetElement = toastElement
-		if (!toastElement.id) toastElement.id = "tooltip-" + tooltipIndex++
-		element.setAttribute("popovertarget", toastElement.id)
-	}
+	const onEscapeTooltip = event => { if (event.key === "Escape" && tooltipElement === element) hideTooltipCallback() }
 
 	element.addEventListener("pointerover", showTooltipCallback)
 	element.addEventListener("pointerout", hideTooltipCallback)
+	element.addEventListener("focusin", showTooltipCallback)
+	element.addEventListener("focusout", hideTooltipCallback)
+	element.addEventListener("keydown", onEscapeTooltip)
 	if (tooltips.size === 0)
 	{
 		tooltipsEnabled = true
@@ -293,6 +296,9 @@ export const addTooltip = element => {
 	tooltips.set(element, () => {
 		element.removeEventListener("pointerover", showTooltipCallback)
 		element.removeEventListener("pointerout", hideTooltipCallback)
+		element.removeEventListener("focusin", showTooltipCallback)
+		element.removeEventListener("focusout", hideTooltipCallback)
+		element.removeEventListener("keydown", onEscapeTooltip)
 		hideTooltipCallback()
 		tooltipPositions.delete(element)
 		pendingPositions.delete(element)

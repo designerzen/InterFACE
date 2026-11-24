@@ -93,7 +93,7 @@ dialog{
 		position:absolute;
 		top:calc( 1 * var(--pad) );
 		right:calc( 2rem + var(--pad ) );
-		opacity:0.3;
+		opacity: 0.85;
 		z-index:909;
 		
 		&:hover{
@@ -262,7 +262,7 @@ dialog{
 		// }
 		
 		> *{
-			user-select: none;
+			user-select: text;
 			animation:Fade var(--ease-q) linear 0s 1 both;
 		}
 	}
@@ -332,4 +332,29 @@ dialog[open].failure::backdrop {
 		transform: translateY( var(--y,0) );
 		opacity: 0.6;
 	}
+}
+
+// PWA update prompt : keep the changelog scrollable so the actions stay visible
+dialog#pwa-updates[open] > form{
+	display: flex;
+	flex-direction: column;
+	gap: var(--pad);
+	max-height: calc(100dvh - 8 * var(--pad));
+	width: min(60ch, 100%);
+
+	#changelog{
+		flex: 1 1 auto;
+		min-height: 0;
+		max-height: 50dvh;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		padding-right: var(--pad);
+		text-align: start;
+
+		:is(h4,h5){ margin: var(--pad) 0 calc(0.5 * var(--pad)); }
+		ul{ padding-left: calc(2 * var(--pad)); }
+		img, svg, header, nav, footer{ display: none; }
+	}
+
+	button{ align-self: stretch; }
 }

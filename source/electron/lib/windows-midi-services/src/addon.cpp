@@ -158,12 +158,27 @@ private:
     void OnAdded(enumeration::MidiEndpointDeviceWatcher const&, enumeration::MidiEndpointDeviceInformationAddedEventArgs const& args) {
         auto device = args.AddedDevice();
         const auto id = winrt::to_string(device.EndpointDeviceId());
-        { std::scoped_lock lock(m_mutex); m_ports[id] = { id, winrt::to_string(device.Name()) }; }
+        {
+            std::scoped_lock lock(m_mutex);
+            m_ports[id] = { id, winrt::to_string(device.Name()) };
+            try {
+                GetOrOpenConnection(id);
+            } catch (...) {
+                // Keep the endpoint listed even if it cannot be opened immediately.
+            }
+        }
         NotifyPortsChanged();
     }
     void OnRemoved(enumeration::MidiEndpointDeviceWatcher const&, enumeration::MidiEndpointDeviceInformationRemovedEventArgs const& args) {
         const auto id = winrt::to_string(args.RemovedDevice().EndpointDeviceId());
-        { std::scoped_lock lock(m_mutex); m_ports.erase(id); m_connections.erase(id); }
+        {
+            std::scoped_lock lock(m_mutex);
+            m_ports.erase(id);
+            if (auto found = m_connections.find(id); found != m_connections.end()) {
+                found->second.connection.MessageReceived(found->second.messageToken);
+                m_connections.erase(found);
+            }
+        }
         NotifyPortsChanged();
     }
     void OnUpdated(enumeration::MidiEndpointDeviceWatcher const&, enumeration::MidiEndpointDeviceInformationUpdatedEventArgs const& args) {

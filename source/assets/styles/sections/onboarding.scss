@@ -553,7 +553,9 @@ label[for="toggle-automation-mode"]{
 		height: 100%;
 		border-radius: 9px;
 		
-		animation: CTA 2s infinite;
+		@media (prefers-reduced-motion: no-preference) {
+			animation: CTA 2s infinite;
+		}
 
 		/*
 
@@ -705,7 +707,9 @@ label[for="toggle-automation-mode"]{
 	#onboard label[for="toggle-advanced-mode"]{
 		&::before{
 			opacity:1;
-			animation: Pulse var(--duration-l, 1s) 0s #{ease.$easeOutQuad} infinite both;
+			@media (prefers-reduced-motion: no-preference) {
+				animation: Pulse var(--duration-l, 1s) 0s #{ease.$easeOutQuad} infinite both;
+			}
 		}
 		&::after{
 			opacity:0.5;

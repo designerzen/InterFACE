@@ -40,7 +40,6 @@ mediakit/*
 !mediakit/people
 !mediakit/screenshots
 !mediakit/history
-!mediakit/talk
 public
 tstex*
 heap-*

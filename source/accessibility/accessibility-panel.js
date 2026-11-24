@@ -86,6 +86,19 @@ export const setupAccessibilityControls = () => {
 		}).join(' ') + ' These checks cover the selected colour pairs; they do not assess the whole app.'
 	}
 	const apply = () => {
+		const menuHidden = triggers.length > 0 && triggers.every(element => getComputedStyle(element).display === 'none')
+		if (menuHidden) {
+			for (const [, , , variable] of colours) root.style.removeProperty(variable)
+			delete root.dataset.a11yTheme
+			delete root.dataset.a11yTextSize
+			for (const [key, , variable] of [...typography, ...outlines]) {
+				root.removeAttribute(`data-a11y-${key.toLowerCase()}`)
+				root.style.removeProperty(variable)
+			}
+			root.classList.toggle('a11y-reduce-motion', !!motion?.matches)
+			for (const key of Object.keys(defaults).filter(key => typeof defaults[key] === 'boolean')) root.classList.remove(`a11y-${key}`)
+			return
+		}
 		for (const [key, , , variable] of colours) {
 			if (preferences.theme === 'custom') root.style.setProperty(variable, preferences[key])
 			else root.style.removeProperty(variable)

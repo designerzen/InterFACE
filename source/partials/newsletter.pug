@@ -1,4 +1,4 @@
-div#mc_embed_shell(aria-labelledby="newsletter-title")
+div#mc_embed_shell(role="region" aria-labelledby="newsletter-title")
 	#mc_embed_signup
 		form#mc-embedded-subscribe-form.validate(
 			action="https://designerzen.us17.list-manage.com/subscribe/post?u=11c8e5b59b7e1f6f2e6424570&id=f8c2e29707&f_id=00fc8ae2f0"
@@ -12,7 +12,7 @@ div#mc_embed_shell(aria-labelledby="newsletter-title")
 					h4#newsletter-title Stay in the loop
 					p#newsletter-description PhotoSYNTH news, project updates and upcoming events.
 
-				label.newsletter-label(for="mce-EMAIL") Email address
+				label.newsletter-label(for="mce-EMAIL") Email address (required)
 				.subscribe-fields
 					.mc-field-group
 						input#mce-EMAIL.required.email(
@@ -22,7 +22,7 @@ div#mc_embed_shell(aria-labelledby="newsletter-title")
 							inputmode="email"
 							enterkeyhint="send"
 							placeholder="you@example.com"
-							aria-describedby="newsletter-reassurance newsletter-required"
+							aria-describedby="newsletter-reassurance"
 							required
 						)
 						#newsletter-required.indicates-required
@@ -30,7 +30,7 @@ div#mc_embed_shell(aria-labelledby="newsletter-title")
 							|  Please enter a valid email address.
 					input#mc-embedded-subscribe.button(type="submit" name="subscribe" value="Subscribe")
 
-				p#newsletter-reassurance Occasional emails. Unsubscribe anytime.
+				p#newsletter-reassurance Occasional emails. Unsubscribe anytime. Submitting opens Mailchimp in a new tab.
 
 				#mce-responses.clear(aria-live="polite")
 					#mce-error-response.response(style="display: none;")

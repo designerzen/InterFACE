@@ -38,13 +38,12 @@ export default class AbstractInteractive{
 				// Keypresses other than Enter and Space should not trigger a command
 				if (
 					event instanceof KeyboardEvent &&
-					event.key !== "Enter" &&
-					event.key !== " "
+					(event.repeat || (event.key !== "Enter" && event.key !== " "))
 				) {
 					return
 				}
 
-				if (!passive && event.preventDefault)
+				if ((!passive || event instanceof KeyboardEvent) && event.preventDefault)
 				{
 					event.preventDefault()
 				}
@@ -90,13 +89,12 @@ export default class AbstractInteractive{
 				// Keypresses other than Enter and Space should not trigger a command
 				if (
 					event instanceof KeyboardEvent &&
-					event.key !== "Enter" &&
-					event.key !== " "
+					(event.repeat || (event.key !== "Enter" && event.key !== " "))
 				) {
 					return
 				}
 
-				if (!passive && event.preventDefault)
+				if ((!passive || event instanceof KeyboardEvent) && event.preventDefault)
 				{
 					event.preventDefault()
 				}
@@ -124,6 +122,9 @@ export default class AbstractInteractive{
 			}
            
             button.addEventListener("pointerdown", onInteractionStarting, {signal: controller.signal,passive})
+            button.addEventListener("keydown", onInteractionStarting, {signal: controller.signal})
+            button.addEventListener("keyup", onInterationComplete, {signal: controller.signal})
+            button.addEventListener("blur", onInterationComplete, {signal: controller.signal})
 			
 			// if the user has finger down but they change keys...
 			button.addEventListener("pointerenter", event => {

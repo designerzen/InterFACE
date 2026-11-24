@@ -3,6 +3,7 @@
 const {
 	createWindowsMIDIServicesBackend,
 	getNativeMIDIAddon,
+	getSerializablePorts,
 	normalisePorts,
 	validateUMPWords,
 } = require('../source/electron/windows-midi-services-backend.ts')
@@ -59,5 +60,21 @@ describe('Windows MIDI Services backend', () => {
 	test('does not expose a backend if native startup fails', () => {
 		const binding = { start:jest.fn(() => { throw new Error('runtime missing') }), send:jest.fn(), stop:jest.fn() }
 		expect(() => createWindowsMIDIServicesBackend(binding, { onMessage:jest.fn(), onPortsChanged:jest.fn() })).toThrow('runtime missing')
+	})
+
+	test('getSerializablePorts returns structured-cloneable port lists without functions', () => {
+		const binding = {
+			start: jest.fn(() => ({ ports:[{ id:'ep-1', name:'MIDI 2', type:'bidirectional' }] })),
+			send: jest.fn(),
+			stop: jest.fn(),
+		}
+		const backend = createWindowsMIDIServicesBackend(binding, { onMessage:jest.fn(), onPortsChanged:jest.fn() })
+		const payload = getSerializablePorts(backend)
+		expect(() => structuredClone(payload)).not.toThrow()
+		expect(payload).toEqual({
+			inputs: [expect.objectContaining({ id:'ep-1', type:'input' })],
+			outputs: [expect.objectContaining({ id:'ep-1', type:'output' })],
+		})
+		expect(getSerializablePorts(null)).toEqual({ inputs:[], outputs:[] })
 	})
 })

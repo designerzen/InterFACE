@@ -5,7 +5,7 @@ import { observeSessionEvents, recordSessionEvent } from '../storage/session-eve
 
 export const setupBackingMelody = ({context,destination,stateMachine,personManager,document=globalThis.document}) => {
 	const output=document.getElementById('backing-melody-status')
-	const settings=() => Object.fromEntries(['backingMelody','backingMelodyVolume','backingMelodyPlayer','backingMelodyModelURL','key','keyScale','bpm','muted'].map(key => [key,stateMachine.get(key)]))
+	const settings=() => Object.fromEntries(['backingMelody','backingMelodyVolume','backingMelodyPlayer','backingMelodyModelURL','key','keyScale','bpm','muted','musicFactory'].map(key => [key,stateMachine.get(key)]))
 	const containsSource=(instrument,source) => Boolean(instrument && (instrument.id===source || instrument.instruments?.some(child => containsSource(child,source)) || containsSource(instrument.activeInstrument,source)))
 	const controller=createBackingMelody({
 		loadModel:async () => (await import('../audio/backing-melody-model.js')).createBackingMelodyModel(stateMachine.get('backingMelodyModelURL')),

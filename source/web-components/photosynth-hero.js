@@ -371,6 +371,16 @@ photosynth-hero {
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+	figure,
+	.wallpaper > *,
+	.mouth,
+	.note-animated.active,
+	.note-animated.active::before {
+		animation: none !important;
+	}
+}
+
 `
 const HTML = `
 <a class="content flood">
@@ -492,7 +502,10 @@ class PhotoSynthHero extends HTMLElement {
 	get posterLink() { return this.getAttribute('link') || '/' }
 	get showHint() { return this.hasAttribute('show-hint') ? this.getAttribute('show-hint') !== 'false' : true }
 	get showNotes() { return this.hasAttribute('show-notes') ? this.getAttribute('show-notes') !== 'false' : true }
-	get showWallpaper() { return this.hasAttribute('show-walpaper') ? this.getAttribute('show-walpaper') !== 'false' : true }
+	get showWallpaper() {
+		const attr = this.hasAttribute('show-wallpaper') ? 'show-wallpaper' : 'show-walpaper'
+		return this.hasAttribute(attr) ? this.getAttribute(attr) !== 'false' : true
+	}
 	get animateNotes() { return this.hasAttribute('animate-notes') ? this.getAttribute('animate-notes') !== 'false' : true }
 	get h1() { return this.getAttribute('h1')?.split('|').map(s => s.trim()) || ['SUPER'] }
 	get h2() { return this.getAttribute('h2')?.split('|').map(s => s.trim()) || ['POWERS'] }
@@ -522,6 +535,8 @@ class PhotoSynthHero extends HTMLElement {
 	disconnectedCallback() {
 		this._animationTimers.forEach(id => clearTimeout(id))
 		this._animationTimers = []
+		this._activeAnimations?.forEach(anim => anim.cancel?.())
+		this._activeAnimations = []
 	}
 
 	render() {
@@ -555,6 +570,23 @@ class PhotoSynthHero extends HTMLElement {
 		const h2 = this.querySelector('.text-h2')
 		const h3 = this.querySelector('.text-h3')
 		const h4 = this.querySelector('.text-h4')
+		const reduceMotion = Boolean(
+			window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ||
+			document.documentElement.classList.contains('a11y-reduce-motion') ||
+			document.documentElement.classList.contains('a11y-photoSensitive')
+		)
+
+		this._activeAnimations?.forEach(anim => anim.cancel?.())
+		this._activeAnimations = []
+
+		if (reduceMotion) {
+			if (h1) h1.textContent = this.h1[0] ?? ''
+			if (h2) h2.textContent = this.h2[0] ?? ''
+			if (h3) h3.textContent = this.h3[0] ?? ''
+			if (h4) h4.textContent = this.h4[0] ?? ''
+			this.querySelectorAll('.note-animated').forEach(el => el.classList.remove('active'))
+			return
+		}
 
 		// Reveal text with animations
 		this.revealText(h1, this.h1, 0, this.delayH1, this.durationH1)
@@ -565,7 +597,7 @@ class PhotoSynthHero extends HTMLElement {
 		// Sync mouth animation with h1 timing via JS
 		const mouth = this.querySelector('.mouth')
 		if (mouth) {
-			mouth.animate(
+			const mouthAnim = mouth.animate(
 				[
 					{ transform: 'scale(0.9)' },
 					{ transform: 'scale(1)', offset: 0.05 },
@@ -579,6 +611,7 @@ class PhotoSynthHero extends HTMLElement {
 					fill: 'both'
 				}
 			)
+			this._activeAnimations.push(mouthAnim)
 		}
 
 		// Setup note animations via css

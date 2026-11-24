@@ -132,7 +132,8 @@ function createWindow() {
 		y: mainWindowState.y,
 		width: mainWindowState.width,
 		height: mainWindowState.height,
-		minWidth: 420,
+		minWidth: 320,
+		accessibleTitle: "PhotoSYNTH face controlled musical instrument",
 		minHeight: 300,
 		backgroundColor: '#e4dede', 
 
@@ -143,7 +144,6 @@ function createWindow() {
 		...(process.platform === 'linux' ? { icon:LINUX_ICON } : {}),
 	   
 		webPreferences: {
-			accessibleTitle:"PhotoSYNTH face controlled musical instrument",
 			
 			// webSecurity:false,
 			// NB. contextIsolation: false now replaces nodeIntegration: true.
@@ -318,6 +318,13 @@ function createWindow() {
 		return nativeTheme.shouldUseDarkColors
 	})
 
+	ipcMain.handle('accessibility:get-preferences', () => ({
+		shouldUseDarkColors: nativeTheme.shouldUseDarkColors,
+		shouldUseHighContrastColors: nativeTheme.shouldUseHighContrastColors,
+		shouldUseInvertedColorScheme: nativeTheme.shouldUseInvertedColorScheme,
+		accessibilitySupportEnabled: app.isAccessibilitySupportEnabled(),
+	}))
+
 	ipcMain.handle('dark-mode:system', () => {
 		nativeTheme.themeSource = 'system'
 	})
@@ -368,7 +375,7 @@ function createWindow() {
 
 	mainWindow.on('ready-to-show', () => { 
 		mainWindow.show()
-		mainWindow.focus({ focusVisible: false })
+		mainWindow.focus()
 	})
 
 	// Emitted when the window is closed.
@@ -473,7 +480,7 @@ function focusOrCreateMainWindow() {
 app.whenReady().then(() => {
 
 	// Set app user model id for windows
-	electronApp.setAppUserModelId('com.electron')
+	electronApp.setAppUserModelId('place.interface.photosynth')
 
 	if (mainWindow === null) 
 	{

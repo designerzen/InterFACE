@@ -27,8 +27,15 @@ function cloneDocumentForPdf() {
 
 		if (sourceControl instanceof HTMLInputElement && sourceControl.type === 'checkbox') {
 			clonedControl.checked = sourceControl.checked
+			if (sourceControl.checked) clonedControl.setAttribute('checked', '')
+			else clonedControl.removeAttribute('checked')
 		} else {
 			clonedControl.value = sourceControl.value
+			if (clonedControl instanceof HTMLTextAreaElement) {
+				clonedControl.textContent = sourceControl.value
+			} else {
+				clonedControl.setAttribute('value', sourceControl.value)
+			}
 		}
 	}
 

@@ -9,23 +9,23 @@ form#onboard(action="/")
 		
 		//- https://adrianroselli.com/2020/01/my-priority-of-methods-for-labeling-a-control.html
 		label.button(for="button-solo" hidden) Solo, 1 Player
-		input#button-solo(name="players" type="radio" aria-label="Single player mode" checked hidden)
+		input#button-solo(name="players" type="radio" aria-label="Solo, 1 Player: single player mode" checked hidden)
 		
 		label.button(for="button-duet" hidden) Duet, 2 Players
-		input#button-duet(name="players" type="radio" aria-label="<strong>DUET</strong> mode!<br>Invite a friend and play together" hidden)
+		input#button-duet(name="players" type="radio" aria-label="Duet, 2 Players: invite a friend and play together" hidden)
 		
 		label.button(for="button-trio" hidden) Trio, 3 People
-		input#button-trio(name="players" type="radio" aria-label="Swap to three player <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" hidden)
+		input#button-trio(name="players" type="radio" aria-label="Trio, 3 People: three player multiplayer mode" hidden)
 		
 		label.button(for="button-quartet" hidden) Quartet, 4 People
-		input#button-quartet(name="players" type="radio" aria-label="Swap to full <strong>multiplayer</strong> mode!<br>Invite all your friend and play together" hidden)
+		input#button-quartet(name="players" type="radio" aria-label="Quartet, 4 People: full multiplayer mode" hidden)
 		
 	fieldset#complexity-selector
 		legend Options
 
 		//- Simple / Expert mode
-		label(for="toggle-advanced-mode" aria-describedby="advanced-mode-feedback") Expert mode
-		input#toggle-advanced-mode.switch(type="checkbox" role="switch")
+		label(for="toggle-advanced-mode") Expert mode
+		input#toggle-advanced-mode.switch(type="checkbox" role="switch" aria-describedby="advanced-mode-feedback")
 	
 		// Game mode!
 		//- label(for="toggle-game-mode" aria-label="Play a game a make music" ) Game mode 
@@ -33,12 +33,12 @@ form#onboard(action="/")
 
 		//- feedback (use div to avoid output element containing non-phrasing flow like paragraphs/video)
 		div#advanced-mode-feedback
-			p.simple-mode Friendly version with simple interface and instuctions suitable for beginners =P
+			p.simple-mode Friendly version with simple interface and instructions suitable for beginners
 			p.advanced-mode Expert mode includes MIDI connectivity and more controls
 			
-		//- Demostration - automated mode
-		label(for="toggle-automation-mode" aria-label="Automate instrument selection and modes" ) Demonstration Mode
-			input#toggle-automation-mode.toggle(type="checkbox")
+		//- Demonstration - automated mode
+		label(for="toggle-automation-mode") Demonstration Mode
+			input#toggle-automation-mode.toggle(type="checkbox" aria-label="Demonstration Mode: automate instrument selection and modes")
 
 	//- Start buttons
 	//- button#button-start()

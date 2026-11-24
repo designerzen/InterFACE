@@ -231,7 +231,9 @@ input[type="checkbox" i].switch{
 
 	// user has higighted it
 	&:focus-visible{
-		outline:0;
+		outline: 3px solid var(--shade-yellow, #ffc76a);
+		outline-offset: 2px;
+		box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.75);
 		background-color:var(--shade-blue);
 		background:linear-gradient( to right, var(--shade-blue), var(--shade-blue) );
 		

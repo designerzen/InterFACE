@@ -182,6 +182,24 @@ export const createMouthCurveEditor = (container, {points, onInput=()=>{}, onCha
 		marker.setAttribute('visibility', 'visible')
 	}
 
+	const addMidpoint = () => {
+		let bestGap = 0
+		let bestIndex = 0
+		for (let i = 0; i < curve.length - 1; i++) {
+			const gap = curve[i + 1][0] - curve[i][0]
+			if (gap > bestGap) { bestGap = gap; bestIndex = i }
+		}
+		const [x0, y0] = curve[bestIndex]
+		const [x1, y1] = curve[bestIndex + 1]
+		const inserted = addPoint([Math.round((x0 + x1) / 2), Math.round((y0 + y1) / 2)])
+		if (inserted >= 0) {
+			onInput(getPoints())
+			onChange(getPoints())
+			handles.children[inserted]?.focus({ preventScroll:true })
+		}
+		return inserted
+	}
+
 	render()
-	return { element:svg, getPoints, setPoints, setMarker }
+	return { element:svg, getPoints, setPoints, setMarker, addMidpoint }
 }

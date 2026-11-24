@@ -128,6 +128,7 @@ import { createVisualiserNotes } from './visual/visualiser-notes.js'
 import { createButterchurnVisualiser } from './visual/butterchurn-visualiser.js'
 import { observeSessionEvents } from './storage/session-events.js'
 import { setupBackingMelody } from './dom/ui.backing-melody.js'
+import { setupMusicFactory } from './dom/ui.music-factory.js'
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
@@ -255,6 +256,7 @@ import { setLoadWaitingMessage } from './dom/load-progress.js'
 // MIDI
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import { getMIDIOutputs, isMIDIEnabled } from './audio/midi/midi-ports.js'
 import { WebMidi } from 'webmidi'
 
 // FIXME: 
@@ -434,6 +436,8 @@ export const createInterface = (
 	let instrumentFactory 
 	let sessionUI
 	let backingMelody
+	let musicFactory
+	let instrumentTiming
 	const reportSessionRecordingError = error => {
 		console.error('Session recording error', error)
 		setFeedback(error?.message ?? 'Session recording failed', 0)
@@ -918,7 +922,7 @@ export const createInterface = (
 	const killMIDI = (source = 'interface-killMIDI') =>{
 		personManager.people.forEach(stopMIDIEyebrowsForPerson)
 		stopAllActiveMIDIOutputNotes(source)
-		WebMidi && WebMidi.outputs.forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, source) )
+		getMIDIOutputs().forEach( MIDIoutput => stopActiveMIDIOutputNotes(MIDIoutput, source) )
 	}
 	
 	// performance indicators
@@ -1015,6 +1019,18 @@ export const createInterface = (
 	const backingSnareSubHitTimbre = {}
 	const backingHatSubHitTimbre = {}
 	const extendedPercussionTimbreOptions = { ...DEFAULT_EXTENDED_PERCUSSION_TIMBRES }
+	const capturePercussionSound = () => {
+		const saved = [kickTimbreOptions, snareTimbreOptions, hatTimbreOptions, closedHatTimbreOptions, openHatTimbreOptions,
+			cowbellTimbreOptions, bongoLowTimbreOptions, bongoHighTimbreOptions, congaLowTimbreOptions, congaHighTimbreOptions,
+			congaMuteTimbreOptions, cabasaTimbreOptions, maracasTimbreOptions, triangleMuteTimbreOptions, triangleOpenTimbreOptions]
+		const extended = {...extendedPercussionTimbreOptions}
+		return () => {
+			;[kickTimbreOptions, snareTimbreOptions, hatTimbreOptions, closedHatTimbreOptions, openHatTimbreOptions,
+				cowbellTimbreOptions, bongoLowTimbreOptions, bongoHighTimbreOptions, congaLowTimbreOptions, congaHighTimbreOptions,
+				congaMuteTimbreOptions, cabasaTimbreOptions, maracasTimbreOptions, triangleMuteTimbreOptions, triangleOpenTimbreOptions] = saved
+			Object.assign(extendedPercussionTimbreOptions, extended)
+		}
+	}
 	const getAuxiliaryPercussionTimbre = part => {
 		switch (part) {
 			case 'bongoLow': return bongoLowTimbreOptions
@@ -1546,6 +1562,12 @@ export const createInterface = (
 		const isEnabled = stateMachine.toggle( 'backingTrack', updateGUI ? buttonPercussion : null )
 		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, isEnabled ? 'beats' : 'silence' )
 	}
+	const isPhotosensitiveSafe = () => Boolean(
+		stateMachine.get("photoSensitive") ||
+		document.documentElement.classList.contains('a11y-photoSensitive') ||
+		document.documentElement.classList.contains('a11y-reduce-motion')
+	)
+
 	/**
 	 * Control the "visualiser" feedback
 	 * @param {Boolean} enabled 
@@ -1555,12 +1577,19 @@ export const createInterface = (
 		{
 			enabled = !stateMachine.get("disco")
 		}
+		if (enabled && isPhotosensitiveSafe())
+		{
+			enabled = false
+			setFeedback("Disco Mode is disabled while photosensitive-safe mode is active", 0, 'disco')
+		}
 		if (enabled)
 		{
 			setFeedback("Disco Mode UNLOCKED!",0, 'disco')
 			display.nextFilter( )
 		}else{
-			setFeedback("Disco Mode disabled",0, 'disco')
+			if (!isPhotosensitiveSafe()) {
+				setFeedback("Disco Mode disabled",0, 'disco')
+			}
 			display.resetFilter( )
 		}
 		stateMachine.set("disco", enabled, updateGUI ? buttonDiscoModeToggle : null )
@@ -1572,7 +1601,6 @@ export const createInterface = (
 	const toggleDiscoMode = () => {
 		const isEnabled = !stateMachine.get( 'disco' )
 		setDiscoMode( isEnabled )
-		setFeedback( isEnabled ? "Backing track starting" : "Ending Backing Track", 0, isEnabled ? 'beats' : 'silence' )
 	}
 	/**
 	 * FIXME: Update GUI
@@ -2175,6 +2203,7 @@ export const createInterface = (
 	 * @returns {Object} of metadata
 	 */
 	const playPersonAudio = async ( person, repeatTick, scheduledTime ) => {
+		if (musicFactory?.enabled) return
 		
 		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
@@ -2279,7 +2308,7 @@ export const createInterface = (
 		{
 			person.lastNoteRepeatedTick = repeatTick
 		}
-		if (person.singing && person.noteVelocity > 0 && (isFreshAttack || shouldRepeatNote) && !stateMachine.get('muted')) {
+		if (person.singing && person.noteVelocity > 0 && (isFreshAttack || shouldRepeatNote) && !stateMachine.get('muted') && !isPhotosensitiveSafe()) {
 			display?.emitNoteParticles?.(person, {
 				at: performance.now() + (Number.isFinite(scheduledTime) ? (scheduledTime - audioContext.currentTime) * 1000 : 0),
 				velocity: person.noteVelocity
@@ -2299,7 +2328,7 @@ export const createInterface = (
 		}
 
 		// dispatch midi to devices based on the above outputs
-		if ( WebMidi.enabled && stateMachine.get("midiControl") )
+		if ( isMIDIEnabled() && stateMachine.get("midiControl") )
 		{
 			updateWebMIDIWithPerson(person, personManager.people, audioOutput, undefined, {
 				mode:stateMachine.get('midiEyebrowMode'),
@@ -2397,6 +2426,7 @@ export const createInterface = (
 
 	const stopAllPersonAudio = () => {
 		backingMelody?.stop()
+		musicFactory?.stop()
 		const amountOfPeople = personManager.quantityOfPlayers
 		for ( let i=0; i<amountOfPeople; ++i )
 		{
@@ -2936,7 +2966,7 @@ export const createInterface = (
 				display.clearFaceFeatures?.()
 				display.clear()
 				display.drawElement(inputElement, 0, 0, true, display.width, display.height)
-			} else if (discoMode)
+			} else if (discoMode && !isPhotosensitiveSafe())
 			{	
 				// FUNKY DISCO MODE...
 				// switch effect type?
@@ -2981,7 +3011,7 @@ export const createInterface = (
 				}
 			}	
 			
-			if (mtvMode) {
+			if (mtvMode && !isPhotosensitiveSafe()) {
 				const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height, mtvMode.preset)
 				if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mtvMode.blendMode, opacity:normaliseMTVStrength(stateMachine.get('mtvStrength')) })
 			}
@@ -3076,6 +3106,7 @@ export const createInterface = (
 
 					// first update the person - this allows us to sing at will
 					person.update( prediction, timeNow )
+					musicFactory?.observe(personIndex, prediction, timeNow, person)
 						
 					// add face overlay
 					if (display && (discoMode || stateMachine.get("overlays")))
@@ -3196,7 +3227,9 @@ export const createInterface = (
 			const seconds = recordedDuration % 60
 			const milliseconds = (seconds % 1) * 1000
 			//const recordString = (minutes>>0) + ':' + (seconds>>0)
-			const recordString = (minutes>>0) + ':' + (seconds>>0) + ':' + (milliseconds>>0)
+			// Format at whole-second resolution so aria-live="#feedback" is not spammed at 60Hz
+			const totalSeconds = Math.floor(recordedDuration)
+			const recordString = `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`
 			setFeedback(recordString, false, 'none', false)
 
 		}else if ( !setFeedback() ){
@@ -3480,6 +3513,9 @@ export const createInterface = (
 		const isHalfNote = clock.isHalfNote
 		const isBar = clock.isAtStart
 		const isMuted = stateMachine.get("muted")
+		const factoryLookahead = networkTiming?.room.active ? 0.03 :
+			Math.max(0, getBeatTriggerTime(audioContext, clock, scheduledContextTimeSeconds) - scheduledContextTimeSeconds)
+		musicFactory?.tick({at:scheduledContextTimeSeconds, bpm:clock.BPM, audioNow:audioContext.currentTime, lookahead:factoryLookahead})
 		backingMelody?.tick({isBar,at:scheduledContextTimeSeconds,bpm:clock.BPM})
 
 		// const isBarStart = divisionsElapsed===0
@@ -3655,8 +3691,9 @@ export const createInterface = (
 		// a swing of one will offset every second beat
 		//const swing = 1
 		// isQuarterNote
-		if ( !isMuted && stateMachine.get("backingTrack"))
+		if ( !isMuted && (musicFactory?.enabled ? musicFactory.percussion : stateMachine.get("backingTrack")))
 		{
+			const activeDrumArranger = musicFactory?.enabled ? musicFactory.drumArranger : drumArranger
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
 			// 	barsElapsed,})
@@ -3666,7 +3703,7 @@ export const createInterface = (
 			}
 			const lookahead = networkTiming?.room.active ? 0.03 :
 				getBeatTriggerTime(audioContext, clock, scheduledContextTimeSeconds) - scheduledContextTimeSeconds
-			const drumTimes = drumStepScheduler.advance({arranger:drumArranger, tickAt:scheduledContextTimeSeconds,
+			const drumTimes = drumStepScheduler.advance({arranger:activeDrumArranger, tickAt:scheduledContextTimeSeconds,
 				bpm:clock.BPM, now:audioContext.currentTime, lookahead})
 			for (const triggerAt of drumTimes)
 			{
@@ -3676,13 +3713,13 @@ export const createInterface = (
 				// small safety lookahead to keep us out of the past.
 				lastBackingStepAt = triggerAt
 				const eyeControlledTimbres = createEyeControlledDrumTimbres()
-				syncDrumMutedParts(eyeControlledTimbres)
+				if (!musicFactory?.enabled) syncDrumMutedParts(eyeControlledTimbres)
 				const drumPerformer = personManager.getPerson(0)
-				drumArranger?.updatePerson({
+				activeDrumArranger?.updatePerson(musicFactory?.enabled ? musicFactory.ensemble : {
 					noteVelocity:drumPerformer?.noteVelocity,
 					pitchBend:Number.isFinite(drumPerformer?.pitchBendValue) ? drumPerformer.pitchBendValue - 1 : 0
 				}, triggerAt)
-				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM, swing:clock.swing }) ?? {}
+				const parts = activeDrumArranger?.next({ triggerAt, bpm: clock.BPM, swing:clock.swing }) ?? {}
 				const partTime = part => getDrumPartTime(parts, part, triggerAt)
 				const panningPositions = getCurrentPercussionPanPositions()
 				if (parts.kick > 0) {
@@ -3755,13 +3792,13 @@ export const createInterface = (
 		// }
 
 		// Send MIDI clock
-		if (isMIDIAvailable && WebMidi && !clock.isUsingExternalTrigger && stateMachine.get("midiClock"))
+		if (isMIDIEnabled() && !clock.isUsingExternalTrigger && stateMachine.get("midiClock"))
 		{
 			// value=0] {number} The MIDI beat to cue to (integer between 0 and 16383).
 			// midi.setSongPosition( clock.barProgress * 16383 , {})
 			// SEND OUT Midi to every connected MIDI device
 			//sendMIDIEventToAllDevices("clock")
-			WebMidi.outputs.forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-midiClock') ) // {time:clock.now}
+			getMIDIOutputs().forEach(MIDIoutput => sendGuardedMIDIOutput(MIDIoutput, 'sendClock', 'clock', undefined, 'interface-midiClock') ) // {time:clock.now}
 			//console.info("midi clock",  WebMidi.time)
 		}
 
@@ -4063,8 +4100,9 @@ export const createInterface = (
 				syncTempoControls()
 				if (!transport.playing) {
 					backingMelody?.stop()
+					musicFactory?.pause(true)
 					personManager.people.forEach(person => stopPersonAudio(person))
-				}
+				} else musicFactory?.pause(false)
 			}, inputStatusOverlay)
 			tempoUI = setupTempoInterface(networkTiming?.tempoClock ?? clock, null, null, timerChanged =>{
 				saveTimingState()
@@ -4208,6 +4246,34 @@ export const createInterface = (
 		sampleOutput.gain.value = Math.min(1, Math.max(0, sampleVolume))
 		sampleOutput.connect(getMasterMixdown())
 		backingMelody = setupBackingMelody({context:audioContext,destination:getMasterMixdown(),stateMachine,personManager})
+		const initialiseMusicFactory = () => {
+			musicFactory = setupMusicFactory({context:audioContext, destination:getMasterMixdown(), stateMachine,
+				onMode:enabled => {
+					stopAllPersonAudio()
+					kit?.cancel()
+					drumStepScheduler.reset()
+					if (enabled) {
+						instrumentTiming = {bpm:clock.BPM, swing:clock.swing, restoreSound:capturePercussionSound()}
+					} else if (instrumentTiming) {
+						setBPM(instrumentTiming.bpm)
+						if (!networkTiming?.room.active) clock.swing = instrumentTiming.swing
+						else if (networkTiming.room.canEdit) networkTiming.room.setTransport({swing:instrumentTiming.swing})
+						stateMachine.set('swing', clock.swing)
+						instrumentTiming.restoreSound()
+						syncTempoControls()
+						instrumentTiming = null
+					}
+				},
+				onProfile:profile => {
+					kit?.cancel()
+					drumStepScheduler.reset()
+					applyPercussionSoundPreset(profile.sound)
+					setBPM(profile.bpm)
+					if (!networkTiming?.room.active) clock.swing = 0
+					syncTempoControls()
+				}
+			})
+		}
 		const personTrim = personManager.setTrim(Number.isFinite(storedTrim) ? storedTrim : (4 * 2 / 3))
 		setVolume( volume )
 
@@ -4361,29 +4427,36 @@ export const createInterface = (
 		
 		// MIDI is optional so a refusal or failure here must never stop the app
 		let isMIDIRefused = false
+		const activeMIDIConnectionClasses = MIDIConnectionClasses?.length ? MIDIConnectionClasses : [WebMIDIClass]
+		const hasNativeElectronMIDI = Boolean(globalThis.electron?.midi?.available)
 
 		// FIXME: Hangs here on certain devices....
-		if (capabilities.webMIDIAvailable && stateMachine.get("midi"))
+		if ((hasNativeElectronMIDI || capabilities.webMIDIAvailable) && stateMachine.get("midi"))
 		{
 			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
 
-			// this has a timeout!
-			try{
-				isMIDIAvailable = await establishMIDI()
-				if (!isMIDIAvailable)
-				{
-					setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
+			if (hasNativeElectronMIDI)
+			{
+				isMIDIAvailable = true
+			}else{
+				// this has a timeout!
+				try{
+					isMIDIAvailable = await establishMIDI()
+					if (!isMIDIAvailable)
+					{
+						setFeedback("MIDI connection timed out<br>Please check your MIDI device and try reconnecting", 0, 'midi')
+					}
+				}catch(error){
+					isMIDIAvailable = false
+					isMIDIRefused = true
+					console.warn("MIDI could not be enabled, continuing without MIDI", error)
+					const message = error?.name === "NotAllowedError" || error?.name === "SecurityError" ?
+						"MIDI access was refused<br>PhotoSYNTH will continue without MIDI" :
+						"MIDI could not be started<br>PhotoSYNTH will continue without MIDI"
+					main.classList.add('no-midi', 'midi-unavailable')
+					setToast(message, 0)
+					setFeedback(message, 0, 'midi')
 				}
-			}catch(error){
-				isMIDIAvailable = false
-				isMIDIRefused = true
-				console.warn("MIDI could not be enabled, continuing without MIDI", error)
-				const message = error?.name === "NotAllowedError" || error?.name === "SecurityError" ?
-					"MIDI access was refused<br>PhotoSYNTH will continue without MIDI" :
-					"MIDI could not be started<br>PhotoSYNTH will continue without MIDI"
-				main.classList.add('no-midi', 'midi-unavailable')
-				setToast(message, 0)
-				setFeedback(message, 0, 'midi')
 			}
 
 			progressCallback(loadIndex/loadTotal, "Attempting to find MIDI instruments")
@@ -4410,7 +4483,6 @@ export const createInterface = (
 			}
 		}
 
-		// FIXME: ONLY Use webmidi?
 		// This first tests for functions to exist
 		if (!isMIDIRefused && stateMachine.get("midi") && midiManager.available)
 		{
@@ -4419,10 +4491,12 @@ export const createInterface = (
 
 			// then we attempt to connect to it
 			try{
-				const MIDIConnectionClasses = [WebMIDIClass]
-			
 				// rather than enabling midi directly we show a button to enable it
-				const hasMIDI = await setMIDIControls( midiManager, MIDIConnectionClasses, personManager.people, { autoConnect:isMIDIAvailable }, setFeedback, inputStatusOverlay )
+				let hasMIDI = await setMIDIControls( midiManager, activeMIDIConnectionClasses, personManager.people, { autoConnect:isMIDIAvailable }, setFeedback, inputStatusOverlay )
+				if (!hasMIDI && hasNativeElectronMIDI && capabilities.webMIDIAvailable)
+				{
+					hasMIDI = await setMIDIControls( midiManager, [WebMIDIClass], personManager.people, { autoConnect:true }, setFeedback, inputStatusOverlay )
+				}
 				
 				console.info("MIDIManager", {hasMIDI,midiManager})
 			
@@ -5380,6 +5454,7 @@ export const createInterface = (
 				if (restore) return applyEnsemblePresetOptions(restorableEnsembleOptions(preset))
 				applyEnsemblePresetOptions(preset)
 				await applyEnsembleRoom(preset)
+				musicFactory?.selectPreset(preset)
 			},
 			onSelected:preset => {
 				stateMachine.set("ensemblePreset", preset.id)
@@ -5542,6 +5617,8 @@ export const createInterface = (
 			selectPercussionSound("random", false)
 		}
 		
+		initialiseMusicFactory()
+
 		// as we are now "full screen" the positions of the tooltips needs
 		// to be recaulated so we do them all here
 		updateTooltipPositions()

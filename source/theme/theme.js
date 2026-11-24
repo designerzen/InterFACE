@@ -5,7 +5,11 @@ export const getThemeName = t => t.indexOf(THEME_PREFIX) > -1 ? t : `${THEME_PRE
 
 export const setTheme = t => {
 	const body = document.body
-	body.classList.remove( theme )
+	for (const cls of [...body.classList]) {
+		if (cls.startsWith(THEME_PREFIX)) {
+			body.classList.remove(cls)
+		}
+	}
 	theme = getThemeName(t)
 	body.classList.toggle( theme, true )
 }

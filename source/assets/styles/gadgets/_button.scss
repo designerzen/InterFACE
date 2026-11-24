@@ -386,7 +386,7 @@
 	--col-bottom:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) - var(--range,10%) )  );
 
 	--col-bg:hsl( var(--hue), var( --s, 58%), calc( var(--l, 58%) - var(--range,10%)  / 2)  );
-	--col-fg:color-contrast( var(--col-bg, var(--shade-light, white)) );// --col-fg
+	--col-fg:var(--shade-white, #ffffff);
 	
 	// --col-active:
 	// --col-active:
@@ -434,9 +434,7 @@
 	--_color : var(--col-text, var(--col-fg, var(--shade-light, white) ) );
 
 	// ensure text is correct colour and not overwritten
-	color: var(--_color, black);
-	// set the button text to the corresponding color
-	color: contrast-color( var(--col-top) );
+	color: var(--_color, #ffffff);
 
 	// allow mtext wrapping mid-word
 	hyphens: auto;
@@ -714,8 +712,9 @@
 		// if you want the icon to appear exactly where the white one was
 		--shadow-offset-y:0;
 
-		// we use the text-shadow to reveal the text
-		color: transparent;
+		// Keep real foreground color instead of color:transparent so text never vanishes
+		// when text-shadow:none or Windows Forced Colors Mode is active
+		color: var(--shade-dark, #171717);
 
 		// we use the text-shadow to reveal the text
 		text-decoration: none;
@@ -753,14 +752,15 @@
 		opacity: 1;
 	}
 	
-	// 	:focus ,give it an awesome focus ring that animates!
+	// Steady, high-contrast focus ring (avoids flashing/strobing OutlineFocus animation)
 	&:is(
 		:target, 
 		:focus-visible
 	){
-		outline-color:var(--col-ring, var(--col-accent, black));
-		outline-style: dotted;
-		animation:OutlineFocus var(--ease-s) ease-in 0s both infinite alternate-reverse;
+		outline: 3px solid var(--col-ring, var(--shade-yellow, #ffc76a));
+		outline-offset: 2px;
+		box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.75);
+		animation: none;
 	}
 
 	// if an anchor has been linked here...

@@ -1,0 +1,24 @@
+{
+  "name": "@photosynth/sdk",
+  "version": "0.1.0",
+  "description": "Embeddable camera, motion capture and musical event controls",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "license": "AGPL-3.0-or-later",
+  "exports": {
+    ".": { "types": "./src/index.d.ts", "import": "./src/index.js" },
+    "./camera": { "types": "./src/camera.d.ts", "import": "./src/camera.js" },
+    "./tracking": { "types": "./src/tracking.d.ts", "import": "./src/tracking.js" },
+    "./ui": { "types": "./src/element.d.ts", "import": "./src/element.js" },
+    "./performance": { "types": "./src/performance.d.ts", "import": "./src/performance.js" },
+    "./visuals": { "types": "./src/visuals.d.ts", "import": "./src/visuals.js" },
+    "./adapters/input": { "types": "./src/adapters/input.d.ts", "import": "./src/adapters/input.js" },
+    "./assets/*": "./assets/*"
+  },
+  "files": ["src", "assets", "LICENSE"],
+  "scripts": { "test": "node --test test/*.test.js" },
+  "dependencies": { "@mediapipe/tasks-vision": "1.2.3" },
+  "devDependencies": { "jsdom": "26.1.0" }
+}

@@ -77,16 +77,16 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 	const textPlay = `Play <strong>${fileName}</strong> loop`
 	const textPause = `Pause <strong>${fileName}</strong> loop`
 
-	const playPause = createButton(textPlay,`Play or Pause this loop`, "button-play-pause" )
-	playPause.addEventListener("mousedown", e => {
-		isPlaying ? 
-			audio.pause() :
-			audio.play() 
-		
+	const playPause = createButton(textPlay,`Play or Pause ${fileName} loop`, "button-play-pause" )
+	const toggleLoopPlayback = () => {
+		isPlaying ? audio.pause() : audio.play()
 		isPlaying = !isPlaying
 		wrapper.classList.toggle("paused", !isPlaying)
 		playPause.innerHTML = isPlaying ? textPause : textPlay
-	})
+		playPause.setAttribute("aria-pressed", String(isPlaying))
+	}
+	playPause.addEventListener("mousedown", toggleLoopPlayback)
+	playPause.addEventListener("click", e => { if (e.detail === 0) toggleLoopPlayback() })
 
 	buttons.push( playPause )
 
@@ -128,7 +128,7 @@ export const createAudioElement = (src, fileName, downloadCallback, waveform=nul
 		button.textContent = buttonName
 		button.setAttribute("aria-label", `Download as an ${buttonName} file`) 
 		button.type = "button"
-		button.class = `download button-download-${buttonName}`
+		button.className = `download button-download-${buttonName}`
 		button.addEventListener("click", e => {
 			// user has clicked the download button...
 			downloadCallback && downloadCallback(buttonName)

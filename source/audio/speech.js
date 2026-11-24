@@ -7,37 +7,25 @@ const isSpeechSynthesSupported = hasSpeech()
 
 // we have to loop this with a settimout until voices are available...
 const getVoices = async () => new Promise( (resolve,reject) => {
-
-  let voices 
-  const startTime = Date.now()
-
-  const waitForVoices = () => {
-
-    voices = window.speechSynthesis.getVoices()
-
-    if (voices.length > 0)
-    {
-      resolve( voices )
-
-    }else{
-
-      // check to see we aren't wasting too much time
-      const elapsed = Date.now() - startTime
-
-      if (elapsed < TIME_OUT)
-      {
-        // in some ways this is a fudge factor as the voices
-        // aren't always known about on DOM available : LOOP
-        setTimeout(waitForVoices,0)
-
-      }else{
-        reject("No voices found")
-      }
-    
-    }
+  const existing = window.speechSynthesis.getVoices()
+  if (existing.length > 0) {
+    resolve(existing)
+    return
   }
-
-  waitForVoices()
+  let settled = false
+  const finish = (voices) => {
+    if (settled) return
+    settled = true
+    window.speechSynthesis.removeEventListener?.('voiceschanged', onVoicesChanged)
+    clearTimeout(timeoutId)
+    voices.length > 0 ? resolve(voices) : reject("No voices found")
+  }
+  const onVoicesChanged = () => {
+    const voices = window.speechSynthesis.getVoices()
+    if (voices.length > 0) finish(voices)
+  }
+  window.speechSynthesis.addEventListener?.('voiceschanged', onVoicesChanged)
+  const timeoutId = setTimeout(() => finish(window.speechSynthesis.getVoices()), TIME_OUT)
 })
 
 const getSpecificVoice = async (lang = "en-US", name ="Zira") =>{
@@ -60,7 +48,7 @@ let speechGeneration = 0
 // rate     0.1 to 10
 // pitch    0 to 2
 ////////////////////////////////////////////////////////////
-export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='en-US', name=undefined ) =>{
+export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang=(globalThis.document?.documentElement?.lang || 'en-GB'), name=undefined ) =>{
 	const generation = speechGeneration
 	if (!isSpeechSynthesSupported) throw new Error("Speech tech not available")
 	const voices = (lang && name) ? await getSpecificVoice(lang, name) : await getVoices()
@@ -116,7 +104,7 @@ export const say = async (text, interupt=true, volume=1, rate=1, pitch=1, lang='
 				//0 to 2
 				speech.pitch = pitch
 				// Emojis are visual cues, so don't read their names aloud
-				speech.text = String(text).replace(/\p{Extended_Pictographic}|[\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\uFE0F\u200D\u20E3]/gu, '').replace(/\s{2,}/g, ' ').trim()
+				speech.text = String(text).replace(/<[^>]+>/g, ' ').replace(/(?:^|\s)[=:][DPdp()\/\\]+(?=\s|$)/g, ' ').replace(/\p{Extended_Pictographic}|[\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\uFE0F\u200D\u20E3]/gu, '').replace(/\s{2,}/g, ' ').trim()
 
 				// console.error("specific voices", {
 				//   speech, lang,
