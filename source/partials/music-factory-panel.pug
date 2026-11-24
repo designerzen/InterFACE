@@ -1,0 +1,12 @@
+label.music-factory-mode(for="button-music-factory")
+	span Musical instrument
+	input#button-music-factory(type="checkbox" role="switch" aria-label="Music factory mode" aria-describedby="music-factory-status")
+	span.music-factory-switch(aria-hidden="true")
+	span Music factory
+div#music-factory-controls(hidden)
+	label(for="music-factory-genre") Style
+		select#music-factory-genre(aria-label="Music factory style")
+	output#music-factory-status(role="status" aria-live="polite") Musical instrument — play notes directly
+	div.music-factory-actions
+		button#music-factory-finish(type="button") Finish phrase
+		button#music-factory-new(type="button") New piece

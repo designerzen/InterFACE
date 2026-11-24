@@ -1,6 +1,7 @@
 blockExoticSubdeps: false
 
 packages:
+  - packages/photosynth
   - packages/looking-glass
   - packages/midi-devices
   - source/electron/lib/macos-coremidi

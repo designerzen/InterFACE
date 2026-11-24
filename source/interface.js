@@ -128,6 +128,7 @@ import { createVisualiserNotes } from './visual/visualiser-notes.js'
 import { createButterchurnVisualiser } from './visual/butterchurn-visualiser.js'
 import { observeSessionEvents } from './storage/session-events.js'
 import { setupBackingMelody } from './dom/ui.backing-melody.js'
+import { setupMusicFactory } from './dom/ui.music-factory.js'
 
 // Different ways of playing sound!
 import { createDrumkit } from './audio/drum-kit.js'
@@ -434,6 +435,8 @@ export const createInterface = (
 	let instrumentFactory 
 	let sessionUI
 	let backingMelody
+	let musicFactory
+	let instrumentTiming
 	const reportSessionRecordingError = error => {
 		console.error('Session recording error', error)
 		setFeedback(error?.message ?? 'Session recording failed', 0)
@@ -1015,6 +1018,18 @@ export const createInterface = (
 	const backingSnareSubHitTimbre = {}
 	const backingHatSubHitTimbre = {}
 	const extendedPercussionTimbreOptions = { ...DEFAULT_EXTENDED_PERCUSSION_TIMBRES }
+	const capturePercussionSound = () => {
+		const saved = [kickTimbreOptions, snareTimbreOptions, hatTimbreOptions, closedHatTimbreOptions, openHatTimbreOptions,
+			cowbellTimbreOptions, bongoLowTimbreOptions, bongoHighTimbreOptions, congaLowTimbreOptions, congaHighTimbreOptions,
+			congaMuteTimbreOptions, cabasaTimbreOptions, maracasTimbreOptions, triangleMuteTimbreOptions, triangleOpenTimbreOptions]
+		const extended = {...extendedPercussionTimbreOptions}
+		return () => {
+			;[kickTimbreOptions, snareTimbreOptions, hatTimbreOptions, closedHatTimbreOptions, openHatTimbreOptions,
+				cowbellTimbreOptions, bongoLowTimbreOptions, bongoHighTimbreOptions, congaLowTimbreOptions, congaHighTimbreOptions,
+				congaMuteTimbreOptions, cabasaTimbreOptions, maracasTimbreOptions, triangleMuteTimbreOptions, triangleOpenTimbreOptions] = saved
+			Object.assign(extendedPercussionTimbreOptions, extended)
+		}
+	}
 	const getAuxiliaryPercussionTimbre = part => {
 		switch (part) {
 			case 'bongoLow': return bongoLowTimbreOptions
@@ -2187,6 +2202,7 @@ export const createInterface = (
 	 * @returns {Object} of metadata
 	 */
 	const playPersonAudio = async ( person, repeatTick, scheduledTime ) => {
+		if (musicFactory?.enabled) return
 		
 		// yaw, pitch, lipPercentage, eyeDirection etc
 		const modelData = person.sing()
@@ -2409,6 +2425,7 @@ export const createInterface = (
 
 	const stopAllPersonAudio = () => {
 		backingMelody?.stop()
+		musicFactory?.stop()
 		const amountOfPeople = personManager.quantityOfPlayers
 		for ( let i=0; i<amountOfPeople; ++i )
 		{
@@ -3088,6 +3105,7 @@ export const createInterface = (
 
 					// first update the person - this allows us to sing at will
 					person.update( prediction, timeNow )
+					musicFactory?.observe(personIndex, prediction, timeNow, person)
 						
 					// add face overlay
 					if (display && (discoMode || stateMachine.get("overlays")))
@@ -3494,6 +3512,9 @@ export const createInterface = (
 		const isHalfNote = clock.isHalfNote
 		const isBar = clock.isAtStart
 		const isMuted = stateMachine.get("muted")
+		const factoryLookahead = networkTiming?.room.active ? 0.03 :
+			Math.max(0, getBeatTriggerTime(audioContext, clock, scheduledContextTimeSeconds) - scheduledContextTimeSeconds)
+		musicFactory?.tick({at:scheduledContextTimeSeconds, bpm:clock.BPM, audioNow:audioContext.currentTime, lookahead:factoryLookahead})
 		backingMelody?.tick({isBar,at:scheduledContextTimeSeconds,bpm:clock.BPM})
 
 		// const isBarStart = divisionsElapsed===0
@@ -3669,8 +3690,9 @@ export const createInterface = (
 		// a swing of one will offset every second beat
 		//const swing = 1
 		// isQuarterNote
-		if ( !isMuted && stateMachine.get("backingTrack"))
+		if ( !isMuted && (musicFactory?.enabled ? musicFactory.percussion : stateMachine.get("backingTrack")))
 		{
+			const activeDrumArranger = musicFactory?.enabled ? musicFactory.drumArranger : drumArranger
 			// console.log("clock", {divisionsElapsed,
 			// 	bar, bars, 
 			// 	barsElapsed,})
@@ -3680,7 +3702,7 @@ export const createInterface = (
 			}
 			const lookahead = networkTiming?.room.active ? 0.03 :
 				getBeatTriggerTime(audioContext, clock, scheduledContextTimeSeconds) - scheduledContextTimeSeconds
-			const drumTimes = drumStepScheduler.advance({arranger:drumArranger, tickAt:scheduledContextTimeSeconds,
+			const drumTimes = drumStepScheduler.advance({arranger:activeDrumArranger, tickAt:scheduledContextTimeSeconds,
 				bpm:clock.BPM, now:audioContext.currentTime, lookahead})
 			for (const triggerAt of drumTimes)
 			{
@@ -3690,13 +3712,13 @@ export const createInterface = (
 				// small safety lookahead to keep us out of the past.
 				lastBackingStepAt = triggerAt
 				const eyeControlledTimbres = createEyeControlledDrumTimbres()
-				syncDrumMutedParts(eyeControlledTimbres)
+				if (!musicFactory?.enabled) syncDrumMutedParts(eyeControlledTimbres)
 				const drumPerformer = personManager.getPerson(0)
-				drumArranger?.updatePerson({
+				activeDrumArranger?.updatePerson(musicFactory?.enabled ? musicFactory.ensemble : {
 					noteVelocity:drumPerformer?.noteVelocity,
 					pitchBend:Number.isFinite(drumPerformer?.pitchBendValue) ? drumPerformer.pitchBendValue - 1 : 0
 				}, triggerAt)
-				const parts = drumArranger?.next({ triggerAt, bpm: clock.BPM, swing:clock.swing }) ?? {}
+				const parts = activeDrumArranger?.next({ triggerAt, bpm: clock.BPM, swing:clock.swing }) ?? {}
 				const partTime = part => getDrumPartTime(parts, part, triggerAt)
 				const panningPositions = getCurrentPercussionPanPositions()
 				if (parts.kick > 0) {
@@ -4077,8 +4099,9 @@ export const createInterface = (
 				syncTempoControls()
 				if (!transport.playing) {
 					backingMelody?.stop()
+					musicFactory?.pause(true)
 					personManager.people.forEach(person => stopPersonAudio(person))
-				}
+				} else musicFactory?.pause(false)
 			}, inputStatusOverlay)
 			tempoUI = setupTempoInterface(networkTiming?.tempoClock ?? clock, null, null, timerChanged =>{
 				saveTimingState()
@@ -4222,6 +4245,34 @@ export const createInterface = (
 		sampleOutput.gain.value = Math.min(1, Math.max(0, sampleVolume))
 		sampleOutput.connect(getMasterMixdown())
 		backingMelody = setupBackingMelody({context:audioContext,destination:getMasterMixdown(),stateMachine,personManager})
+		const initialiseMusicFactory = () => {
+			musicFactory = setupMusicFactory({context:audioContext, destination:getMasterMixdown(), stateMachine,
+				onMode:enabled => {
+					stopAllPersonAudio()
+					kit?.cancel()
+					drumStepScheduler.reset()
+					if (enabled) {
+						instrumentTiming = {bpm:clock.BPM, swing:clock.swing, restoreSound:capturePercussionSound()}
+					} else if (instrumentTiming) {
+						setBPM(instrumentTiming.bpm)
+						if (!networkTiming?.room.active) clock.swing = instrumentTiming.swing
+						else if (networkTiming.room.canEdit) networkTiming.room.setTransport({swing:instrumentTiming.swing})
+						stateMachine.set('swing', clock.swing)
+						instrumentTiming.restoreSound()
+						syncTempoControls()
+						instrumentTiming = null
+					}
+				},
+				onProfile:profile => {
+					kit?.cancel()
+					drumStepScheduler.reset()
+					applyPercussionSoundPreset(profile.sound)
+					setBPM(profile.bpm)
+					if (!networkTiming?.room.active) clock.swing = 0
+					syncTempoControls()
+				}
+			})
+		}
 		const personTrim = personManager.setTrim(Number.isFinite(storedTrim) ? storedTrim : (4 * 2 / 3))
 		setVolume( volume )
 
@@ -5394,6 +5445,7 @@ export const createInterface = (
 				if (restore) return applyEnsemblePresetOptions(restorableEnsembleOptions(preset))
 				applyEnsemblePresetOptions(preset)
 				await applyEnsembleRoom(preset)
+				musicFactory?.selectPreset(preset)
 			},
 			onSelected:preset => {
 				stateMachine.set("ensemblePreset", preset.id)
@@ -5556,6 +5608,8 @@ export const createInterface = (
 			selectPercussionSound("random", false)
 		}
 		
+		initialiseMusicFactory()
+
 		// as we are now "full screen" the positions of the tooltips needs
 		// to be recaulated so we do them all here
 		updateTooltipPositions()

@@ -232,6 +232,9 @@ export const DEFAULT_OPTIONS = {
 	bpm:90,
 	swing:0,
 	ensemblePreset:"default",
+	musicFactory:false,
+	musicFactoryGenre:"synth-pop",
+	musicFactorySeed:"",
 	// A named drum-kit preset to load during initialisation; empty keeps drums random.
 	drumkit:"",
 	// Add rapid percussion subdivisions such as triplets, sextuplets, and rolls.

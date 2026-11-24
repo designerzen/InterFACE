@@ -1,0 +1,16 @@
+export declare function drawFaceFeatures(context: CanvasRenderingContext2D, person: object, colours?: object, options?: object, beatJustPlayed?: boolean): boolean;
+export declare function drawEyes(context: CanvasRenderingContext2D, eyeData: object, options?: object): boolean;
+export declare function drawEye(context: CanvasRenderingContext2D, eyeData: object, pupilData: object, open?: boolean, eyeDirection?: number, options?: object): boolean;
+export declare function getEyeExpression(prediction?: object, side?: string, open?: boolean): { closure: number; squint: number; tilt: number; droop: number; lift: number };
+export declare function drawEyebrows(context: CanvasRenderingContext2D, keypoints: import('./types.js').Point[], isLeft?: boolean, options?: object): boolean;
+export declare const LIP_STYLE_OPTIONS: string[][];
+export declare const EYEBROW_STYLES: Array<{ value: string; label: string; effect?: string }>;
+export declare function normaliseLipStyle(value: unknown): string;
+export declare function getLipStyle(options: object): string;
+export declare function getLipPaint(person: object, options: object, colours?: object, beatJustPlayed?: boolean, now?: number): object | null;
+export declare function drawLipOverlay(context: CanvasRenderingContext2D, person: object, options: object, colours?: object, beatJustPlayed?: boolean): boolean;
+export declare function normaliseEyebrowStyle(value: unknown): string;
+export declare function getEyebrowStyle(options?: object): string;
+export declare function eyebrowStyleOptions(value: string): object;
+export declare function eyebrowPasses(style: string): object[];
+export declare function eyebrowStyleIcon(style: string): string;

@@ -1,10 +1,5 @@
-export const EYEBROW_AUDIO_EFFECTS = [
-	['eyebrowPitchBend', 'Pitch bend'],
-	['eyebrowReverb', 'Reverb'],
-	['eyebrowLowPass', 'Low-pass filter'],
-	['eyebrowDelay', 'Delay'],
-	['eyebrowCompression', 'Compression']
-]
+import { EYEBROW_AUDIO_EFFECTS } from '../../../packages/photosynth/src/people/eyebrow-effects.js'
+export { EYEBROW_AUDIO_EFFECTS }
 
 const unit = value => Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0
 const set = (param, value, time) => param.setTargetAtTime(value, time, 0.025)

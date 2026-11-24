@@ -13,6 +13,7 @@
  *   testVideo=url        video to use instead of the bundled clip
  *   testCameras=n        number of fake cameras to list (default 1)
  *   testControls=false   hide the floating source picker
+ *   testCrop=x,y,w,h     zoom into part of the video, as fractions of its size
  */
 const DEFAULT_VIDEO = './video/photosynth.mp4'
 const DEVICE_PREFIX = 'test-video-feed-'
@@ -49,30 +50,31 @@ const setSource = source => {
 	return ready
 }
 
+// optional region of the video to zoom into, as fractions x,y,width,height
+// so that small faces in a wide shot are large enough for the face model
+const parseCrop = value => {
+	const [x, y, width, height] = (value ?? '').split(',').map(Number)
+	return [x, y, width, height].every(Number.isFinite) && width > 0 && height > 0 ? { x, y, width, height } : null
+}
+let crop = parseCrop(params.get('testCrop'))
+
 const draw = () => {
 	if (video.videoWidth > 0 && (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight)) {
 		canvas.width = video.videoWidth
 		canvas.height = video.videoHeight
 	}
 	if (video.readyState >= 2) {
-		context.drawImage(video, 0, 0, canvas.width, canvas.height)
+		if (crop) {
+			context.drawImage(video, crop.x * video.videoWidth, crop.y * video.videoHeight, crop.width * video.videoWidth, crop.height * video.videoHeight, 0, 0, canvas.width, canvas.height)
+		} else {
+			context.drawImage(video, 0, 0, canvas.width, canvas.height)
+		}
 	}
 }
 
-// requestVideoFrameCallback keeps drawing in step with the video where available
-if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
-	const onFrame = () => {
-		draw()
-		video.requestVideoFrameCallback(onFrame)
-	}
-	video.requestVideoFrameCallback(onFrame)
-} else {
-	const onFrame = () => {
-		draw()
-		requestAnimationFrame(onFrame)
-	}
-	requestAnimationFrame(onFrame)
-}
+// a timer rather than requestAnimationFrame or requestVideoFrameCallback so that
+// frames keep flowing when the tab is hidden and the browser stops rendering it
+setInterval(draw, 1000 / FRAME_RATE)
 
 setSource(videoURL)
 
@@ -163,7 +165,7 @@ const addControls = () => {
 	const panel = document.createElement('div')
 	panel.id = 'test-video-feed'
 	// inline so that no app stylesheet is touched
-	panel.style.cssText = 'position:fixed;left:4px;bottom:4px;z-index:2147483647;display:flex;gap:4px;align-items:center;padding:4px;font:12px sans-serif;color:#fff;background:rgba(0,0,0,.6);border-radius:4px;'
+	panel.style.cssText = 'position:fixed;right:4px;top:64px;z-index:2147483647;display:flex;gap:4px;align-items:center;padding:4px;font:12px sans-serif;color:#fff;background:rgba(0,0,0,.6);border-radius:4px;'
 	panel.innerHTML = `
 		<label>Test feed <input type="file" accept="video/*"></label>
 		<button type="button" data-action="pause">Pause</button>
@@ -193,4 +195,8 @@ if (showControls) {
 	else document.addEventListener('DOMContentLoaded', addControls, { once: true })
 }
 
-globalThis.testVideoFeed = { video, canvas, swapSource, devices: fakeDevices }
+globalThis.testVideoFeed = {
+	video, canvas, swapSource, devices: fakeDevices,
+	get crop() { return crop },
+	set crop(value) { crop = typeof value === 'string' ? parseCrop(value) : value },
+}
