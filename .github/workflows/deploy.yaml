@@ -28,10 +28,6 @@ jobs:
               with:
                   submodules: true
 
-            # Build against the latest midi-devices catalogue, not the recorded commit
-            - name: Update submodules to their tracked branch
-              run: git submodule update --remote
-
             # Install pnpm
             - uses: pnpm/action-setup@v6
               name: Install pnpm
