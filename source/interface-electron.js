@@ -9,14 +9,7 @@ import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
  * connections are supplied here so the web and Electron renderers cannot
  * drift into separate implementations again.
  */
-export const getElectronMIDIConnectionClasses = () => {
-	const connections = [WebMIDIClass]
-
-	if (globalThis.electron?.midi?.available) {
-		connections.unshift(MIDIBridgeConnection)
-	}
-
-	return connections
-}
+export const getElectronMIDIConnectionClasses = () =>
+	globalThis.electron?.midi?.available ? [MIDIBridgeConnection] : [WebMIDIClass]
 
 export { APPLICATION_EVENTS, createInterface }

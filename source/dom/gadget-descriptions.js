@@ -5,6 +5,8 @@ const descriptions = {
 	'folder-tempo': 'Set the speed, tap a tempo, adjust swing or synchronise with other machines.',
 	'button-metronome': { on: 'A steady click is playing to help you keep time.', off: 'Play a steady click to help you keep time.' },
 	'button-quantise': { on: 'Notes are aligned to regular beats.', off: 'Notes follow your playing without being aligned to the beat.' },
+	'button-music-factory': { on: 'All players shape a generated piece together. Open Factory settings to choose its style.', off: 'Musical instrument mode: your movements play notes directly. Enable Music factory to compose together.' },
+	'folder-music-factory': 'Choose a music style, finish the current phrase or begin a new piece.',
 	'select-arp-rate': 'Choose how quickly arpeggios step through their notes.',
 	'button-percussion': { on: 'Background beats are playing along with you.', off: 'Add background beats to play along with.' },
 	'backing-melody-player': { on: 'AI backing melody follows the selected player and the global key and scale. Adjust its volume in the mixer.', off: 'Backing melody is disabled. Choose a player to follow.', isEnabled: control => control.value !== 'disabled' },

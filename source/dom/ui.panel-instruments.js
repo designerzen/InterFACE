@@ -1,7 +1,7 @@
 import { EYEBROW_STYLES, getEyebrowStyle, eyebrowStyleIcon } from '../visual/eyebrow-styles.js'
 import { populateSelect } from './select.js'
 import { resolveLipSetting, normaliseMouthDynamicsOverride, normaliseLipRangeOverride, formatLipSetting, getMouthDynamicsPresetId, MOUTH_DYNAMICS_PRESETS, LIP_SENSITIVITY_INHERIT } from '../people/lip-sensitivity.js'
-import { WebMidi } from "webmidi"
+import { getMIDIOutputs } from "../audio/midi/midi-ports.js"
 import { INSTRUMENT_TYPE_FM } from "../audio/instrument-list.js"
 import { GENERAL_MIDI_INSTRUMENT_LIST } from "../audio/midi/general-midi.constants.js"
 import { INSTRUMENT_TYPE_COMPOSITE, INSTRUMENT_TYPE_SOUNDFONT, PERSON_INSTRUMENT_OPTIONS } from "../audio/instrument-list.js"
@@ -70,7 +70,7 @@ const MIDI_PORT_OPTIONS = [
 const createMIDIDeviceOptions = () => [
 	[MIDI_DEVICE_AUTO, "Auto"],
 	[MIDI_DEVICE_ALL, "All MIDI devices"],
-	...WebMidi.outputs.map((output, index) => [
+	...getMIDIOutputs().map((output, index) => [
 		output.id,
 		output.name || output.manufacturer || `MIDI device ${index + 1}`
 	])

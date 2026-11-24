@@ -33,7 +33,7 @@ test('one toolbar View button switches list/grid and restores its caption and fo
  dom.window.close()
 })
 
-for (const name of ['tempo', 'volume', 'midi', 'engine']) {
+for (const name of ['tempo', 'volume', 'midi', 'engine', 'music-factory']) {
  test(`${name} takes keyboard focus until closed and restores the list`, () => {
   const dom = new JSDOM(`<html class="loaded"><body>${pug.renderFile('source/partials/control-panel.pug')}</body></html>`, { pretendToBeVisual: true })
   const { window } = dom, { document } = window
@@ -43,6 +43,7 @@ for (const name of ['tempo', 'volume', 'midi', 'engine']) {
   const panel = document.getElementById('control-panel')
   const link = document.querySelector(`.folder-link[href="#folder-${name}"]`)
   const folder = link.closest('.folder-menu')
+  folder.hidden = false
   const headerClose = document.getElementById('button-controls-list')
   const close = folder.querySelector('.folder-return') || headerClose
   // MIDI's existing compact handler consumes Escape at the panel itself.

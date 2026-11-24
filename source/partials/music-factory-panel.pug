@@ -1,0 +1,16 @@
+label.primary.type-music.group-composition(for="button-music-factory") Music factory
+	input#button-music-factory(type="checkbox" aria-label="Music factory: compose together instead of playing notes directly")
+#music-factory-controls.folder-menu.bottom.horizontal.right.secondary.type-music.group-composition(hidden)
+	a.folder-link.secondary.type-music.group-composition(href="#folder-music-factory" aria-label="Show music factory settings") Factory settings
+	menu#folder-music-factory.folder-content.settings-folder
+		fieldset.control-settings
+			legend Music factory
+			p All players shape a piece together. Turn Music factory off to play the musical instrument directly.
+			label.control-settings-field(for="music-factory-genre") Style
+				select#music-factory-genre(data-native-select aria-label="Music factory style")
+			output#music-factory-status(role="status" aria-live="polite") Musical instrument — play notes directly
+			fieldset
+				legend Piece
+				button#music-factory-finish(type="button") Finish phrase
+				button#music-factory-new(type="button") New piece
+		a.folder-return(href="#control-panel" aria-label="Close panel") Return to the control menu

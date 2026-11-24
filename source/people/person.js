@@ -1,4 +1,5 @@
 import EyeInstrumentGesture from './eye-instrument-gesture.js'
+import { findMIDIOutput, getMIDIOutputs } from '../audio/midi/midi-ports.js'
 import { updateStereoPan } from './stereo-pan.js'
 import { getPersonInstrumentChoices, choosePersonInstrument } from './person-instrument-choices.js'
 import { eyebrowStyleOptions } from '../visual/eyebrow-styles.js'
@@ -841,11 +842,9 @@ export default class Person extends EventTarget{
 		}
 		if (midiDevice === MIDI_ROUTING_ALL)
 		{
-			return WebMidi.outputs
+			return getMIDIOutputs()
 		}
-		const selectedOutput = WebMidi.getOutputById?.(midiDevice) ??
-			WebMidi.getOutputByName?.(midiDevice) ??
-			WebMidi.outputs.find(output => output.id === midiDevice || output.name === midiDevice)
+		const selectedOutput = findMIDIOutput(midiDevice)
 		return selectedOutput ? [selectedOutput] : []
 	}
 

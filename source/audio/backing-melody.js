@@ -52,7 +52,7 @@ export const createBackingMelody = ({ loadModel, player, subscribe, acceptsInput
 			if (signature && nextSignature!==signature) reset()
 			signature=nextSignature
 			if (Boolean(options.backingMelody)!==wanted || (wanted && oldLocation!==options.backingMelodyModelURL)) setEnabled(options.backingMelody)
-			const nextSuspended=Boolean(options.muted)
+			const nextSuspended=Boolean(options.muted || options.musicFactory)
 			if (nextSuspended!==suspended) { suspended=nextSuspended; reset() }
 		},
 		tick:({isBar,at,bpm}) => {

@@ -1,5 +1,6 @@
 import { WebMidi } from "webmidi"
 import { sendGuardedMIDIOutput } from "./midi-echo-guard.js"
+import { getMIDIOutputs } from "./midi-ports.js"
 
 export const GENERAL_MIDI_PERCUSSION_CHANNEL = 10
 
@@ -100,7 +101,7 @@ export const sendGeneralMIDIPercussion = (part, options={}, audioContext) => {
 	const attack = clampVelocity(options.velocity ?? 1)
 	let sent = 0
 
-	for (const output of WebMidi.outputs ?? [])
+	for (const output of getMIDIOutputs())
 	{
 		const source = `general-midi-percussion-${resolvedPart}`
 		const noteOnOptions = {

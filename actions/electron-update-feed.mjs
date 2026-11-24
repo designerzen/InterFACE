@@ -18,7 +18,9 @@ const findFiles = async directory => {
 export const prepareElectronUpdateFeed = async ({ assets, output, repository, tag, version, publishedAt }) => {
 	const files = await findFiles(assets)
 	const windowsManifest = files.find(path => basename(path) === 'RELEASES')
-	const macZip = files.find(path => path.toLowerCase().endsWith('.zip') && /darwin|macos/i.test(path))
+	const macZips = files.filter(path => path.toLowerCase().endsWith('.zip') && /darwin|macos/i.test(path))
+	const macZip = macZips.find(path => /x64/i.test(path)) ?? macZips.find(path => !/arm64/i.test(path)) ?? macZips[0]
+	const macArm64Zip = macZips.find(path => /arm64/i.test(path))
 
 	if (!windowsManifest) throw new Error(`No Windows RELEASES manifest found below ${assets}`)
 	if (!macZip) throw new Error(`No macOS ZIP found below ${assets}`)
@@ -46,7 +48,20 @@ export const prepareElectronUpdateFeed = async ({ assets, output, repository, ta
 	await copyFile(windowsManifest, join(windowsOutput, 'RELEASES'))
 	await copyFile(macManifestSource, join(macOutput, 'RELEASES.json'))
 
-	return { windowsManifest, macManifestSource, macZip }
+	if (macArm64Zip) {
+		const macArm64Manifest = createMacReleases({
+			repository,
+			tag,
+			version,
+			filename: basename(macArm64Zip),
+			publishedAt,
+		})
+		const macArm64Output = resolve(output, 'updates', 'darwin', 'arm64')
+		await mkdir(macArm64Output, { recursive: true })
+		await writeFile(join(macArm64Output, 'RELEASES.json'), `${JSON.stringify(macArm64Manifest, null, 2)}\n`, 'utf8')
+	}
+
+	return { windowsManifest, macManifestSource, macZip, macArm64Zip }
 }
 
 const parseArguments = arguments_ => {
