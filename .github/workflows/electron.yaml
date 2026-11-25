@@ -263,6 +263,9 @@ jobs:
       - name: Build website and desktop web application
         run: pnpm run build
 
+      - name: Check production app startup
+        run: pnpm exec node tests/production-startup.node.mjs
+
       - name: Add Electron update manifests
         uses: actions/download-artifact@v8
         with:

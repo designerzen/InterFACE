@@ -69,7 +69,7 @@
 			"publicUrl": "./",
 			"context": "browser",
 			"sourceMap": false,
-			"scopeHoist": false
+			"scopeHoist": true
 		},
 		"dev": {
 			"source": "source/sitemap.pug",
@@ -412,6 +412,7 @@
 		"parcel-reporter-static-files-copy": "^1.5.3",
 		"partykit": "0.0.115",
 		"path-browserify": "^1.0.1",
+		"playwright": "1.65.1",
 		"postcss": "^8.5.33",
 		"postcss-preset-env": "^11.6.3",
 		"process": "^0.11.10",

@@ -6,13 +6,8 @@ import { VERSION } from './version.js'
 import { setLoadProgress } from './dom/load-progress.js'
 import { getBrowserLocales } from './locales/i18n.js'
 import { getDomainDefaults, INSTRUMENT_OPTIONS } from './settings/options.js'
-import { createStore } from './utils/store.js'
 import { showError } from './dom/errors.js'
-import { addKeyboardEvents } from './interface-keyboard.js'
-import { addGamePadEvents } from './interface-gamepad.js'
-import { addPicadeMaxEvents } from './interface-picade-max.js'
 import Capabilities from './capabilities.js'
-import Attractor from './attractor.js'
 import {
 	createInterface,
 	getElectronMIDIConnectionClasses,
@@ -53,6 +48,7 @@ const start = async () => {
 	const capabilities = new Capabilities()
 	const options = applyGlobalOptions(getDomainDefaults())
 	const language = (getBrowserLocales()[0] ?? 'en').split('-')[0]
+	const { createStore } = await import('./utils/store.js')
 
 	const application = await createInterface(
 		options,
@@ -64,10 +60,18 @@ const start = async () => {
 		reportLoadProgress,
 	)
 
+	const { default: Attractor } = await import('./attractor.js')
 	application.setAutomator(new Attractor(application))
-	addKeyboardEvents(application)
+	if (application.getState('keyboard')) {
+		const { addKeyboardEvents } = await import('./interface-keyboard.js')
+		addKeyboardEvents(application)
+	}
 
 	if (application.getState('gamePad')) {
+		const [{ addPicadeMaxEvents }, { addGamePadEvents }] = await Promise.all([
+			import('./interface-picade-max.js'),
+			import('./interface-gamepad.js'),
+		])
 		addPicadeMaxEvents(application)
 		addGamePadEvents(application)
 	}

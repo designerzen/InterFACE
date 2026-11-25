@@ -437,6 +437,7 @@ export const createInterface = (
 	let sessionUI
 	let backingMelody
 	let musicFactory
+	let initialiseMusicFactory
 	let instrumentTiming
 	const reportSessionRecordingError = error => {
 		console.error('Session recording error', error)
@@ -4246,7 +4247,7 @@ export const createInterface = (
 		sampleOutput.gain.value = Math.min(1, Math.max(0, sampleVolume))
 		sampleOutput.connect(getMasterMixdown())
 		backingMelody = setupBackingMelody({context:audioContext,destination:getMasterMixdown(),stateMachine,personManager})
-		const initialiseMusicFactory = () => {
+		initialiseMusicFactory = () => {
 			musicFactory = setupMusicFactory({context:audioContext, destination:getMasterMixdown(), stateMachine,
 				onMode:enabled => {
 					stopAllPersonAudio()
