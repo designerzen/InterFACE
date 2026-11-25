@@ -39,7 +39,9 @@ const APP_ROOT = isDevelopment
 
 // and ./electron/resources/preload.js for the test build
 const PRELOADER_PATH = path.join(APP_ROOT, 'electron/preload.js')
-const LINUX_ICON = path.join(app.getAppPath(), 'static/icons/icon-512.webp')
+const APP_ICON = app.isPackaged
+	? path.join(process.resourcesPath, '512x512.png')
+	: path.join(app.getAppPath(), 'static/icons/png/512x512.png')
 const WEB_APP_URL = 'https://interface.place/app.html'
 const TRUSTED_RENDERER_ORIGINS = new Set([
 	new URL(WEB_APP_URL).origin,
@@ -132,7 +134,7 @@ function createWindow() {
 		kiosk:isKiosk,
 		// frame:true,
 		// autoHideMenuBar: true,
-		...(process.platform === 'linux' ? { icon:LINUX_ICON } : {}),
+		icon: APP_ICON,
 	   
 		webPreferences: {
 			

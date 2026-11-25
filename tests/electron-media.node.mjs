@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
-import { mkdtemp } from 'node:fs/promises'
+import { mkdtemp, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { createHash } from 'node:crypto'
 import { _electron } from 'playwright'
 
 const executablePath = resolve(process.env.PHOTOSYNTH_ELECTRON_EXECUTABLE || 'releases/PhotoSYNTH-win32-x64/PhotoSYNTH.exe')
@@ -14,10 +15,21 @@ const app = await _electron.launch({
 })
 try {
 	const page = await app.firstWindow()
-	await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().forEach(window => window.hide()))
+	await app.evaluate(({ BrowserWindow }) => {
+		for (const window of BrowserWindow.getAllWindows()) {
+			window.webContents.setBackgroundThrottling(false)
+			window.show()
+			window.focus()
+		}
+	})
 	await app.context().route('https://interface.place/**', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Media permissions</title>' }))
 	await page.goto('https://interface.place/app.html')
 	assert.equal(await app.evaluate(({ app }) => app.isPackaged), true)
+	const expectedIcon = createHash('sha256').update(await readFile('static/icons/png/512x512.png')).digest('hex')
+	const resourcesPath = await app.evaluate(() => process.resourcesPath)
+	const packagedIcon = createHash('sha256').update(await readFile(join(resourcesPath, '512x512.png'))).digest('hex')
+	assert.equal(packagedIcon, expectedIcon, 'Packaged app must contain the PhotoSYNTH logo')
+
 	assert.equal(await page.evaluate(() => typeof window.electron?.midi?.getPorts), 'function')
 	assert.equal(typeof (await page.evaluate(() => window.electron.accessibility.getPreferences())).shouldUseDarkColors, 'boolean')
 	const tracks = await page.evaluate(async () => {
@@ -45,7 +57,7 @@ try {
 		} finally { window.destroy() }
 	})
 	assert.equal(denied, 'NotAllowedError')
-	console.log('PASS: packaged Electron preload, IPC, live camera and microphone; untrusted origin denied')
+	console.log('PASS: packaged PhotoSYNTH logo, Electron preload, IPC, live camera and microphone; untrusted origin denied')
 } finally {
 	await app.close()
 }

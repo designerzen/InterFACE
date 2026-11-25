@@ -155,6 +155,19 @@ jobs:
           PHOTOSYNTH_TARGET_ARCH: ${{ matrix.arch }}
         run: pnpm run electron:make --arch=${{ matrix.arch }}
 
+      - name: Verify packaged PhotoSYNTH logo
+        shell: bash
+        run: |
+          logo=$(find releases -name 512x512.png -print -quit)
+          test -n "$logo"
+          cmp static/icons/png/512x512.png "$logo"
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            plist=$(find releases -path '*/PhotoSYNTH.app/Contents/Info.plist' -print -quit)
+            icon=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$plist")
+            if [[ "$icon" != *.icns ]]; then icon="$icon.icns"; fi
+            cmp static/icons/mac/icon.icns "$(dirname "$plist")/Resources/$icon"
+          fi
+
       - name: Verify packaged Windows MIDI native addon
         if: runner.os == 'Windows'
         shell: pwsh

@@ -19,9 +19,12 @@ module.exports = {
 		appVersion: packageMetadata.version,
 		buildVersion: packageMetadata.version,
 		asar: true,
+		extraResource: [path.join(iconBase, 'png/512x512.png')],
 		icon: process.platform === 'win32'
 			? path.join(iconBase, 'win/icon.ico')
-			: path.join(iconBase, 'mac/icon.icns'),
+			: process.platform === 'darwin'
+				? path.join(iconBase, 'mac/icon.icns')
+				: path.join(iconBase, 'png/512x512.png'),
 		ignore: pathName => {
 			if (!pathName) return false
 			return !/^\/(dist-electron(?:\/|$)|package\.json$|LICENSE(?:S)?\.md$)/.test(pathName)
@@ -57,6 +60,7 @@ module.exports = {
 					name: 'photosynth',
 					productName: 'PhotoSYNTH',
 					genericName: 'Accessible musical instrument',
+					icon: path.join(iconBase, 'png/512x512.png'),
 					categories: ['Audio', 'Music'],
 				},
 			},

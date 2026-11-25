@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { resolve, extname, sep } from 'node:path'
 import { chromium } from 'playwright'
 
@@ -7,6 +7,8 @@ import { chromium } from 'playwright'
 const root = resolve(process.env.PHOTOSYNTH_BUILD_DIR || 'releases/web')
 await readFile(resolve(root, 'app.html'))
 const origin = 'https://photosynth.test'
+const speechWorker = (await readdir(root)).find(file => /^kokoro\.worker\..*\.js$/.test(file))
+assert(speechWorker, 'Speech worker was not built')
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.wav': 'audio/wav' }
 const browser = await chromium.launch({
 	channel: process.env.PLAYWRIGHT_CHANNEL || (process.platform === 'win32' ? 'msedge' : 'chrome'),
@@ -23,7 +25,9 @@ try {
 			const file = resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname))
 			if (!file.startsWith(root + sep)) { await route.fulfill({ status: 400, body: 'Invalid path' }); return }
 			try {
-				const body = await readFile(file)
+				let body = await readFile(file)
+				// Observe completion of the actual worker entrypoint without downloading a voice model.
+				if (url.pathname === '/' + speechWorker) body = Buffer.concat([body, Buffer.from('\nself.postMessage({ photosynthWorkerReady: true });')])
 				assets.push(url.pathname)
 				await route.fulfill({ status: 200, body, contentType: types[extname(file)] || 'application/octet-stream' })
 			} catch {
@@ -36,6 +40,17 @@ try {
 		page.on('console', message => { if (message.type() === 'error') messages.push(message.text()) })
 		try {
 			await page.goto(`${origin}/${entry}`, { waitUntil: 'domcontentloaded', timeout: 60000 })
+			await page.evaluate(url => new Promise((resolve, reject) => {
+				const worker = new Worker(url)
+				const finish = error => {
+					clearTimeout(timeout)
+					worker.terminate()
+					error ? reject(error) : resolve()
+				}
+				const timeout = setTimeout(() => finish(new Error('Speech worker startup timed out')), 30000)
+				worker.onmessage = event => { if (event.data?.photosynthWorkerReady) finish() }
+				worker.onerror = event => finish(new Error(`Speech worker: ${event.message}`))
+			}), `${origin}/${speechWorker}`)
 			await page.waitForFunction(() => document.documentElement.classList.contains('player-selection'), null, { timeout: 120000 })
 			await page.locator('label[for=toggle-music-factory]').click()
 			assert.equal(await page.locator('#toggle-music-factory').isChecked(), true)
@@ -49,7 +64,7 @@ try {
 			assert(assets.some(path => path.endsWith('.wasm')), 'Motion capture WASM was not loaded')
 			assert.deepEqual(errors, [], `${entry}: browser errors`)
 			assert.deepEqual(missing, [], `${entry}: missing production assets`)
-			console.log(`PASS: ${entry} loads its production bundles, onboarding, music factory, motion capture model and live camera`)
+			console.log(`PASS: ${entry} loads its production bundles, onboarding, music factory, speech worker, motion capture model and live camera`)
 		} catch (error) {
 			console.error(JSON.stringify({ entry, errors, messages, missing, classes: await page.evaluate(() => document.documentElement.className) }, null, 2))
 			throw error

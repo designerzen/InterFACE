@@ -32,6 +32,9 @@
 		"three/tsl": "./node_modules/three/build/three.tsl.js",
 		"@lookingglass/webxr/dist/bundle/webxr.js": "./node_modules/@lookingglass/webxr/dist/bundle/webxr.js"
 	},
+	"@parcel/bundler-default": {
+		"minBundleSize": 100000
+	},
 	"@parcel/resolver-default": {
 		"packageExports": true
 	},
@@ -51,6 +54,7 @@
 			"source": "source/electron/main.ts",
 			"distDir": "./dist-electron/electron/",
 			"context": "electron-main",
+			"includeNodeModules": true,
 			"publicUrl": "./",
 			"sourceMap": true,
 			"scopeHoist": false
@@ -166,7 +170,7 @@
 		"build:electron-renderer": "parcel build --target electron-renderer --no-content-hash",
 		"build:electron": "pnpm run electron:build",
 		"run:electron": "electron . --enable-logging",
-		"packager:electron": "electron-packager . photosynth-interface --overwrite --out=releases --icon=./source/assets/icons/icon.ico",
+		"packager:electron": "pnpm run electron:build && pnpm run electron:native-midi && electron-forge package",
 		"open:electron": "pnpm exec cap open @capacitor-community/electron",
 		"status:electron": "electron-packager --version",
 		"debug:electron": "electron --inspect",
