@@ -8,7 +8,9 @@ if (!nativePackage) process.exit(0)
 
 const repositoryRoot = path.resolve(__dirname, '..')
 const electronRebuild = path.join(repositoryRoot, 'node_modules/@electron/rebuild/lib/cli.js')
-const result = spawnSync(process.execPath, [electronRebuild, '-f', '-o', nativePackage], {
+const targetArch = process.env.PHOTOSYNTH_TARGET_ARCH || process.arch
+if (!['x64', 'arm64'].includes(targetArch)) throw new Error(`Unsupported native MIDI target architecture: ${targetArch}`)
+const result = spawnSync(process.execPath, [electronRebuild, '-f', '-o', nativePackage, '--arch', targetArch], {
 	cwd:repositoryRoot,
 	stdio:'inherit',
 })

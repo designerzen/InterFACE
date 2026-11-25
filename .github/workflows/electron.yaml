@@ -60,15 +60,20 @@ jobs:
         include:
           - name: Windows x64
             os: windows-2022
+            arch: x64
             artifact: photosynth-windows-x64
           - name: macOS x64
             os: macos-15-intel
+            arch: x64
             artifact: photosynth-macos-x64
           - name: macOS arm64
-            os: macos-15
+            # Cross-compile on Intel to avoid hosted ARM runner shortages.
+            os: macos-15-intel
+            arch: arm64
             artifact: photosynth-macos-arm64
           - name: Linux x64
             os: ubuntu-latest
+            arch: x64
             artifact: photosynth-linux-x64
 
     steps:
@@ -146,7 +151,9 @@ jobs:
           }
 
       - name: Build installers
-        run: pnpm run electron:make
+        env:
+          PHOTOSYNTH_TARGET_ARCH: ${{ matrix.arch }}
+        run: pnpm run electron:make --arch=${{ matrix.arch }}
 
       - name: Verify packaged Windows MIDI native addon
         if: runner.os == 'Windows'
@@ -159,7 +166,17 @@ jobs:
       - name: Verify packaged macOS CoreMIDI 2.0 native addon
         if: runner.os == 'macOS'
         shell: bash
-        run: find releases -name photosynth_macos_coremidi.node -print -quit | grep .
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+        run: |
+          arch="$TARGET_ARCH"
+          if [[ "$arch" == x64 ]]; then arch=x86_64; fi
+          addon=$(find releases -name photosynth_macos_coremidi.node -print -quit)
+          executable=$(find releases -type f -path '*/PhotoSYNTH.app/Contents/MacOS/PhotoSYNTH' -print -quit)
+          test -n "$addon"
+          test -n "$executable"
+          lipo -verify_arch "$arch" "$addon"
+          lipo -verify_arch "$arch" "$executable"
 
       - name: Remove previous Windows packages after creating the delta
         if: runner.os == 'Windows'
