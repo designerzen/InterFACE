@@ -223,9 +223,9 @@ function createWindow() {
 		void shell.openExternal(navigationUrl)
 	})
 
-	// MIDI Permissions - alow immediately if possible!
+	// Allow camera, microphone, MIDI and serial access from the app renderer.
 	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback, details) => {
-		if (isTrustedRendererUrl(details.requestingUrl) && (permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
+		if (isTrustedRendererUrl(details.requestingUrl) && (permission === 'media' || permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
 		{
 		  	callback(true)
 		} else {
@@ -234,7 +234,7 @@ function createWindow() {
 	})
 	  
 	mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
-		if (isTrustedRendererUrl(requestingOrigin) && (permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
+		if (isTrustedRendererUrl(requestingOrigin) && (permission === 'media' || permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
 		{
 		  	return true
 		}

@@ -163,6 +163,10 @@ jobs:
           if (!$addon) { throw 'Packaged application does not contain the native MIDI addon' }
           Write-Host "Packaged native MIDI addon: $($addon.FullName)"
 
+      - name: Check packaged desktop media input
+        if: runner.os == 'Windows'
+        run: pnpm exec node tests/electron-media.node.mjs
+
       - name: Verify packaged macOS CoreMIDI 2.0 native addon
         if: runner.os == 'macOS'
         shell: bash

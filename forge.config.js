@@ -11,6 +11,10 @@ module.exports = {
 		executableName: 'PhotoSYNTH',
 		appBundleId: 'com.designerzen.photosynth',
 		appCategoryType: 'public.app-category.music',
+		extendInfo: {
+			NSCameraUsageDescription: 'PhotoSYNTH uses your camera to turn movement into music.',
+			NSMicrophoneUsageDescription: 'PhotoSYNTH uses your microphone for audio input and recording.',
+		},
 		appCopyright: `Copyright ${new Date().getFullYear()} designerzen`,
 		appVersion: packageMetadata.version,
 		buildVersion: packageMetadata.version,
