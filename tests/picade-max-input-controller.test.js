@@ -367,7 +367,10 @@ describe('picade-max-input-controller', () => {
 		}
 		let modeIndex = 0
 		const color = () => PICADE_GAMEPAD_MODE_COLORS[PICADE_GAMEPAD_MODES[modeIndex]]
-		const controller = createPicadeMaxController([], {
+		const gamepads = [0, 1].map(player => ({
+			index: player, connected: true, id: `GamePad ${player + 1} (Vendor: 2e8a Product: 1098)`,
+		}))
+		const controller = createPicadeMaxController(gamepads, {
 			plasma,
 			getButtonLightOptions: () => ({ color: color(), brightness: 16, persistent: true }),
 		})

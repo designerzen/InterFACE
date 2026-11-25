@@ -2,6 +2,7 @@
  * CTRL to expose the menu or run in debug mode
  */
 import { app, shell, Menu } from "electron"
+import { requestUpdateCheck } from './updates.ts'
 
 const IS_MAC = process.platform === "darwin"
 const template: any[] = []
@@ -60,9 +61,9 @@ template.push({
 			},
 		},
 		{
-			label: "Upgrade",
+			label: "Check for Updates…",
 			click: async () => {
-				await shell.openExternal("https://github.com/designerzen/interface/releases")
+				await requestUpdateCheck()
 			}
 		}
 	]

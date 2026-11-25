@@ -35,6 +35,11 @@ form#onboard(action="/")
 		div#advanced-mode-feedback
 			p.simple-mode Friendly version with simple interface and instructions suitable for beginners
 			p.advanced-mode Expert mode includes MIDI connectivity and more controls
+
+		label(for="toggle-music-factory") Music factory
+		input#toggle-music-factory.switch(type="checkbox" role="switch" name="musicFactory" aria-describedby="music-factory-feedback")
+		div#music-factory-feedback(role="status" aria-live="polite")
+			p Musical instrument: your movements play notes directly.
 			
 		//- Demonstration - automated mode
 		label(for="toggle-automation-mode") Demonstration Mode

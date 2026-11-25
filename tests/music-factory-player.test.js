@@ -69,7 +69,7 @@ test('delayed recording callbacks cannot outlive a stop, even after audio nodes 
 })
 
 const interfaceHarness = (initial={}) => {
-	document.body.innerHTML=pug.renderFile('source/partials/control-panel.pug')
+	document.body.innerHTML=pug.renderFile('source/partials/control-panel.pug') + pug.renderFile('source/partials/onboarding.pug')
 	document.getElementById('timer-toggle').checked=true
 	const {context,oscillators}=audio()
 	const values=new Map(Object.entries({musicFactory:false,musicFactoryGenre:'ambient',musicFactorySeed:'saved',players:4,bpm:90,...initial}))
@@ -90,9 +90,11 @@ test('the switch selects the saved style, exposes controls and restores instrume
 	expect(h.values.get('musicFactory')).toBe(true)
 	expect(h.onProfile).toHaveBeenLastCalledWith(expect.objectContaining({id:'ambient'}))
 	expect(document.getElementById('music-factory-controls').hidden).toBe(false)
+	expect(document.getElementById('toggle-music-factory').checked).toBe(true)
 	toggle.parentElement.click()
 	expect(h.onMode.mock.calls).toEqual([[true],[false]])
 	expect(document.getElementById('music-factory-controls').hidden).toBe(true)
+	expect(document.getElementById('toggle-music-factory').checked).toBe(false)
 	h.api.destroy()
 })
 

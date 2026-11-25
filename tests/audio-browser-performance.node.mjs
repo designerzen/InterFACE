@@ -3,14 +3,17 @@ import {readFileSync, mkdtempSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
 import {spawn} from 'node:child_process'
+import {build} from 'esbuild'
 
 const GENERAL_MIDI_INSTRUMENT_DATA = JSON.parse(readFileSync('source/audio/general-midi-instruments.json','utf8'))
 
 // Real Chromium OfflineAudioContext convolution, with no application server.
 // Optionally override the saved pre-change reverb source with the first argument.
 const baseline = readFileSync(process.argv[2] ?? 'tests/fixtures/audio/reverb-baseline.js','utf8')
-const current = readFileSync('source/audio/voice-engines/reverb.js','utf8')
-const controls = readFileSync('source/audio/voice-engines/controls.js','utf8')
+const current = (await build({
+	stdin: { contents: "export * from './source/audio/voice-engines/reverb.js'; export {getReverbImpulse} from './source/audio/effects/reverb-spaces.js'", resolveDir: process.cwd() },
+	bundle: true, write: false, format: 'iife', globalName: 'PhotoSynthReverb', platform: 'browser',
+})).outputFiles[0].text
 const executable = process.env.AUDIO_TEST_BROWSER || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 const profile = mkdtempSync(join(tmpdir(),'photosynth-audio-browser-'))
 const browser = spawn(executable,['--headless=new','--no-first-run','--disable-extensions','--disable-background-networking',
@@ -45,11 +48,14 @@ try {
 	const {targetId}=await command('Target.createTarget',{url:'about:blank'})
 	const {sessionId}=await command('Target.attachToTarget',{targetId,flatten:true})
 	const result=await command('Runtime.evaluate',{
-		expression:`(${async function(baseline,current,controls,data){
+		expression:`${current}\n(${async function(baseline,data){
 			const strip=source=>source.replace(/^import .*$/gm,'').replaceAll('export const ','const ')
-			const watch=new Function(strip(controls)+'\nreturn watchVoiceControls')()
-			const make=source=>new Function('GENERAL_MIDI_INSTRUMENT_DATA','watchVoiceControls',strip(source)+'\nreturn createVoiceReverb')(data,watch)
-			const before=make(baseline),after=make(current)
+			// Keep the old per-voice convolution as the reference, using today's
+			// impulse and dry/wet curve so this isolates pooling cost and routing.
+			const reference=baseline.slice(baseline.indexOf('export const createVoiceReverb')).replace('setTargetAtTime(1-mix,','setTargetAtTime(Math.min(1,2*(1-mix)),')
+			const impulseFor=(context,options)=>PhotoSynthReverb.getReverbImpulse(context,{length:options.duration,preDelay:0})
+			const before=new Function('GENERAL_MIDI_INSTRUMENT_DATA','impulseFor',strip(reference)+'\nreturn createVoiceReverb')(data,impulseFor)
+			const after=PhotoSynthReverb.createVoiceReverb
 			const render=async(create,count,capture=false)=>{
 				const context=new OfflineAudioContext(2,48000*2,48000)
 				let convolvers=0, seed=12345
@@ -67,8 +73,10 @@ try {
 						const handle={volume:0.6,options:{voicePerson:{gainNode:{gain:{value:0.3+i*0.04}},trimNode:{gain:{value:0.8}},stereoNode:{pan:{value:(i%3-1)*0.5}}}}}
 						const dry=context.createGain();dry.gain.value=0.6;dry.connect(context.destination)
 						const reverb=create(context,source,dry,{wetDestination:context.destination,handle})
-						await reverb.configure({reverbMode:'custom',reverbMix:0.3,reverbDuration:1.5,reverbDecay:2},0)
-						reverbs.push(reverb);source.start()
+						await reverb.configure({reverbMode:'custom',reverbMix:0.3,reverbDuration:1.5,reverbLength:1.5,reverbPreDelay:0},0)
+						// Let the independently placed AudioParam ramps settle before
+						// comparing the shared and per-voice convolution outputs.
+						reverbs.push(reverb);source.start(0.25)
 					}
 				}finally{Math.random=random}
 				const start=performance.now(),buffer=await context.startRendering(),ms=performance.now()-start
@@ -90,7 +98,7 @@ try {
 				results.push({count,beforeMs:median(oldTimes),afterMs:median(newTimes),beforeConvolvers:a.convolvers,afterConvolvers:b.convolvers,maxSampleError:maxError})
 			}
 			return {userAgent:navigator.userAgent,results}
-		}})(${JSON.stringify(baseline)},${JSON.stringify(current)},${JSON.stringify(controls)},${JSON.stringify(GENERAL_MIDI_INSTRUMENT_DATA)})`,
+		}})(${JSON.stringify(baseline)},${JSON.stringify(GENERAL_MIDI_INSTRUMENT_DATA)})`,
 		awaitPromise:true,returnByValue:true
 	},sessionId)
 	if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails))

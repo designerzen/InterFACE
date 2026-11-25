@@ -430,12 +430,14 @@ label[for="button-quartet"],
 	display: block;
 }
 
-#toggle-advanced-mode{
+#toggle-advanced-mode,
+#toggle-music-factory{
 	margin-left: auto;
 	margin-right:auto;
 }
 
-#advanced-mode-feedback{
+#advanced-mode-feedback,
+#music-factory-feedback{
 	display: grid;
 	width: 100%;
 	grid-area:output;
@@ -460,13 +462,15 @@ label[for="button-quartet"],
 	#toggle-advanced-mode{
 	}
 	
-	#advanced-mode-feedback p{
+	#advanced-mode-feedback p,
+	#music-factory-feedback p{
 		font-size: 100%;
 	}
 }
 
 // composite grid layout with odd setup
-label[for="toggle-advanced-mode"]{
+label[for="toggle-advanced-mode"],
+label[for="toggle-music-factory"]{
 
 	//color:$col-white;
 	padding:var(--pad) calc( 2 * var(--pad));

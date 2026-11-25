@@ -18,7 +18,6 @@ describe('default instructions', () => {
 	test('teach drum performance mode in both interface modes', () => {
 		for (const mode of ['basic', 'advanced']) {
 			const guide = instructionsData[mode].default.join(' ')
-			expect(guide).toContain('Fancy a beat?')
 			expect(guide).toContain('Turn on Beats')
 			expect(guide).toContain('Drum Pattern')
 			expect(guide).toContain('Crescendo Build')
@@ -38,7 +37,9 @@ describe('default instructions', () => {
 		const instructions = await getInstructions('en', '', { advancedMode:true })
 
 		expect(global.fetch).toHaveBeenCalledWith('./locales/en/instructions.json', {})
-		expect(instructions.getInstruction(instructionsData.advanced.default.indexOf('Fancy a beat?'))).toBe('Fancy a beat?')
+		const drumInstruction = instructionsData.advanced.default.find(line => line.includes('Turn on Beats'))
+		expect(drumInstruction).toBeDefined()
+		expect(instructions.getInstruction(instructionsData.advanced.default.indexOf(drumInstruction))).toBe(drumInstruction)
 		expect(instructions.getHelp(0)).toBe(instructionsData.quickStart[0])
 		expect(instructions.getQuantityOfInstructions()).toBe(instructionsData.advanced.default.length)
 	})

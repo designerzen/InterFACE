@@ -28,6 +28,12 @@ export const setupMusicFactory = ({context, destination, stateMachine, onMode, o
 	const configure = () => {
 		if (stateMachine.get('musicFactory') && !stateMachine.get('musicFactorySeed')) stateMachine.set('musicFactorySeed', newSeed())
 		controller.configure(settings())
+		const selectionToggle = document.getElementById('toggle-music-factory')
+		if (selectionToggle) selectionToggle.checked = controller.enabled
+		const selectionFeedback = document.querySelector('#music-factory-feedback p')
+		if (selectionFeedback) selectionFeedback.textContent = controller.enabled
+			? 'Music factory: all players shape a piece together.'
+			: 'Musical instrument: your movements play notes directly.'
 		if (genre) genre.value = controller.profile.id
 	}
 	if (genre) {

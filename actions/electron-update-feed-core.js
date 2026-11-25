@@ -4,6 +4,8 @@ const releaseAssetUrl = ({ repository, tag, filename }) =>
 	`https://github.com/${repository}/releases/download/${encodeURIComponent(tag)}/${encodeURIComponent(filename)}`
 
 const rewriteWindowsReleases = (contents, release) => contents
+	// Squirrel's Windows tooling can emit a UTF-8 BOM before the first checksum.
+	.replace(/^\uFEFF/, '')
 	.split(/\r?\n/)
 	.map(line => {
 		if (!line.trim()) return ''

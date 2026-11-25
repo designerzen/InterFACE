@@ -7,6 +7,9 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
 const pug = require('pug')
 const sass = require('sass')
 const css = sass.compile('source/index.scss', { logger: sass.Logger.silent }).css
+// Exercise the unfinished component in an opt-in fixture, while checking that
+// the production stylesheet continues to hide its entry points by default.
+const componentCss = '#accessibility-tab:not([hidden]),#button-accessibility:not([hidden]),#accessibility-panel[open]{display:block!important}'
 const markup = pug.renderFile('source/partials/a11y.pug')
 const moduleSource = readFileSync('source/accessibility/accessibility-panel.js', 'utf8')
 const server = createServer((request, response) => {
@@ -20,7 +23,7 @@ const server = createServer((request, response) => {
 		response.setHeader('Content-Type', 'text/javascript')
 		response.end(readFileSync('source/accessibility/preferences.js', 'utf8'))
 	} else {
-		response.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body>${markup}<main id="app"><h1>PhotoSYNTH</h1><button style="position:fixed;left:0;bottom:0" id="button-accessibility" aria-controls="accessibility-panel" aria-expanded="false" hidden>Accessibility settings</button><button>Play music</button><a href="#app">Help</a></main><script type="module">import {setupAccessibilityControls} from '/accessibility.js'; window.controls = setupAccessibilityControls(); window.setup = setupAccessibilityControls;</script></body></html>`)
+		response.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}${request.url.includes('production=1') ? '' : componentCss}</style></head><body>${markup}<main id="app"><h1>PhotoSYNTH</h1><button style="position:fixed;left:0;bottom:0" id="button-accessibility" aria-controls="accessibility-panel" aria-expanded="false" hidden>Accessibility settings</button><button>Play music</button><a href="#app">Help</a></main><script type="module">import {setupAccessibilityControls} from '/accessibility.js'; window.controls = setupAccessibilityControls(); window.setup = setupAccessibilityControls;</script></body></html>`)
 	}
 })
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
@@ -28,6 +31,11 @@ const browser = await chromium.launch({ headless: true, channel: process.env.PLA
 try {
 	const context = await browser.newContext({ viewport: { width: 1280, height: 900 } })
 	const page = await context.newPage()
+	await page.goto(`http://127.0.0.1:${server.address().port}/?production=1`)
+	await page.waitForFunction(() => window.controls)
+	for (const selector of ['#accessibility-tab', '#button-accessibility', '#accessibility-panel']) {
+		assert.equal(await page.locator(selector).isVisible(), false)
+	}
 	await page.goto(`http://127.0.0.1:${server.address().port}`)
 	await page.waitForFunction(() => window.controls)
 	const errors = []

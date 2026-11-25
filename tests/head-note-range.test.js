@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs'
+import { render } from 'pug'
 import { createNoteCircleData } from '../source/display/note-circle.js'
 import {
 	DEFAULT_HEAD_NOTE_RANGE_DEGREES,
@@ -158,12 +159,12 @@ describe('head note range controls', () => {
 		expect(globalPanel).toContain('include head-panel.pug')
 		expect(globalPanel).not.toContain('.head-note-range-control')
 		expect(globalPanel).not.toContain('.head-vertical-range-control')
-		expect(headPanel).toContain('input#head-note-range(type="range"')
-		expect(headPanel).toContain('output#head-note-range-output')
-		expect(headPanel).toContain('input#head-vertical-range(type="range"')
-		expect(headPanel).toContain('output#head-vertical-range-output')
-		expect(headPanel).toContain('input#head-vertical-offset(type="range"')
-		expect(headPanel).toContain('output#head-vertical-offset-output')
+		const panel = document.createElement('div')
+		panel.innerHTML = render(headPanel)
+		for (const name of ['head-note-range', 'head-vertical-range', 'head-vertical-offset']) {
+			expect(panel.querySelector(`#${name}`).type).toBe('range')
+			expect(panel.querySelector(`#${name}-output`)).not.toBeNull()
+		}
 		expect(personPanel).toContain('"headNoteRangeOverrideEnabled"')
 		expect(personPanel).toContain('"headNoteRangeOverride"')
 		expect(personPanel).toContain('"headVerticalRangeOverrideEnabled"')

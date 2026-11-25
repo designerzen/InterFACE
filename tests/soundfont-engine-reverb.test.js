@@ -25,12 +25,15 @@ test('SoundFont app reverb can be disabled, adjusted, and returned to each instr
 	expect(voice.createReverbImpulse).toHaveBeenLastCalledWith(voice.activePresetData.reverb)
 })
 
-test('shared audio routes engines to the analyser and mixer without app reverb', () => {
+test('shared audio routes engines through the safety limiter, analyser and mixer without app reverb', async () => {
 	const source = readFileSync('source/audio/audio.js','utf8')
 	const expression = source.match(/return recordableOutput = (chain\( \[[\s\S]*?\], audioContext \))/)[1]
-	const analyser = {}, mixer = {}, reverb = {}, context = {}
+	const analyser = {}, mixer = {}, limiter = {}, context = {}
 	const chain = jest.fn(routes => routes[0])
-	const input = new Function('chain','analyser','mixer','reverb','audioContext',`return ${expression}`)(chain,analyser,mixer,reverb,context)
-	expect(input).toBe(analyser)
-	expect(chain).toHaveBeenCalledWith([analyser,mixer],context)
+	const createCompressor = jest.fn(async () => limiter)
+	const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor
+	const input = await new AsyncFunction('chain','createCompressor','analyser','mixer','audioContext',`return ${expression}`)(chain,createCompressor,analyser,mixer,context)
+	expect(input).toBe(limiter)
+	expect(createCompressor).toHaveBeenCalledWith(context, -1, 0, 20, 0.001, 0.05)
+	expect(chain).toHaveBeenCalledWith([limiter,analyser,mixer],context)
 })

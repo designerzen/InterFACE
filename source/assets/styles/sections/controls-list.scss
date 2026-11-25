@@ -146,6 +146,47 @@ html.controls-list-open { overflow: hidden; }
 	}
 	.keyboard-shortcut { position: relative; inset-inline-end: auto; }
 	.controls > label { padding-inline-end: 3rem; }
+	// Follow the native state for clicks, keyboard input and app updates.
+	.controls > label:has(> input[type="checkbox"]):not([for="button-fullscreen"]) {
+		padding-inline-end: 4.75rem;
+		&::before {
+			content: '';
+			position: absolute;
+			inset: auto;
+			inset-inline-end: .75rem;
+			top: 50%;
+			box-sizing: border-box;
+			width: 3rem;
+			height: 1.75rem;
+			padding: .125rem;
+			border: 2px solid var(--shade-white, white);
+			border-radius: 2rem;
+			background-color: #454545;
+			background-image: radial-gradient(circle closest-side, #fff 95%, transparent 100%);
+			background-size: 1.25rem 1.25rem;
+			background-repeat: no-repeat;
+			background-origin: content-box;
+			background-position: left center;
+			opacity: 1;
+			transform: translateY(-50%);
+			pointer-events: none;
+			transition: background-position 160ms ease, background-color 160ms ease;
+		}
+		&:has(> input:checked)::before {
+			background-color: var(--col-select, #247a52);
+			background-position: right center;
+			opacity: 1;
+			transform: translateY(-50%);
+		}
+		&:has(> input:disabled)::before { opacity: .45; }
+		&:has(> input:focus-visible)::before {
+			outline: 2px solid var(--shade-white, white);
+			outline-offset: 3px;
+		}
+		@media (prefers-reduced-motion: reduce) {
+			&::before { transition: none; }
+		}
+	}
 	.controls > label[data-controls-list-value] {
 		grid-template-columns: calc(var(--icon-visible, 1) * var(--icon-size, 33px) + var(--space, 0px)) minmax(0, 1fr) minmax(0, 43%);
 		> .controls-list-value {

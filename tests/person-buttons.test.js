@@ -12,10 +12,36 @@ describe('Person overlay buttons', () => {
 		expect(controlPanel).toContain(`.mode-button.person-${personID}-mode`)
 	})
 
-	test('wires each secondary button to a unique handler', () => {
-		expect(personSource).toContain("this.buttonChangeInstrument.addEventListener( 'pointerdown', this.onInstrumentChangeRequested")
-		expect(personSource).toContain("this.buttonChangeInputMode.addEventListener( 'pointerdown', this.onInputModeChangeRequested")
-		expect(personSource).toContain("this.buttonToggleChordDisplay.addEventListener( 'pointerdown', this.onInputTypeChangeRequested")
-		expect(personSource).toContain("this.buttonChangeOperatingMode.addEventListener( 'pointerdown', this.onOperatingModeChangeRequested")
+	test('activates each control once by pointer or keyboard and removes listeners on disposal', () => {
+		const controls = [
+			['button', 'onFaceTouchStart'],
+			['buttonChangeInstrument', 'onInstrumentChangeRequested'],
+			['buttonChangeInputMode', 'onInputModeChangeRequested'],
+			['buttonToggleChordDisplay', 'onInputTypeChangeRequested'],
+			['buttonChangeOperatingMode', 'onOperatingModeChangeRequested'],
+		]
+		const person = { abortController: new AbortController() }
+		for (const [button, handler] of controls) {
+			person[button] = document.createElement('button')
+			person[handler] = jest.fn()
+		}
+		const start = personSource.indexOf('const bindPointerAndKeyboard =')
+		const end = personSource.indexOf('\n\t\t\tfor (const [selector, direction]', start)
+		expect(start).toBeGreaterThan(-1)
+		expect(end).toBeGreaterThan(start)
+		new Function(personSource.slice(start, end)).call(person)
+		for (const [button, handler] of controls) {
+			person[button].dispatchEvent(new Event('pointerdown'))
+			person[button].dispatchEvent(new MouseEvent('click', { detail: 1 }))
+			expect(person[handler]).toHaveBeenCalledTimes(1)
+			person[button].dispatchEvent(new MouseEvent('click', { detail: 0 }))
+			expect(person[handler]).toHaveBeenCalledTimes(2)
+		}
+		person.abortController.abort()
+		for (const [button, handler] of controls) {
+			person[button].dispatchEvent(new Event('pointerdown'))
+			person[button].dispatchEvent(new MouseEvent('click', { detail: 0 }))
+			expect(person[handler]).toHaveBeenCalledTimes(2)
+		}
 	})
 })

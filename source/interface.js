@@ -5837,6 +5837,7 @@ export const createInterface = (
 
 		stateMachine.set("players", quantityOfPlayers )
 		stateMachine.set("advancedMode", results.advancedMode  ?? false )
+		stateMachine.set("musicFactory", results.musicFactory ?? false )
 		stateMachine.set("automationMode", automationMode )
 		loadInstructionSet().catch( error => console.error("Failed to refresh instructions after mode selection", error) )
 		loadDirectionSet().catch( error => console.error("Failed to refresh directions after mode selection", error) )

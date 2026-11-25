@@ -14,10 +14,10 @@ const profileRoot = join(
 const loadJson = async path => JSON.parse(await readFile(path, 'utf8'))
 
 describe('generated Stream Deck XL profile', () => {
-	test('contains five complete pages with valid hotkeys and images', async () => {
+	test('paginates eight control groups with valid hotkeys and images', async () => {
 		const rootManifest = await loadJson(join(profileRoot, 'manifest.json'))
-		expect(rootManifest.Name).toBe('PhotoSYNTH')
-		expect(rootManifest.Pages.Pages).toHaveLength(8)
+		expect(rootManifest.Name).toBe('PhotoSYNTH — Stream Deck XL')
+		expect(rootManifest.Pages.Pages).toHaveLength(12)
 		const dedicatedFunctionKeys = new Set()
 		const dedicatedQtKeys = new Set()
 		const pageTitles = new Map()
@@ -26,13 +26,16 @@ describe('generated Stream Deck XL profile', () => {
 			const pageRoot = join(profileRoot, 'Profiles', pageId.toUpperCase())
 			const manifest = await loadJson(join(pageRoot, 'manifest.json'))
 			const actions = manifest.Controllers[0].Actions
-			expect(Object.keys(actions)).toHaveLength(32)
+			expect(Object.keys(actions).length).toBeLessThanOrEqual(32)
 
 			const hotkeys = Object.values(actions).filter(action => (
 				action.UUID === 'com.elgato.streamdeck.system.hotkey'
 			))
-			pageTitles.set(manifest.Name, hotkeys.map(action => action.States[0].Title))
-			expect(hotkeys).toHaveLength(29)
+			const group = manifest.Name.replace(/ \d+\/\d+$/, '')
+			pageTitles.set(group, [...(pageTitles.get(group) ?? []), ...hotkeys.map(action => action.States[0].Title)])
+			expect(hotkeys.length).toBeGreaterThan(0)
+			expect(hotkeys.length).toBeLessThanOrEqual(29)
+			expect(Object.keys(actions)).toHaveLength(hotkeys.length + 3)
 			for (const action of hotkeys) {
 				const hotkey = action.Settings.Hotkeys[0]
 				expect(hotkey.VKeyCode).toBeGreaterThan(-1)
@@ -46,8 +49,9 @@ describe('generated Stream Deck XL profile', () => {
 			}
 
 			const imageFiles = await readdir(join(pageRoot, 'Images'))
-			expect(imageFiles).toHaveLength(29)
+			expect(imageFiles).toHaveLength(hotkeys.length)
 		}
+		expect(pageTitles.size).toBe(8)
 
 		expect([...dedicatedFunctionKeys].sort((a, b) => a - b)).toEqual(
 			Array.from({ length: 12 }, (_, index) => 124 + index),

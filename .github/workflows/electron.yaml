@@ -106,6 +106,12 @@ jobs:
           node actions/zips.mjs
           node actions/build-profile.mjs
 
+      - name: Test the app and SDK
+        run: |
+          pnpm exec jest --runInBand --coverage=false
+          pnpm exec node --test packages/photosynth/test/*.test.js packages/looking-glass/test/*.test.js
+          pnpm exec tsc --ignoreConfig --noEmit --strict --skipLibCheck false --target ES2022 --module nodenext --moduleResolution nodenext --lib ES2022,DOM packages/photosynth/test/types.mts
+
       - name: Verify Windows MIDI native addon
         if: runner.os == 'Windows'
         shell: pwsh

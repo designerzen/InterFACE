@@ -4,8 +4,8 @@ import {
 	PRESET_909_CLAP,
 } from '../source/audio/synthesizers/clap-presets.js'
 import { createClap } from '../source/audio/synthesizers/clap.js'
+import { ZERO } from '../source/audio/audio-constants.js'
 
-jest.mock('../source/audio/audio.js', () => ({ ZERO:0.0001 }))
 jest.mock('../source/audio/synthesizers.js', () => ({
 	createQueue:jest.fn(),
 	chokeGains:jest.fn(),
@@ -63,9 +63,9 @@ describe('classic clap synthesis', () => {
 
 		expect(preset.burstOffsets).toHaveLength(4)
 		expect(preset.length).toBeLessThanOrEqual(0.3)
-		expect(filters[1].frequency.setValueAtTime).toHaveBeenCalledWith(preset.highpass, context.currentTime + 0.0001)
+		expect(filters[1].frequency.setValueAtTime).toHaveBeenCalledWith(preset.highpass, context.currentTime + ZERO)
 		expect(gain.setValueAtTime).toHaveBeenCalledTimes(6)
 		expect(gain.exponentialRampToValueAtTime).toHaveBeenCalledTimes(5)
-		expect(gain.exponentialRampToValueAtTime).toHaveBeenLastCalledWith(0.0001, context.currentTime + 0.0001 + preset.length)
+		expect(gain.exponentialRampToValueAtTime).toHaveBeenLastCalledWith(ZERO, context.currentTime + ZERO + preset.length)
 	})
 })

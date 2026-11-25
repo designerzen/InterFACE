@@ -52,7 +52,26 @@ export const showPlayerSelector = (options, stateMachine, hooks = {}) => new Pro
 	const playerQuantities = ["solo", "duet", "trio", "quartet"].slice(0, options.maxFaces ?? 4 )
 	
 	const advanced = doc.getElementById("toggle-advanced-mode")
+	const factory = doc.getElementById("toggle-music-factory")
+	const factoryFeedback = doc.querySelector("#music-factory-feedback p")
 	const automation = doc.getElementById("toggle-automation-mode")
+	const syncFactory = () => {
+		const enabled = stateMachine.get("musicFactory") === true
+		if (factory) factory.checked = enabled
+		const settingsToggle = doc.getElementById("button-music-factory")
+		if (settingsToggle) {
+			settingsToggle.checked = enabled
+			settingsToggle.parentElement.classList.toggle("checked", enabled)
+		}
+		if (factoryFeedback) factoryFeedback.textContent = enabled
+			? "Music factory: all players shape a piece together."
+			: "Musical instrument: your movements play notes directly."
+	}
+	factory?.addEventListener("change", () => {
+		stateMachine.set("musicFactory", factory.checked)
+		syncFactory()
+	})
+	syncFactory()
 	
 	// Let us display all the players that can be selected only
 	for (let i=0, l=playerQuantityButtons.length; i < l; ++i)
@@ -154,6 +173,7 @@ export const showPlayerSelector = (options, stateMachine, hooks = {}) => new Pro
 			resolve({
 				players:result,
 				advancedMode,
+				musicFactory:stateMachine.get("musicFactory") === true,
 				automationMode
 			})
 		}, 45 )

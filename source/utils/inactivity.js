@@ -93,92 +93,52 @@ export const observeInteractivityThroughIdelDetector = async ( onActive, onInact
  */
 export const observeInteractivityThroughUserEvents = async (activityElement, onActive, onInactive, timeOut = TIME_OUT)=>{
 
-	let isUserActive = true
-	let isUserBusy = true
-	let interval
-
+	let isUserActive = false
+	let timeout
 	const abortController = new AbortController()
 
-	const markActivity = () => {
-		clearTimeout(interval)
-
-		if (!isUserBusy || !isUserActive) {
-			isUserActive = true
-			isUserBusy = true
-			onActive && onActive()
-		}
-
-		interval = setTimeout(() => {
-			isUserBusy = false
-			onInactive && onInactive()
-		}, timeOut)
+	const markInactive = () => {
+		clearTimeout(timeout)
+		if (!isUserActive) return
+		isUserActive = false
+		onInactive && onInactive()
 	}
 
-	// Monitor pointer, touch, keyboard, and focus activity so non-mouse users aren't hidden
-	activityElement.addEventListener("mousemove", markActivity, { signal: abortController.signal })
-	document.addEventListener("keydown", markActivity, { signal: abortController.signal })
-	document.addEventListener("pointerdown", markActivity, { signal: abortController.signal })
-	document.addEventListener("touchstart", markActivity, { signal: abortController.signal, passive: true })
-	document.addEventListener("focusin", markActivity, { signal: abortController.signal })
-
-	activityElement.addEventListener("mouseout", (event) => {
-		clearInterval(interval)
-	}, { signal: abortController.signal } )
-
-	document.addEventListener("mouseenter", (event) => {
-
-		clearInterval(interval)
-		if (isUserActive) {
-			return
-		}
-		isUserActive = true
-		//console.error("user active again")
-		onActive && onActive()
-	}, { signal: abortController.signal } )
-
-	document.addEventListener("mouseleave", (event) => {
-		clearInterval(interval)
-		if (isUserActive && (event.clientY <= 0 || event.clientX <= 0 || (event.clientX >= window.innerWidth || event.clientY >= window.innerHeight))) {
-			// outside
-			isUserActive = false
-			//console.error("user inactive")
-			onInactive && onInactive()
-		}
-	}, { signal: abortController.signal } )
-
-
-	// NB. can trigger multiple times
-	document.addEventListener("visibilitychange", e => {
-		clearInterval(interval)
-		document.documentElement.classList.toggle("tab-hidden", document.hidden)
-		if (document.hidden) {
-			isUserActive = false
-			onInactive && onInactive()
-		} else {
+	const markActivity = () => {
+		clearTimeout(timeout)
+		if (!isUserActive) {
+			isUserActive = true
 			onActive && onActive()
 		}
-	}, { signal: abortController.signal } )
+		timeout = setTimeout(markInactive, timeOut)
+	}
 
-	// Tab hide / reveal
-	window.addEventListener("pageshow", (event) => {
-		// tab revealed
-		// console.log("pageshow", event)
-		onActive && onActive()
-	}, { signal: abortController.signal } )
+	// Cursor visibility applies to the whole page. Capture activity before
+	// controls can stop propagation, including pointer-captured drags.
+	const activityEvents = ["pointermove", "mousemove", "pointerdown", "pointerup",
+		"touchstart", "touchmove", "keydown", "focusin", "wheel"]
+	activityEvents.forEach(type => {
+		document.addEventListener(type, markActivity, {
+			signal: abortController.signal, capture: true, passive: true
+		})
+	})
 
-	window.addEventListener("pagehide", (event) => {
-		// tab hidden
-		// console.log("pagehide", event)
-		onInactive && onInactive()			
-	}, { signal: abortController.signal } )
+	// Leaving the page does not itself mean the user has been inactive.
+	document.addEventListener("mouseenter", markActivity, { signal: abortController.signal })
+	document.addEventListener("visibilitychange", () => {
+		document.documentElement.classList.toggle("tab-hidden", document.hidden)
+		if (document.hidden) markInactive()
+		else markActivity()
+	}, { signal: abortController.signal })
+	window.addEventListener("pageshow", markActivity, { signal: abortController.signal })
+	window.addEventListener("pagehide", markInactive, { signal: abortController.signal })
 
-	onActive && onActive()
+	markActivity()
 
-	// Clean up!
-	return ()=>{
-		clearInterval(interval)
+	return () => {
+		clearTimeout(timeout)
 		abortController.abort()
-		onActive()
+		onActive && onActive()
 	}
 }
 

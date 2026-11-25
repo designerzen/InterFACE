@@ -27,6 +27,16 @@ describe('Electron static update feed', () => {
 		expect(output).toContain('fullsha https://github.com/designerzen/InterFACE/releases/download/v1.2.3/photosynth-1.2.3-full.nupkg 1000')
 	})
 
+	test('accepts a Windows UTF-8 BOM and CRLF without corrupting the checksum', () => {
+		const sha = 'CCD6D49F162F1E12484FF3C8AB4FA6AB222EA155'
+		const output = rewriteWindowsReleases(
+			`\uFEFF${sha} photosynth-0.61.5-full.nupkg 154383218\r\n`,
+			{ repository: release.repository, tag: 'v0.61.5' },
+		)
+
+		expect(output).toBe(`${sha} https://github.com/designerzen/InterFACE/releases/download/v0.61.5/photosynth-0.61.5-full.nupkg 154383218\n`)
+	})
+
 	test('creates a macOS static feed targeting the release ZIP', () => {
 		const feed = createMacReleases({
 			...release,
@@ -53,7 +63,7 @@ describe('Electron static update feed', () => {
 		const output = join(root, 'output')
 		await mkdir(squirrel, { recursive: true })
 		await mkdir(mac, { recursive: true })
-		await writeFile(join(squirrel, 'RELEASES'), 'sha photosynth-1.2.3-full.nupkg 1000\n')
+		await writeFile(join(squirrel, 'RELEASES'), '\uFEFFsha photosynth-1.2.3-full.nupkg 1000\r\n')
 		await writeFile(join(mac, 'PhotoSYNTH-darwin-x64-1.2.3.zip'), 'fixture')
 
 		try {
@@ -70,6 +80,8 @@ describe('Electron static update feed', () => {
 			const windows = await readFile(join(output, 'updates', 'win32', 'x64', 'RELEASES'), 'utf8')
 			const darwin = JSON.parse(await readFile(join(output, 'updates', 'darwin', 'x64', 'RELEASES.json'), 'utf8'))
 			expect(windows).toContain('/releases/download/v1.2.3/photosynth-1.2.3-full.nupkg')
+			expect(windows.startsWith('sha ')).toBe(true)
+			expect(await readFile(join(squirrel, 'RELEASES'), 'utf8')).toBe(windows)
 			expect(darwin.currentRelease).toBe('1.2.3')
 		} finally {
 			await rm(root, { recursive: true, force: true })

@@ -9,7 +9,7 @@ import electron from 'electron'
 import { app, BrowserWindow, Tray, Menu, nativeTheme, nativeImage, desktopCapturer, session, dialog, protocol, shell, ipcMain, systemPreferences } from 'electron'
 
 import log from 'electron-log'
-import { updateElectronApp, UpdateSourceType } from 'update-electron-app'
+import { initializeUpdates } from './updates.ts'
 import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
 import { isElectronDevMode } from './electron-utils.ts'
 import './menu.ts'
@@ -41,7 +41,6 @@ const APP_ROOT = isDevelopment
 const PRELOADER_PATH = path.join(APP_ROOT, 'electron/preload.js')
 const LINUX_ICON = path.join(app.getAppPath(), 'static/icons/icon-512.webp')
 const WEB_APP_URL = 'https://interface.place/app.html'
-const UPDATE_FEED_ROOT = 'https://interface.place/updates'
 const TRUSTED_RENDERER_ORIGINS = new Set([
 	new URL(WEB_APP_URL).origin,
 	'http://localhost:303',
@@ -65,8 +64,8 @@ const isPicadeMaxUsbDevice = (device:any) =>
 let mainWindow:BrowserWindow|null = null
 
 const quit = () => {
+	// Let Electron finish its shutdown hooks, including handing off to the updater.
 	app.quit()
-	process.exit(0)
 }
 
 // Prevent multiple instances
@@ -75,14 +74,6 @@ if (!app.requestSingleInstanceLock())
 	quit()
 }
 
-updateElectronApp({
-	updateSource: {
-		type: UpdateSourceType.StaticStorage,
-		baseUrl: `${UPDATE_FEED_ROOT}/${process.platform}/${process.arch}`,
-	},
-	updateInterval: '1 hour',
-	logger: log,
-})
 
 
 const showVirtualMIDIPortUnavailableError = ( message, title="Oh no!" ) => {
@@ -486,6 +477,7 @@ app.whenReady().then(() => {
 	{
 		focusOrCreateMainWindow()
 	}
+	initializeUpdates(() => mainWindow)
 
 	// Default open or close DevTools by F12 in development
 	// and ignore CommandOrControl + R in production.

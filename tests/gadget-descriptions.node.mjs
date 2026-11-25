@@ -116,7 +116,9 @@ test('recording UI updates preserve description nodes instead of rebuilding them
 		state.recording = true
 		ui.update()
 		assert.equal(description.parentElement, button)
-		assert.equal(button.firstChild.textContent, 'Stop recording')
+		assert.equal(button.querySelector('#session-capture-status').textContent, 'Recording')
+		assert.equal(button.title, 'Stop recording')
+		assert.equal(button.getAttribute('aria-pressed'), 'true')
 		await new Promise(resolve => setTimeout(resolve, 0))
 		assert.match(description.textContent, /being recorded/)
 	} finally {
