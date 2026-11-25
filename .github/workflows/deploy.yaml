@@ -67,6 +67,18 @@ jobs:
                 if gh release download --pattern RELEASES --pattern RELEASES.json --dir electron-update-feed --clobber; then
                   cp electron-update-feed/RELEASES releases/web/updates/win32/x64/RELEASES
                   cp electron-update-feed/RELEASES.json releases/web/updates/darwin/x64/RELEASES.json
+                  gh release view --json assets,tagName,publishedAt > electron-update-feed/latest.json
+                  node <<'NODE'
+                const fs = require('node:fs')
+                const { createMacReleases } = require('./actions/electron-update-feed-core.js')
+                const release = JSON.parse(fs.readFileSync('electron-update-feed/latest.json', 'utf8'))
+                const arm64 = release.assets.find(asset => /(?:darwin|macos).*arm64.*\.zip$/i.test(asset.name))
+                if (arm64) {
+                  const feed = createMacReleases({ repository: process.env.GITHUB_REPOSITORY, tag: release.tagName, version: release.tagName.replace(/^v/, ''), filename: arm64.name, publishedAt: release.publishedAt })
+                  fs.mkdirSync('releases/web/updates/darwin/arm64', { recursive: true })
+                  fs.writeFileSync('releases/web/updates/darwin/arm64/RELEASES.json', JSON.stringify(feed, null, 2) + '\n')
+                }
+                NODE
                 else
                   echo "No published Electron update feed exists yet."
                 fi
