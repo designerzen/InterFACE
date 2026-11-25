@@ -1,5 +1,6 @@
 @use "../gadgets/_button.scss" as button;
 @use "sass:list";
+@use "sass:math";
 
 #control-panel > :is(.controls-list-header, .controls-list-section, .controls-list-footer)[hidden] { display: none; }
 
@@ -92,6 +93,15 @@ html.controls-list-open { overflow: hidden; }
 			@if $selector != '.transport-session-controls' and $selector != '#session-replay-progress' {
 				@at-root html.controls-list-transition #control-panel #{$selector} {
 					view-transition-name: controls-list-control-#{$row};
+				}
+				// Ripple the rows out from the top so the list unfolds instead of landing at once.
+				@media (prefers-reduced-motion: no-preference) {
+					$delay: math.min($row * 14ms, 280ms);
+					@at-root html.controls-list-transition::view-transition-group(controls-list-control-#{$row}),
+					html.controls-list-transition::view-transition-old(controls-list-control-#{$row}),
+					html.controls-list-transition::view-transition-new(controls-list-control-#{$row}) {
+						animation-delay: $delay;
+					}
 				}
 			}
 			#{$selector} {
@@ -348,8 +358,9 @@ html.controls-list-transition::view-transition-new(*) {
 	object-fit: none;
 	object-position: left center;
 }
-html.controls-list-transition::view-transition-old(*) { animation-duration: 120ms; }
-html.controls-list-transition::view-transition-new(*) { animation-duration: 180ms; }
+// The cross-fade spans most of the move so the box never reveals finished content early.
+html.controls-list-transition::view-transition-old(*) { animation-duration: 200ms; animation-fill-mode: both; }
+html.controls-list-transition::view-transition-new(*) { animation-duration: 320ms; animation-fill-mode: both; }
 @media (prefers-reduced-motion: reduce) {
 	html.controls-list-transition::view-transition-group(*) { animation-duration: 0s; }
 }
