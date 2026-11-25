@@ -175,8 +175,8 @@ jobs:
           executable=$(find releases -type f -path '*/PhotoSYNTH.app/Contents/MacOS/PhotoSYNTH' -print -quit)
           test -n "$addon"
           test -n "$executable"
-          lipo -verify_arch "$arch" "$addon"
-          lipo -verify_arch "$arch" "$executable"
+          lipo "$addon" -verify_arch "$arch"
+          lipo "$executable" -verify_arch "$arch"
 
       - name: Remove previous Windows packages after creating the delta
         if: runner.os == 'Windows'

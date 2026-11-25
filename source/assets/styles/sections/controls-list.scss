@@ -347,7 +347,8 @@ html.controls-list-transition #control-panel {
 	}
 }
 html.controls-list-transition::view-transition-old(root) { display: none; }
-html.controls-list-transition::view-transition-new(root) { animation: none; }
+html.controls-list-transition::view-transition-new(root) { animation: controls-list-fade 160ms ease-out both; }
+@keyframes controls-list-fade { from { opacity: 0; } }
 html.controls-list-transition::view-transition-group(*) {
 	animation-duration: 360ms;
 	animation-timing-function: cubic-bezier(.22, 1, .36, 1);
