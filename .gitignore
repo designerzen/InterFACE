@@ -77,3 +77,8 @@ Hi Roger,.md
 *.afdesign
 source/tests/test.face-stream.json
 /source/displays/
+
+# never publish
+.partykit/
+skills0000/
+fe.pdf
