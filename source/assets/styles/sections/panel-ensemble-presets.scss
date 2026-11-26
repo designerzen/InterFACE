@@ -1,7 +1,7 @@
 .ensemble-preset-panel{
 	--button-size:44px;
-	--overlap:var(--button-size);
-	--_y:calc(var(--y, 0) * 1px - 100% + var(--overlap));
+	--drawer-overlap:var(--button-size);
+	--_y:calc(var(--y, 0) * 1px - 100% + var(--drawer-overlap));
 
 	grid-area: 2/1/-2/-1;
 	position: absolute;

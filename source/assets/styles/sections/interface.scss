@@ -1165,17 +1165,6 @@ html:has(#control-panel-looking-glass:is(.open, .controls-list-folder-open, :foc
 			// fade out
 			//animation: Fade var(--ease-s) linear 1500ms both reverse;
 			opacity:0;
-
-			> *{
-				--duration: var(--ease-q);
-				--overlap:0.6;
-				// --delay-offset: var(--ease-q);
-				// animation-name:Fade;
-				// animation-duration:var(--ease-s);
-				// animation-direction:reverse;
-				// animation-fill-mode: both;
-				// animation-delay:inherit;
-			}
 		}
 
 		#control-panel{
