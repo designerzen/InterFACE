@@ -9,7 +9,7 @@ block CSP
 	//- meta( http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'")
 
 block preload 
-	//- link(rel="preload" href="app.js" as="script") 
+	script document.documentElement.classList.add('interface', 'desktop', 'loading')
 
 block scripts
 	script(type="module" src="app.js")
