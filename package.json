@@ -121,7 +121,7 @@
 		"push:": "git push origin --tags && git push origin",
 		"rss": "node actions/rss.mjs",
 		"zips": "node actions/zips.mjs",
-		"upgrader": "pnpm dlx npm-check-updates --interactive --reject open-gm -u && pnpm run soundfont:upgrade",
+		"upgrader": "pnpm dlx npm-check-updates --interactive --reject open-gm -u && pnpm install --lockfile-only && pnpm run soundfont:upgrade && pnpm install --frozen-lockfile",
 		"=SLIDES=": "------------------------------------",
 		"slides": "decktape automatic http://localhost:909/updates.html ./documentation/updates.pdf",
 		"=START=": "------------------------------------",
