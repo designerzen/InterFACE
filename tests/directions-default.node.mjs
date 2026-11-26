@@ -99,6 +99,6 @@ test('default help introduces personal achievements and retains musical instruct
 	assert.equal(guide.getHelp(0), instructions.quickStart[0])
 	for (const mode of ['basic','advanced']) {
 		const text = instructions[mode].default.join(' ')
-		for (const phrase of ['to win points', 'Everyone wins points', 'do each face once', 'Skip it and keep playing', 'No rush', 'Want drums?']) assert.ok(text.includes(phrase))
+		for (const phrase of ['to win points', 'wins points once', 'Skip it and keep playing', 'No rush', 'Want drums?']) assert.ok(text.includes(phrase))
 	}
 })

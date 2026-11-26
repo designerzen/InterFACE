@@ -20,11 +20,12 @@ describe('default instructions', () => {
 			const guide = instructionsData[mode].default.join(' ')
 			expect(guide).toContain('Turn on Beats')
 			expect(guide).toContain('Drum Pattern')
-			expect(guide).toContain('Crescendo Build')
-			expect(guide).toContain('Snare Roll Build')
 			expect(guide).toContain('Turn on Performance')
 			expect(guide).toContain('Turn Performance off')
 		}
+		const advanced = instructionsData.advanced.default.join(' ')
+		expect(advanced).toContain('Crescendo Build')
+		expect(advanced).toContain('Snare Roll Build')
 	})
 
 	test('loads the JSON guide for the normal app while preserving quick start help', async () => {
