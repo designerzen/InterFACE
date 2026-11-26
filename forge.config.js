@@ -46,6 +46,7 @@ module.exports = {
 				name: 'photosynth',
 				setupExe: `PhotoSYNTH-${packageMetadata.version}-Windows-Setup.exe`,
 				setupIcon: path.join(iconBase, 'win/icon.ico'),
+				iconUrl: 'https://raw.githubusercontent.com/designerzen/InterFACE/main/static/icons/win/icon.ico',
 				...(previousWindowsReleases ? { remoteReleases: previousWindowsReleases } : {}),
 			},
 		},

@@ -176,6 +176,23 @@ jobs:
           if (!$addon) { throw 'Packaged application does not contain the native MIDI addon' }
           Write-Host "Packaged native MIDI addon: $($addon.FullName)"
 
+      - name: Verify Windows installer logo metadata
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $package = Get-ChildItem releases/make -Recurse -Filter "*-$version-full.nupkg" | Select-Object -First 1
+          if (!$package) { throw 'Current Windows installer package was not found' }
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($package.FullName)
+          try {
+            $entry = $archive.Entries | Where-Object { $_.FullName -like '*.nuspec' } | Select-Object -First 1
+            $reader = [System.IO.StreamReader]::new($entry.Open())
+            try { $metadata = [xml]$reader.ReadToEnd() } finally { $reader.Dispose() }
+            $expected = node -p "require('./forge.config.js').makers.find(m => m.name === '@electron-forge/maker-squirrel').config.iconUrl"
+            if ($metadata.package.metadata.iconUrl -ne $expected) { throw 'Windows installer does not use the PhotoSYNTH Control Panel icon' }
+          } finally { $archive.Dispose() }
+
       - name: Check packaged desktop media input
         if: runner.os == 'Windows'
         run: pnpm exec node tests/electron-media.node.mjs
