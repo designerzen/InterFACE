@@ -46,6 +46,8 @@ module.exports = {
 				name: 'photosynth',
 				setupExe: `PhotoSYNTH-${packageMetadata.version}-Windows-Setup.exe`,
 				setupIcon: path.join(iconBase, 'win/icon.ico'),
+				// Use PhotoSYNTH's own splash animation instead of Squirrel's generic default.
+				loadingGif: path.resolve(__dirname, 'source/assets/splash/splash.gif'),
 				iconUrl: 'https://raw.githubusercontent.com/designerzen/InterFACE/main/static/icons/win/icon.ico',
 				...(previousWindowsReleases ? { remoteReleases: previousWindowsReleases } : {}),
 			},
