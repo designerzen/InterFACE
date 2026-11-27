@@ -258,7 +258,7 @@ export default class AbstractDisplay{
 		{
 			return false
 		}
-		if (!person?.data || !hasEnabledFaceFeatures(this.options, person.options))
+		if (!person?.data || (typeof hasEnabledFaceFeatures === 'function' && !hasEnabledFaceFeatures(this.options, person.options)))
 		{
 			return false
 		}
