@@ -1,4 +1,5 @@
 import MIDIConnection from './midi-connection.js'
+import { requestElectronPort } from '../../electron/electron-port-client.js'
 import {
 	decodeUMPMessage,
 	encodeUMPClock,
@@ -199,6 +200,7 @@ export default class MIDIBridgeConnection extends MIDIConnection {
 	outputPortMap = new Map()
 	disposeMessageListener = null
 	disposePortsListener = null
+	messagePort = null
 
 	get inputs() {
 		return this.connected ? this.inputPorts : []
@@ -212,7 +214,29 @@ export default class MIDIBridgeConnection extends MIDIConnection {
 		const bridge = globalThis.electron?.midi
 		if (!bridge?.available) throw new Error('Native Electron MIDI is unavailable')
 
-		const sendUMP = (portId, words, timestamp = 0) => bridge.sendUMP(portId, Array.from(words), timestamp)
+		// Prefer direct MessagePort fast path for low-jitter UMP I/O when supported.
+		let fastPort = null
+		if (typeof bridge.openPortChannel === 'function') {
+			try {
+				fastPort = await requestElectronPort(bridge.openPortChannel, {
+					service: 'midi',
+					channel: 'ump',
+					timeoutMs: 1500,
+				})
+				this.messagePort = fastPort
+			} catch {
+				fastPort = null
+			}
+		}
+
+		const sendUMP = (portId, words, timestamp = 0) => {
+			const arrayWords = Array.from(words)
+			if (this.messagePort) {
+				this.messagePort.postMessage({ type: 'send', portId, words: arrayWords, timestamp })
+				return Promise.resolve(true)
+			}
+			return bridge.sendUMP(portId, arrayWords, timestamp)
+		}
 
 		const updatePorts = ports => {
 			const nextInputIds = new Set()
@@ -252,11 +276,23 @@ export default class MIDIBridgeConnection extends MIDIConnection {
 		}
 
 		updatePorts(await bridge.getPorts())
-		this.disposePortsListener = bridge.onPortsChanged(updatePorts)
-		this.disposeMessageListener = bridge.onMessage(message => {
-			const input = this.inputPortMap.get(message.endpointId)
-			if (input) input._dispatchUMP(message)
-		})
+		if (fastPort) {
+			fastPort.addEventListener('message', event => {
+				const data = event.data
+				if (data?.type === 'message' && data.message) {
+					const input = this.inputPortMap.get(data.message.endpointId)
+					if (input) input._dispatchUMP(data.message)
+				} else if (data?.type === 'ports-changed' && data.ports) {
+					updatePorts(data.ports)
+				}
+			})
+		} else {
+			this.disposePortsListener = bridge.onPortsChanged(updatePorts)
+			this.disposeMessageListener = bridge.onMessage(message => {
+				const input = this.inputPortMap.get(message.endpointId)
+				if (input) input._dispatchUMP(message)
+			})
+		}
 
 		return this
 	}
@@ -266,6 +302,10 @@ export default class MIDIBridgeConnection extends MIDIConnection {
 		this.disposePortsListener?.()
 		this.disposeMessageListener = null
 		this.disposePortsListener = null
+		if (this.messagePort) {
+			try { this.messagePort.close() } catch {}
+			this.messagePort = null
+		}
 		for (const port of this.inputPortMap.values()) port.state = 'disconnected'
 		for (const port of this.outputPortMap.values()) port.state = 'disconnected'
 		this.inputPortMap.clear()
@@ -276,6 +316,11 @@ export default class MIDIBridgeConnection extends MIDIConnection {
 	}
 
 	async sendUMP(portId, words, timestamp = 0) {
-		return globalThis.electron.midi.sendUMP(portId, Array.from(words), timestamp)
+		const arrayWords = Array.from(words)
+		if (this.messagePort) {
+			this.messagePort.postMessage({ type: 'send', portId, words: arrayWords, timestamp })
+			return true
+		}
+		return globalThis.electron.midi.sendUMP(portId, arrayWords, timestamp)
 	}
 }

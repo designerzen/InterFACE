@@ -1,8 +1,14 @@
 import StorageOPFS from './opfs.js'
+import ElectronStorageClient from './electron-storage.js'
 import { encodeSessionEvents, SESSION_EVENT_HEADER_SIZE, SESSION_EVENT_RECORD_SIZE } from './session-format.js'
 
+export const createSessionStorage = (options = {}) =>
+	globalThis.electron?.storage?.available
+		? new ElectronStorageClient(options)
+		: new StorageOPFS(options)
+
 export const withSessionStorage = async callback => {
-	const storage = new StorageOPFS({timeout:300000})
+	const storage = createSessionStorage({timeout:300000})
 	try { return await callback(storage) } finally { storage.destroy() }
 }
 export const recoverSessionManifests = () => withSessionStorage(storage => storage.send('session:list'))
@@ -18,7 +24,7 @@ export default class SessionRecorder {
 	constructor({ sessionId = `session-${crypto.randomUUID()}`, batchSize=64, flushInterval=500, onError, storage, now=()=>performance.now(), maxPendingBytes=32*1024*1024 }={}) {
 		this.sessionId=sessionId
 		this.fileName=`${sessionId}.events`
-		this.storage=storage ?? new StorageOPFS()
+		this.storage=storage ?? createSessionStorage()
 		this.batchSize=batchSize
 		this.flushInterval=flushInterval
 		this.maxPendingBytes=maxPendingBytes

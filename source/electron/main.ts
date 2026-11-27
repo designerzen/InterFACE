@@ -1,100 +1,168 @@
-
-
 // Modules to control application life and create native browser window
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import path from 'node:path'
-import { writeFile } from 'node:fs'
 
 import windowStateKeeper from 'electron-window-state'
 import electron from 'electron'
-import { app, BrowserWindow, Tray, Menu, nativeTheme, nativeImage, desktopCapturer, session, dialog, protocol, shell, ipcMain, systemPreferences } from 'electron'
+import { app, BrowserWindow, nativeTheme, desktopCapturer, dialog, protocol, shell, ipcMain } from 'electron'
 
 import log from 'electron-log'
 import { initializeUpdates } from './updates.ts'
-import { electronApp, optimizer, is, platform } from '@electron-toolkit/utils'
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { isElectronDevMode } from './electron-utils.ts'
 import './menu.ts'
 
 import { destroyMIDI, registerMIDI } from './midi.ts'
+import { APP_PROTOCOL_ORIGIN, getAppProtocolSchemes, registerAppProtocol } from './services/protocol.ts'
+import { UtilitySupervisor, type UtilityServiceName } from './services/utility-supervisor.ts'
 
-// 
 if (require('electron-squirrel-startup')) app.quit()
 
-// import LINUX_ICON from '../../resources/icon.png?asset'
+// Must run before app.whenReady()
+protocol.registerSchemesAsPrivileged(getAppProtocolSchemes())
 
 const IS_DEVELOPMENT_MODE = is.dev || isElectronDevMode(electron)
 
-// const ICON_WARNING_PATH = path.resolve()
-
-export const isProduction = process.env.NODE_ENV === "production"
-export const isDevelopment = !app.isPackaged && process.argv[2] === '--enable-logging' || process.argv[2] === '--debug' || IS_DEVELOPMENT_MODE
+export const isProduction = process.env.NODE_ENV === 'production'
+export const isDevelopment = (!app.isPackaged && (process.argv[2] === '--enable-logging' || process.argv[2] === '--debug')) || IS_DEVELOPMENT_MODE
 
 const isKiosk = process.argv[2] === '--kiosk' ?? false
 
-// FIXME: this __dirname gets transcoded to a location once built
-// remove first slash
 const APP_ROOT = isDevelopment
 	? path.resolve('dist-electron')
 	: path.join(app.getAppPath(), 'dist-electron')
-//.substring(1)
 
-// and ./electron/resources/preload.js for the test build
 const PRELOADER_PATH = path.join(APP_ROOT, 'electron/preload.js')
+const SERVICES_DIR = path.join(APP_ROOT, 'electron/services')
+const LOCAL_RENDERER_DIR = path.join(APP_ROOT, 'main')
+const LOCAL_RENDERER_ENTRY = path.join(LOCAL_RENDERER_DIR, 'app.html')
+const STATIC_DIR = app.isPackaged
+	? path.join(process.resourcesPath, 'static')
+	: path.resolve('static')
 const APP_ICON = app.isPackaged
 	? path.join(process.resourcesPath, '512x512.png')
-	: path.join(app.getAppPath(), 'static/icons/png/512x512.png')
+	: path.resolve('static/icons/png/512x512.png')
+
 const WEB_APP_URL = 'https://interface.place/app.html'
+const LOCAL_APP_URL = `${APP_PROTOCOL_ORIGIN}/app.html`
 const TRUSTED_RENDERER_ORIGINS = new Set([
 	new URL(WEB_APP_URL).origin,
+	APP_PROTOCOL_ORIGIN,
 	'http://localhost:303',
 ])
-const isTrustedRendererUrl = (value:string) => {
+
+const isTrustedRendererUrl = (value: string) => {
 	try {
 		return TRUSTED_RENDERER_ORIGINS.has(new URL(value).origin)
 	} catch {
 		return false
 	}
 }
+
 const PICADE_MAX_USB_IDS = [
 	{ vendorId: 0x2e8a, productId: 0x1098 },
 	{ vendorId: 0xcafe, productId: 0x400d },
 ]
-const isPicadeMaxUsbDevice = (device:any) =>
+const isPicadeMaxUsbDevice = (device: any) =>
 	PICADE_MAX_USB_IDS.some(id =>
 		device?.vendorId === id.vendorId && device?.productId === id.productId
 	)
 
-let mainWindow:BrowserWindow|null = null
+const VALID_UTILITY_SERVICES = new Set<UtilityServiceName>(['hardware', 'storage', 'ai', 'network'])
+const supervisor = new UtilitySupervisor(log)
+
+let mainWindow: BrowserWindow | null = null
+let servicesRegistered = false
 
 const quit = () => {
-	// Let Electron finish its shutdown hooks, including handing off to the updater.
 	app.quit()
 }
 
-// Prevent multiple instances
-if (!app.requestSingleInstanceLock())
-{
+if (!app.requestSingleInstanceLock()) {
 	quit()
 }
 
+const registerUtilityServices = () => {
+	if (servicesRegistered) return
+	servicesRegistered = true
 
+	const storageDir = path.join(app.getPath('userData'), 'sessions')
+	const cacheDir = path.join(app.getPath('userData'), 'asset-cache')
 
-const showVirtualMIDIPortUnavailableError = ( message, title="Oh no!" ) => {
-	// dialog.showMessageBoxSync({ 
-	// 	icon:nativeImage.createFromPath( ICON_WARNING_PATH ),
-	// 	type:"warning", 
-	// 	title, 
-	// 	message 
-	// })
+	supervisor.register({
+		name: 'hardware',
+		modulePath: path.join(SERVICES_DIR, 'hardware-worker.js'),
+	})
+	supervisor.register({
+		name: 'storage',
+		modulePath: path.join(SERVICES_DIR, 'storage-worker.js'),
+		env: { PHOTOSYNTH_STORAGE_DIR: storageDir },
+	})
+	supervisor.register({
+		name: 'ai',
+		modulePath: path.join(SERVICES_DIR, 'ai-worker.js'),
+		env: { PHOTOSYNTH_STATIC_DIR: STATIC_DIR },
+	})
+	supervisor.register({
+		name: 'network',
+		modulePath: path.join(SERVICES_DIR, 'lan-timing-worker.js'),
+	})
+
+	registerAppProtocol({
+		rendererRoot: LOCAL_RENDERER_DIR,
+		staticRoot: STATIC_DIR,
+		cacheRoot: cacheDir,
+	})
+
+	ipcMain.on('service:is-available', (event, serviceName: string) => {
+		event.returnValue = VALID_UTILITY_SERVICES.has(serviceName as UtilityServiceName)
+			&& supervisor.isAvailable(serviceName as UtilityServiceName)
+	})
+
+	ipcMain.on('service:open-port', (event, payload: { service?: string; channel?: string; token?: string }) => {
+		const url = event.sender.getURL()
+		if (!isTrustedRendererUrl(url)) return
+		const service = payload?.service as UtilityServiceName
+		if (!VALID_UTILITY_SERVICES.has(service) || !payload?.channel || !payload?.token) return
+		supervisor.openChannel(service, event.sender, String(payload.channel), String(payload.token))
+	})
+
+	ipcMain.handle('storage:save-file', async (event, payload: { fileName?: string; data?: ArrayBuffer | Uint8Array; mimeType?: string }) => {
+		if (!isTrustedRendererUrl(event.sender.getURL())) {
+			throw new Error('Untrusted renderer origin')
+		}
+		const safeName = path.basename(String(payload?.fileName || 'photosynth-export.bin'))
+		const parent = BrowserWindow.fromWebContents(event.sender) ?? mainWindow ?? undefined
+		const ext = path.extname(safeName).replace(/^\./, '')
+		const saveOptions: Electron.SaveDialogOptions = {
+			title: 'Save PhotoSYNTH export',
+			defaultPath: path.join(app.getPath('downloads'), safeName),
+			filters: ext ? [{ name: ext.toUpperCase(), extensions: [ext] }, { name: 'All Files', extensions: ['*'] }] : undefined,
+		}
+		const result = parent
+			? await dialog.showSaveDialog(parent, saveOptions)
+			: await dialog.showSaveDialog(saveOptions)
+		if (result.canceled || !result.filePath) {
+			return { saved: false, canceled: true }
+		}
+		const raw = payload?.data
+		const bytes = raw instanceof ArrayBuffer
+			? Buffer.from(raw)
+			: ArrayBuffer.isView(raw)
+				? Buffer.from(raw.buffer, raw.byteOffset, raw.byteLength)
+				: Buffer.alloc(0)
+		await fsp.writeFile(result.filePath, bytes)
+		return { saved: true, canceled: false, filePath: result.filePath }
+	})
 }
 
-function recordWindow(){
-	
+const showVirtualMIDIPortUnavailableError = (_message: string, _title = 'Oh no!') => {}
+
+function recordWindow() {
 	desktopCapturer.getSources({ types: ['window', 'screen'] }).then(async sources => {
-		for (const source of sources) 
-		{
-			// find the window we want to record...
-			if (mainWindow && source.name === 'Electron') 
-			{
+		for (const source of sources) {
+			if (mainWindow && source.name === 'Electron') {
 				mainWindow.webContents.send('SET_SOURCE', source.id)
 				return
 			}
@@ -102,76 +170,39 @@ function recordWindow(){
 	})
 }
 
-
-/**
- * 
- */
 function createWindow() {
+	let interval: any
 
-	let interval
-
-	const additionalArguments = [`--debug=${isDevelopment ? "true" : "false" }`]
-
-	let mainWindowState = windowStateKeeper({
+	const mainWindowState = windowStateKeeper({
 		defaultWidth: 1024,
-		defaultHeight: 920
+		defaultHeight: 920,
 	})
 
-	// log.info(`PhotoSynth ${APP_ROOT} starting [${mainWindowState.width}/${mainWindowState.height}] preloader:${PRELOADER_PATH} `, isDevelopment ? "in development" : "in production", additionalArguments )
-
-	// Create the browser window.
 	mainWindow = new BrowserWindow({
 		x: mainWindowState.x,
 		y: mainWindowState.y,
 		width: mainWindowState.width,
 		height: mainWindowState.height,
+		show: false,
 		minWidth: 320,
-		accessibleTitle: "PhotoSYNTH face controlled musical instrument",
+		accessibleTitle: 'PhotoSYNTH face controlled musical instrument',
 		minHeight: 300,
-		backgroundColor: '#e4dede', 
-
-		// optional!
-		kiosk:isKiosk,
-		// frame:true,
-		// autoHideMenuBar: true,
+		backgroundColor: '#e4dede',
+		kiosk: isKiosk,
 		icon: APP_ICON,
-	   
 		webPreferences: {
-			
-			// webSecurity:false,
-			// NB. contextIsolation: false now replaces nodeIntegration: true.
-
-			// protect against prototype pollution
-			// NB. LKG Portrait requires access to "process.NODE"
-			// so this needs to be exposed via the contextIsolation else disable it
-			// and enable nodeIntegration which is more dangerous
-			// contextIsolation: true,
 			contextIsolation: true,
 			nodeIntegration: false,
 			nodeIntegrationInWorker: false,
 			sandbox: true,
-
-			// pass arbitrary data to the preloader
-			preload:PRELOADER_PATH,
-
-			// additionalArguments,
-
-			// backgroundThrottling:false,
-			
-			// autoplayPolicy string (optional) - 
-			// Autoplay policy to apply to content in the window, can be 
-			// no-user-gesture-required, user-gesture-required, document-user-activation-required. Defaults to no-user-gesture-required.
-			autoplayPolicy: "no-user-gesture-required"
-		}
+			preload: PRELOADER_PATH,
+			autoplayPolicy: 'no-user-gesture-required',
+		},
 	})
-	
-	// Let us register listeners on the window, so we can update the state
-	// automatically (the listeners will be removed when the window is closed)
-	// and restore the maximized or full screen state
+
 	mainWindowState.manage(mainWindow)
 
-	// open windows via interception
-	mainWindow.webContents.setWindowOpenHandler((details) => {
+	mainWindow.webContents.setWindowOpenHandler(details => {
 		let targetOrigin = ''
 		try {
 			targetOrigin = new URL(details.url).origin
@@ -182,8 +213,7 @@ function createWindow() {
 			return { action: 'deny' }
 		}
 
-		switch(details.url){
-
+		switch (details.url) {
 			case 'about:blank':
 				return {
 					action: 'allow',
@@ -191,14 +221,9 @@ function createWindow() {
 						frame: true,
 						fullscreenable: false,
 						backgroundColor: 'black',
-						// zoomFactor, nodeIntegration, preload, javascript, contextIsolation, and webviewTag.
-						webPreferences: {
-						// preload: 'my-child-window-preload-script.js'
-						}
-					}
+						webPreferences: {},
+					},
 				}
-
-			// LKGP!
 			default:
 				return {
 					action: 'allow',
@@ -206,11 +231,8 @@ function createWindow() {
 						frame: false,
 						fullscreenable: true,
 						backgroundColor: 'black',
-						// zoomFactor, nodeIntegration, preload, javascript, contextIsolation, and webviewTag.
-						webPreferences: {
-							// preload: 'my-child-window-preload-script.js'
-						}
-					}
+						webPreferences: {},
+					},
 				}
 		}
 	})
@@ -225,34 +247,27 @@ function createWindow() {
 		void shell.openExternal(navigationUrl)
 	})
 
-	// Allow camera, microphone, MIDI and serial access from the app renderer.
-	mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback, details) => {
-		if (isTrustedRendererUrl(details.requestingUrl) && (permission === 'media' || permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
-		{
-		  	callback(true)
+	mainWindow.webContents.session.setPermissionRequestHandler((_webContents, permission, callback, details) => {
+		if (isTrustedRendererUrl(details.requestingUrl) && (permission === 'media' || permission === 'midi' || permission === 'midiSysex' || permission === 'serial')) {
+			callback(true)
 		} else {
-		  	callback(false)
+			callback(false)
 		}
 	})
-	  
-	mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
-		if (isTrustedRendererUrl(requestingOrigin) && (permission === 'media' || permission === 'midi' || permission === 'midiSysex' || permission === 'serial'))
-		{
-		  	return true
+
+	mainWindow.webContents.session.setPermissionCheckHandler((_webContents, permission, requestingOrigin) => {
+		if (isTrustedRendererUrl(requestingOrigin) && (permission === 'media' || permission === 'midi' || permission === 'midiSysex' || permission === 'serial')) {
+			return true
 		}
 		return false
 	})
 
-	mainWindow.webContents.session.setDevicePermissionHandler((details) => {
+	mainWindow.webContents.session.setDevicePermissionHandler(details => {
 		if (!isTrustedRendererUrl(details.origin) || details.deviceType !== 'serial') {
 			return false
 		}
-
 		const device = details.device
-		if (!device) {
-			return false
-		}
-
+		if (!device) return false
 		return isPicadeMaxUsbDevice(device)
 	})
 
@@ -262,52 +277,39 @@ function createWindow() {
 			callback('')
 			return
 		}
-
 		const picadePort = portList.find((port: any) => isPicadeMaxUsbDevice(port))
-
 		if (picadePort) {
 			log.info(`Auto-selecting Picade Max serial device ${picadePort.portId}`)
 			callback(picadePort.portId)
 			return
 		}
-
 		if (portList.length === 1) {
 			log.info(`Auto-selecting sole serial device ${portList[0].portId}`)
 			callback(portList[0].portId)
 			return
 		}
-
 		log.warn(`No matching Picade Max serial device found. ${portList.length} serial ports available.`)
 		callback('')
 	})
 
-	// From https://github.com/electron/electron/pull/573
-    // Allows for YouTube embeds
-    // mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    //     callback({responseHeaders: Object.fromEntries(Object.entries(details.responseHeaders).filter(header => !/x-frame-options/i.test(header[0])))})
-    // })
+	ipcMain.removeAllListeners('feedback')
+	ipcMain.removeAllListeners('show-dialog')
+	ipcMain.removeHandler('dark-mode:toggle')
+	ipcMain.removeHandler('accessibility:get-preferences')
+	ipcMain.removeHandler('dark-mode:system')
 
-	ipcMain.on("feedback", (event, state) => {
-		console.log("FEEDBACK>",state)
-		switch(state)
-		{
-			default:
-				clearInterval(interval)
-				showVirtualMIDIPortUnavailableError( "Virtual MIDI Port cannot be created - This feature is only available on Mac and Linux at this time due to Windows not having builtin support. You can download a program by Tobias if you want to pipe the MIDI output from the PhotoSYNTH into your software MIDI such as Ableton, Reaper or another DAW.", "Virtual MIDI Port cannot be created" )
-		}
+	ipcMain.on('feedback', (_event, state) => {
+		console.log('FEEDBACK>', state)
+		clearInterval(interval)
+		showVirtualMIDIPortUnavailableError('Virtual MIDI Port cannot be created.', 'Virtual MIDI Port cannot be created')
 	})
 
-	ipcMain.on("show-dialog", (event, message, type="info") => {
-		showVirtualMIDIPortUnavailableError(  message )
+	ipcMain.on('show-dialog', (_event, message) => {
+		showVirtualMIDIPortUnavailableError(message)
 	})
 
-		
 	ipcMain.handle('dark-mode:toggle', () => {
-		if (nativeTheme.shouldUseDarkColors) {
-			nativeTheme.themeSource = 'light'
-		} else {
-			nativeTheme.themeSource = 'dark'
-		}
+		nativeTheme.themeSource = nativeTheme.shouldUseDarkColors ? 'light' : 'dark'
 		return nativeTheme.shouldUseDarkColors
 	})
 
@@ -321,237 +323,105 @@ function createWindow() {
 	ipcMain.handle('dark-mode:system', () => {
 		nativeTheme.themeSource = 'system'
 	})
-/*
-	// Extra app goodies
-	ipcMain.on("show-dialog", (event, message, type="info") => {
-		dialog.showMessageBoxSync({ type, message })
+
+	mainWindow.once('ready-to-show', () => {
+		mainWindow?.show()
+		mainWindow?.moveTop()
+		mainWindow?.focus()
 	})
 
-	// send a file to be saved locally!	
-	ipcMain.on('save', (event, data, fileName) => {
-		const webContents = event.sender
-		const win = BrowserWindow.fromWebContents(webContents)
-
-		dialog.showSaveDialog({
-			title: 'Select the File Path to save',
-			defaultPath: path.join(APP_ROOT, fileName),
-			buttonLabel: 'Save',
-			// Restricting the user to only Text Files.
-			filters: [
-				{
-					name: 'Text Files',
-					extensions: ['txt', 'docx']
-				},],
-			properties: []
-		}).then(file => {
-			// Stating whether dialog operation was cancelled or not.
-			console.log(file.canceled)
-			if (!file.canceled) {
-				console.log(file.filePath.toString())
-				// Creating and Writing to the sample.txt file
-
-				writeFile(file.filePath.toString(),
-					data,
-					function (err) {
-						if (err) throw err
-						console.log('Saved!?')
-					}
-				)
-			}
-		}).catch(err => {
-			console.log(err)
-		})
-	})
-
-*/
-	// output.sendMessage([176,22,1])
-
-	mainWindow.on('ready-to-show', () => { 
-		mainWindow.show()
-		mainWindow.focus()
-	})
-
-	// Emitted when the window is closed.
-	mainWindow.on("closed", () => {
-
+	mainWindow.on('closed', () => {
 		clearInterval(interval)
-
-		// Dereference the window object, usually you would store windows
-		// in an array if your app supports multi windows, this is the time
-		// when you should delete the corresponding element.
 		mainWindow = null
 		destroyMIDI()
 	})
 
-	// Open the DevTools.
-	if (isDevelopment) 
-	{	
-		//   mainWindow.loadURL(
-		//     url.format({
-		//       pathname: path.join(APP_ROOT, "dist/app.html"),
-		//       protocol: "file:",
-		//       slashes: true
-		//     })
-		//   )
-
-		// mainWindow.loadFile( `../main/app.html` )
-		mainWindow.loadURL( `http://localhost:303/app.html` )
-
-		// Errors are thrown if the dev tools are opened
-		// before the DOM is ready
-		mainWindow.webContents.once("dom-ready", async () => {
-			
-			mainWindow.webContents.openDevTools()
+	if (isDevelopment) {
+		const devUrl = 'http://localhost:303/app.html'
+		let retryTimer: ReturnType<typeof setTimeout> | null = null
+		const loadDevUrl = () => {
+			if (!mainWindow || mainWindow.isDestroyed()) return
+			void mainWindow.loadURL(devUrl).catch(() => {
+				if (!mainWindow || mainWindow.isDestroyed()) return
+				retryTimer = setTimeout(loadDevUrl, 500)
+			})
+		}
+		mainWindow.once('closed', () => {
+			if (retryTimer) clearTimeout(retryTimer)
 		})
-
-	}else{
+		mainWindow.webContents.once('dom-ready', () => {
+			mainWindow?.webContents.openDevTools()
+		})
+		loadDevUrl()
+	} else if (fs.existsSync(LOCAL_RENDERER_ENTRY)) {
+		mainWindow.loadURL(LOCAL_APP_URL)
+	} else {
 		mainWindow.loadURL(WEB_APP_URL)
 	}
 
-	registerMIDI( mainWindow, ipcMain )
-
-	// this allows us to receive commands  from the web side of the app
-	// via the preload service that exposes all these methods
-/*
-	// change the page title (not visible in kiosk mode!)
-	ipcMain.on('set-title', (event, title) => {
-		const webContents = event.sender
-		const win = BrowserWindow.fromWebContents(webContents)
-		win.setTitle(title)
-	})
-
-	// save some data to an "error" / analytics log to help fix
-	// problems where we don't know what is causing them and cannot
-	// replicate the issues
-	ipcMain.on('log', ( event, text ) => {
-	
-	})
-
-	*/
+	registerMIDI(mainWindow, ipcMain)
 }
 
-
-// If there is already a window on screen,
-// we should focus the existing one rather than
-// creating a new one each time
 function focusOrCreateMainWindow() {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
-    return
-  }
-
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    // On Linux/Wayland, focus() often doesn't take effect (compositor ignores it). Apps like Telegram
-    // work because they receive an XDG activation token via StatusNotifierItem.ProvideXdgActivationToken;
-    // Electron's tray doesn't handle that yet. Workaround: destroy and recreate the HUD so the new
-    // window gets focus (creation path works). Only for HUD, not editor.
-    if (process.platform === 'linux' && !mainWindow.isFocused() ) {
-      const win = mainWindow
-      mainWindow = null
-      win.once('closed', () => focusOrCreateMainWindow())
-      win.destroy()
-      return
-    }
-
-	// Show existing!
-    mainWindow.show()
-    if (mainWindow.isMinimized())
-	{ 
-		mainWindow.restore()
+	if (BrowserWindow.getAllWindows().length === 0) {
+		createWindow()
+		return
 	}
-    mainWindow.moveTop()
-    mainWindow.focus()
-  }
+
+	if (mainWindow && !mainWindow.isDestroyed()) {
+		if (process.platform === 'linux' && !mainWindow.isFocused()) {
+			const win = mainWindow
+			mainWindow = null
+			win.once('closed', () => focusOrCreateMainWindow())
+			win.destroy()
+			return
+		}
+		mainWindow.show()
+		if (mainWindow.isMinimized()) {
+			mainWindow.restore()
+		}
+		mainWindow.moveTop()
+		mainWindow.focus()
+	}
 }
 
-
-
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-
-	// Set app user model id for windows
 	electronApp.setAppUserModelId('place.interface.photosynth')
+	registerUtilityServices()
 
-	if (mainWindow === null) 
-	{
+	if (mainWindow === null) {
 		focusOrCreateMainWindow()
 	}
 	initializeUpdates(() => mainWindow)
 
-	// Default open or close DevTools by F12 in development
-	// and ignore CommandOrControl + R in production.
-	// see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
 	app.on('browser-window-created', (_, window) => {
 		optimizer.watchWindowShortcuts(window)
 	})
 
-	app.on('activate', function () {
-		// On macOS it's common to re-create a window in the app when the
-		// dock icon is clicked and there are no other windows open.
-		if (BrowserWindow.getAllWindows().length === 0)
-		{
-			focusOrCreateMainWindow()
-		} else{
-			console.error("Not opening a browser window as one already open")
-		}
-	})
-
 	app.on('activate', () => {
-		// On OS X it's common to re-create a window in the app when the
-		// dock icon is clicked and there are no other windows open.
 		focusOrCreateMainWindow()
 	})
 
 	app.on('second-instance', () => {
 		focusOrCreateMainWindow()
 	})
-
 })
 
-
-app.on('web-contents-created', function(event,contents) {
-	
-	console.log('web-contents-created', event, contents)
-	const anyContents = contents // as any
-	anyContents.on('new-window', function(){
-		console.log('new-window', event, contents)
-	
-	})
+app.on('before-quit', () => {
+	destroyMIDI()
+	supervisor.stopAll()
 })
 
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') quit()
 })
 
-// Exit cleanly on request from parent process in development mode.
-// Only do these things when in development
 if (isDevelopment) {
-
-	  // Reload
-	//   try {
-	// 	(await import("electron-reloader"))(module)
-	//   } catch (_) { }
-
-	  
-	if (process.platform === "win32") {
-		process.on("message", (data) => {
-			if (data === "graceful-exit") {
-				quit()
-			}
+	if (process.platform === 'win32') {
+		process.on('message', data => {
+			if (data === 'graceful-exit') quit()
 		})
-
 	} else {
-
-		process.on("SIGTERM", () => {
-			quit()
-		})
+		process.on('SIGTERM', () => quit())
 	}
 }
-
