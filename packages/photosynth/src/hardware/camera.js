@@ -79,7 +79,10 @@ const openPresetStream = async (deviceId, enableAudio, preset) => {
  * WARNING : Triggers an error if not from a user interaction!
  * @returns {Array<Object>} All camera device objects on this device
  */
-export const detectCameras = async () => navigator.mediaDevices.enumerateDevices()
+export const detectCameras = async () => {
+	if (!navigator.mediaDevices?.enumerateDevices) return []
+	return navigator.mediaDevices.enumerateDevices()
+}
 
 /**
  * filters a list of local cameras to only return videoinputs kinds of camera devices

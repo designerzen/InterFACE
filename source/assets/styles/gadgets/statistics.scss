@@ -1,13 +1,70 @@
 .statistics{
-
 	max-width: none;
-	width:calc( 270px * 1 );
-	height:144px;
-	left:50% !important;
+	width: 270px;
+	left: 50%;
 	transform: translateX(-50%);
 
 	canvas{
-		width:calc( 270px ) !important;
-		height:calc( 144px ) !important;
+		width: 270px;
+		height: 144px;
+	}
+}
+
+.photosynth-perf-hud{
+	position: fixed;
+	top: 0.75rem;
+	right: 0.75rem;
+	left: auto;
+	transform: none;
+	z-index: 900;
+	width: 272px;
+	max-width: calc(100vw - 1.5rem);
+	padding: 4px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	background: rgba(14, 16, 22, 0.9);
+	color: #f1f3f5;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 11px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+	contain: layout style paint;
+	pointer-events: auto;
+
+	&[hidden]{
+		display: none;
+	}
+
+	.perf-hud-canvas{
+		display: block;
+		width: 264px;
+		height: 228px;
+	}
+
+	.perf-hud-actions{
+		display: flex;
+		gap: 4px;
+		padding: 2px 4px 4px;
+
+		button{
+			flex: 1 1 auto;
+			min-height: 24px;
+			padding: 2px 6px;
+			border-radius: 5px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			background: rgba(255, 255, 255, 0.08);
+			color: #f8f9fa;
+			font: inherit;
+			font-size: 10px;
+			cursor: pointer;
+
+			&:hover:not(:disabled){
+				background: rgba(255, 255, 255, 0.18);
+			}
+
+			&:disabled{
+				opacity: 0.55;
+				cursor: wait;
+			}
+		}
 	}
 }

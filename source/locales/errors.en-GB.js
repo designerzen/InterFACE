@@ -9,7 +9,7 @@ export const ERROR_MESSAGES = Object.freeze({
 	'camera-not-found': Object.freeze({
 		title:'No camera found',
 		problem:'PhotoSYNTH could not find a camera on this device.',
-		solution:'Connect or enable a camera, then try again.',
+		solution:'Connect a camera, or upload a video or image to use instead.',
 		primaryAction:'Try again',
 		secondaryAction:'Camera help',
 	}),

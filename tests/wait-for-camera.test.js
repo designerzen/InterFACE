@@ -44,3 +44,35 @@ test.each(['NotAllowedError', 'NotReadableError'])('propagates %s without retryi
 	expect(onWaiting).not.toHaveBeenCalled()
 	expect(jest.getTimerCount()).toBe(0)
 })
+
+test('aborts cleanly when an uploaded media fallback takes over', async () => {
+	const connect = jest.fn().mockRejectedValue(new DOMException('Missing', 'NotFoundError'))
+	const onWaiting = jest.fn()
+	const controller = new AbortController()
+	const ready = waitForCamera(connect, onWaiting, { signal: controller.signal })
+	await Promise.resolve()
+	expect(onWaiting).toHaveBeenCalledWith(true)
+	const fallback = { kind: 'image', name: 'face.png' }
+	controller.abort(fallback)
+	await expect(ready).rejects.toBe(fallback)
+	expect(onWaiting.mock.calls).toEqual([[true], [false]])
+	expect(jest.getTimerCount()).toBe(0)
+})
+
+test('supports immediate manual retry via onRetryReady', async () => {
+	const stream = { id: 'cam-1' }
+	const connect = jest.fn()
+		.mockRejectedValueOnce(new DOMException('Missing', 'NotFoundError'))
+		.mockResolvedValue(stream)
+	const onWaiting = jest.fn()
+	let triggerRetry = null
+	const ready = waitForCamera(connect, onWaiting, {
+		onRetryReady: retry => { triggerRetry = retry }
+	})
+	await Promise.resolve()
+	expect(typeof triggerRetry).toBe('function')
+	triggerRetry()
+	await expect(ready).resolves.toBe(stream)
+	expect(triggerRetry).toBeNull()
+	expect(jest.getTimerCount()).toBe(0)
+})

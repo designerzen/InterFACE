@@ -309,7 +309,7 @@ export default class Display2D extends AbstractDisplay{
 			stats =  new Stats(statsOptions)
 			stats.init(canvas)
 		}
-		if (!document.getElementById("#realtime-statistics"))
+		if (!document.getElementById("realtime-statistics"))
 		{
 			const element = document.body.appendChild(stats.dom)
 			element.id="realtime-statistics"

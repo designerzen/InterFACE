@@ -2,7 +2,12 @@ import { getEyebrowStyle } from './eyebrow-styles.js'
 import { LEFT_EYE_PATH, LEFT_IRIS_PATH, MEDIAPIPE_FACE_MESH_KEYPOINTS_BY_CONTOUR, RIGHT_EYE_PATH, RIGHT_IRIS_PATH } from '../models/face-landmark-constants.js'
 import { drawEyebrows } from './2d.eyebrows.js'
 import { drawEyes } from './2d.eyes.js'
-import { drawLipOverlay } from './lip-styles.js'
+import { drawLipOverlay, getLipStyle } from './lip-styles.js'
+
+export const hasEnabledFaceFeatures = (displayOptions = {}, personOptions = {}) => {
+	const merged = personOptions ? { ...displayOptions, ...personOptions } : displayOptions
+	return Boolean(merged?.drawEyes) || getLipStyle(merged) !== 'disabled' || getEyebrowStyle(merged) !== 'disabled'
+}
 
 const toCanvasPoints = (points, canvas) => {
 	if (!Array.isArray(points) || points.length === 0)
@@ -50,10 +55,27 @@ export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOpt
 		return false
 	}
 	const options = { ...displayOptions, ...person.options }
-	const features = getFeaturePoints(prediction, person, canvasContext.canvas)
-	drawLipOverlay(canvasContext, person, options, colours, beatJustPlayed)
+	const drawLips = getLipStyle(options) !== 'disabled'
+	const drawEyesEnabled = Boolean(options.drawEyes)
+	const eyebrowStyle = getEyebrowStyle(options)
+	const drawEyebrowsEnabled = eyebrowStyle !== 'disabled'
+	if (!drawLips && !drawEyesEnabled && !drawEyebrowsEnabled)
+	{
+		return false
+	}
 
-	if (options.drawEyes)
+	if (drawLips)
+	{
+		drawLipOverlay(canvasContext, person, options, colours, beatJustPlayed)
+	}
+	if (!drawEyesEnabled && !drawEyebrowsEnabled)
+	{
+		return true
+	}
+
+	const features = getFeaturePoints(prediction, person, canvasContext.canvas)
+
+	if (drawEyesEnabled)
 	{
 		const eyeOptions = {
 			eyeDesign:options.eyeDesign,
@@ -79,10 +101,10 @@ export const drawFaceFeatures = (canvasContext, person, colours = {}, displayOpt
 		}, { ...eyeOptions, rightIris:person.hsl ?? options.rightEyeIris ?? eyeOptions.iris })
 	}
 
-	if (getEyebrowStyle(options) !== 'disabled')
+	if (drawEyebrowsEnabled)
 	{
-		drawEyebrows(canvasContext, features.leftEyebrow, true, { ...options, eyebrowStyle:getEyebrowStyle(options), eyebrowAmount:prediction.eyebrowsRaisedBy, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
-		drawEyebrows(canvasContext, features.rightEyebrow, false, { ...options, eyebrowStyle:getEyebrowStyle(options), eyebrowAmount:prediction.eyebrowsRaisedBy, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
+		drawEyebrows(canvasContext, features.leftEyebrow, true, { ...options, eyebrowStyle, eyebrowAmount:prediction.eyebrowsRaisedBy, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
+		drawEyebrows(canvasContext, features.rightEyebrow, false, { ...options, eyebrowStyle, eyebrowAmount:prediction.eyebrowsRaisedBy, color:person.hsl ?? 'rgba(0,0,0,0.8)' })
 	}
 	return true
 }

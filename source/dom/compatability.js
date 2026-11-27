@@ -118,20 +118,13 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 			
 			permissions.get("camera") === PERMISSION_GRANTED || permissions.get("camera") === PERMISSION_PROMPT
 
-		}else if (!capabilities.cameraAvailable){
+		}else if (cameras.length === 0 || !capabilities.cameraAvailable){
 
-			fatal = true
 			document.body.classList.toggle("camera-unavailable", true)
-			cameraAvailability.textContent = `${cameras.length} Connected?`
-			cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
-			console.warn("[FATAL] No camera available?")
-		// }else{
-		// 	// FATAL ERROR! No camera!
-		// 	// fatal = true
-		// 	document.body.classList.toggle("camera-unavailable", true)
-		// 	cameraAvailability.textContent = `${cameras.length} Connected`
-		// 	cameraAvailability.classList.toggle(NOT_AVAILABLE, true)
-		// 	console.warn("[FATAL] No camera available")
+			cameraAvailability.classList.remove(CHECKING)
+			cameraAvailability.classList.remove(NOT_AVAILABLE)
+			cameraAvailability.textContent = `No camera found — upload a video or image instead`
+			console.info("[INFO] No camera detected; video or image upload available")
 		}	
 	
 		// Web MIDI --------------------------------------------------------------------------
@@ -208,17 +201,8 @@ export const updateCapabalitiesTable = async (table, capabilities) => {
 		
 		// FIXME: should we request the camera if permission was already granted?
 		// what is going on?
-		const devices = await navigator.mediaDevices.enumerateDevices()
+		const devices = navigator.mediaDevices?.enumerateDevices ? await navigator.mediaDevices.enumerateDevices() : []
 		const cameras = filterVideoCameras( devices )
-		if (cameras.length === 0)
-		{
-			// FATAL ERROR! No camera!
-			isFatalIssue = true
-			console.error("Compatability table", table )
-			console.error("Devices", {devices, cameras}) 
-			console.error("Permissions", {isFatalIssue, permissions, capabilities}) 
-			return {fatal: isFatalIssue, issues:["No camera available"] }
-		}
 		const {fatal, issues} = updateTable(permissions, cameras)
 		isFatalIssue = fatal
 		// console.log("Compatability table", table )

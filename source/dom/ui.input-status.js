@@ -77,7 +77,10 @@ export const createInputStatusOverlay = listElement => {
 
 	const setVisibility = () => {
 		if (parentElement) {
-			parentElement.hidden = !enabled || statusMap.size < 1
+			const nextHidden = !enabled || statusMap.size < 1
+			if (parentElement.hidden !== nextHidden) {
+				parentElement.hidden = nextHidden
+			}
 		}
 	}
 
@@ -104,30 +107,42 @@ export const createInputStatusOverlay = listElement => {
 
 	const applyState = (id, nextState) => {
 		const view = ensureRow(id)
-		view.row.dataset.type = nextState.type ?? 'input'
-		view.row.classList.toggle('is-active', !!nextState.active)
-		view.row.classList.toggle('is-connected', nextState.connected !== false)
-		view.label.classList.add('sr-only')
-		view.label.textContent = nextState.label ?? 'Input'
-		view.detail.textContent = nextState.detail || (nextState.connected === false ? 'Disconnected' : 'Ready')
-		view.tooltipLabel.textContent = view.label.textContent
-		view.tooltipDetail.textContent = view.detail.textContent
+		const nextType = nextState.type ?? 'input'
+		if (view.row.dataset.type !== nextType) view.row.dataset.type = nextType
+		const nextActive = !!nextState.active
+		const nextConnected = nextState.connected !== false
+		view.row.classList.toggle('is-active', nextActive)
+		view.row.classList.toggle('is-connected', nextConnected)
+		if (!view.label.classList.contains('sr-only')) view.label.classList.add('sr-only')
+		const nextLabel = nextState.label ?? 'Input'
+		if (view.label.textContent !== nextLabel) view.label.textContent = nextLabel
+		const nextDetail = nextState.detail || (nextConnected ? 'Ready' : 'Disconnected')
+		if (view.detail.textContent !== nextDetail) view.detail.textContent = nextDetail
+		if (view.tooltipLabel.textContent !== nextLabel) view.tooltipLabel.textContent = nextLabel
+		if (view.tooltipDetail.textContent !== nextDetail) view.tooltipDetail.textContent = nextDetail
 
 		const tooltipDetails = Array.isArray(nextState.tooltipDetails) ? nextState.tooltipDetails : []
-		view.tooltipDetails.replaceChildren()
-		view.tooltipDetails.hidden = tooltipDetails.length < 1
-		tooltipDetails.forEach(item => {
-			if (!item?.label || item.value === undefined || item.value === null || item.value === '') {
-				return
-			}
+		const detailsKey = tooltipDetails
+			.filter(item => item?.label && item.value !== undefined && item.value !== null && item.value !== '')
+			.map(item => `${item.label}=${Array.isArray(item.value) ? item.value.join(', ') : String(item.value)}`)
+			.join('|')
+		if (view.detailsKey !== detailsKey) {
+			view.detailsKey = detailsKey
+			view.tooltipDetails.replaceChildren()
+			tooltipDetails.forEach(item => {
+				if (!item?.label || item.value === undefined || item.value === null || item.value === '') {
+					return
+				}
 
-			const term = ownerDocument.createElement('dt')
-			term.textContent = item.label
-			const description = ownerDocument.createElement('dd')
-			description.textContent = Array.isArray(item.value) ? item.value.join(', ') : String(item.value)
-			view.tooltipDetails.append(term, description)
-		})
-		view.tooltipDetails.hidden = view.tooltipDetails.childElementCount < 1
+				const term = ownerDocument.createElement('dt')
+				term.textContent = item.label
+				const description = ownerDocument.createElement('dd')
+				description.textContent = Array.isArray(item.value) ? item.value.join(', ') : String(item.value)
+				view.tooltipDetails.append(term, description)
+			})
+			const hideDetails = view.tooltipDetails.childElementCount < 1
+			if (view.tooltipDetails.hidden !== hideDetails) view.tooltipDetails.hidden = hideDetails
+		}
 	}
 
 	const setDeviceStatus = (id, patch = {}) => {

@@ -196,16 +196,13 @@ const start = async () => {
 	video.addEventListener("loadeddata", renderLoop)
 }
 
-// Run this demo
-const init = async () => {
+// Guard demo auto-boot so importing this module as a library never spawns
+// a second MediaPipe WASM runtime + WebGL2 context during main app startup.
+export const initHandTrackingDemo = async () => {
 	gestureDetective = await createGestureRecognizer()
-	// If webcam supported, add event listener to button for when user
-	// wants to activate it.
 	if (hasGetUserMedia()) {
 		document.addEventListener("mousedown", start, { once: true })
 	} else {
-		console.warn("getUserMedia() is not supported by your browser");
+		console.warn("getUserMedia() is not supported by your browser")
 	}
 }
-
-document.addEventListener("DOMContentLoaded", init)

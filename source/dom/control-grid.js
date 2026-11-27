@@ -58,9 +58,21 @@ export const setupControlGrid = (document = globalThis.document) => {
 	const schedule = () => {
 		if (frame == null) frame = window.requestAnimationFrame(update)
 	}
+	const ancestors = new Set([panel, panel.closest('main'), document.body, document.documentElement].filter(Boolean))
+	const isRelevantTarget = target => {
+		if (!target || target.nodeType !== 1) return false
+		if (ancestors.has(target)) return true
+		// Only direct .controls sections and their direct grid items affect row balancing.
+		// Ignore unrelated subtrees inside #control-panel (#face-buttons, #transport, dialogs,
+		// instrument panels, folder contents, etc.) so per-frame updates never force style recalcs.
+		if (target.parentElement === panel) return target.classList.contains('controls')
+		return Boolean(target.parentElement?.parentElement === panel && target.parentElement.classList.contains('controls'))
+	}
 	const resize = new window.ResizeObserver(schedule)
 	resize.observe(panel)
-	const mutations = new window.MutationObserver(schedule)
+	const mutations = new window.MutationObserver(records => {
+		if (records.some(record => isRelevantTarget(record.target))) schedule()
+	})
 	mutations.observe(panel, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] })
 	for (const ancestor of [panel.closest('main'), document.body, document.documentElement]) {
 		if (ancestor) mutations.observe(ancestor, { attributes: true, attributeFilter: ['class'] })

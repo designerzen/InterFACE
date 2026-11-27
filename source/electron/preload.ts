@@ -18,6 +18,9 @@ const electronAPI = Object.freeze({
 		toggleDarkMode: () => ipcRenderer.invoke('dark-mode:toggle'),
 		useSystemTheme: () => ipcRenderer.invoke('dark-mode:system'),
 	}),
+	profiler: Object.freeze({
+		onToggle: (callback:() => void) => subscribe('profiler:toggle', callback),
+	}),
 	midi: Object.freeze({
 		available: ipcRenderer.sendSync('midi:is-available') === true,
 		getPorts: () => ipcRenderer.invoke('midi:get-ports'),

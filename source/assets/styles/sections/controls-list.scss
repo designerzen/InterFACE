@@ -82,7 +82,7 @@ html.controls-list-open { overflow: hidden; }
 		visuals: ('label[for="select-display"]', '#control-panel-looking-glass', 'label[for="select-composite-layout"]', 'label[for="select-composite-displays"]', 'label[for="button-flood"]', 'label[for="button-clear"]', 'label[for="button-sync-video"]', 'label[for="select-viz"]', 'label[for="select-mtv"]', '#control-panel-mtv', 'label[for="button-meshes"]', 'label[for="select-eyes"]', 'label[for="button-eyebrows"]', 'label[for="select-lips"]', 'label[for="select-subdivisions"]', 'label[for="select-palette"]', 'label[for="button-toggle-overlay"]', 'label[for="button-subtitles"]', 'label[for="button-hud"]', 'label[for="button-overlay"]'),
 		input: ('#camera', 'label[for="select-keyboard-mode"]', '#button-keyboard-guide', '#control-panel-mouth', '#control-panel-head', 'label[for="button-points"]', 'label[for="button-automate"]'),
 		recording: ('.transport-session-controls', '#session-replay-progress', '#session-recording-error', '#control-panel-record'),
-		application: ('#button-accessibility', 'label[for="button-speak"]', 'label[for="select-theme"]', '#button-help', '#button-command-palette', 'label[for="button-toggle-advanced"]', '#button-reset')
+		application: ('#button-accessibility', 'label[for="button-speak"]', 'label[for="select-theme"]', '#button-help', '#button-command-palette', 'label[for="button-stats"]', 'label[for="button-toggle-advanced"]', '#button-reset')
 	);
 	$row: 1;
 	@each $section, $selectors in $sections {
@@ -279,7 +279,7 @@ html.controls-list-open { overflow: hidden; }
 		overflow: hidden;
 		> .control-settings { max-block-size: 100%; height: 100%; }
 	}
-	#tempo-tabs, #midi-panel, .midi-panel-scroll { max-block-size: none; max-width: 100%; min-width: 0; width: 100%; }
+	#tempo-tabs, #midi-tabs, #midi-panel, .midi-panel-scroll { max-block-size: none; max-width: 100%; min-width: 0; width: 100%; }
 	#tempo-regular-panel {
 		grid-template-areas: none;
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

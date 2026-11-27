@@ -72,7 +72,7 @@ export const enhanceFaceLandmarksModelPrediction = ( faceLandmarks, faceBlendsha
 	// name first so model updates cannot silently wire one facial action to
 	// another, while retaining the legacy index as a compatibility fallback.
 	const blendshape = createBlendshapeScoreReader(landmarks)
-	const expressionParameters = inferExpressionParameters(landmarks)
+	const expressionParameters = inferExpressionParameters(blendshape)
 
 	if(	flipHorizontally )
 	{

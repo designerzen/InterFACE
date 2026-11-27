@@ -2,18 +2,14 @@
 @use "sass:string";
 @use "sass:list";
 
+// GPU-composited eye blink (animating CSS `content` forces main-thread
+// style/layout invalidation on every frame across the entire document).
 @keyframes EyesBlinking{
-	0%{
-		content:'o O';	
+	0%, 44%, 56%, 100%{
+		transform: scaleY(1);
 	}
-	33%{
-		content:'o o';	
-	}
-	66%{
-		content:'O O';	
-	}
-	100%{
-		content:'O o';	
+	50%{
+		transform: scaleY(0.15);
 	}
 }
 

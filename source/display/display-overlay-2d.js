@@ -578,7 +578,7 @@ export default class DisplayOverlay2d {
 		const laneGap = (outerRadius - innerRadius) / Math.max(1, laneData.length - 1)
 		const dotSize = Math.min(2.7, laneGap * 0.32, innerRadius * Math.PI / count * 0.65)
 		const pulse = getBeatPulse(stepProgress)
-		const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
+		const reducedMotion = (this._reducedMotionQuery ??= globalThis.matchMedia?.('(prefers-reduced-motion: reduce)') ?? null)?.matches === true
 		const position = currentStep + (reducedMotion ? 0 : stepProgress)
 		const bounds = { x:x - size / 2, y:y - size / 2, width:size, height:size }
 		const draw = () => {
@@ -639,7 +639,7 @@ export default class DisplayOverlay2d {
 		const context = this.canvasContext
 		const count = Math.max(16, sequence.length)
 		const position = currentStep + stepProgress
-		const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
+		const reducedMotion = (this._reducedMotionQuery ??= globalThis.matchMedia?.('(prefers-reduced-motion: reduce)') ?? null)?.matches === true
 		let elapsedSteps = 0
 		if (Number.isFinite(this.lastBeatRipplePosition)) {
 			elapsedSteps = position - this.lastBeatRipplePosition

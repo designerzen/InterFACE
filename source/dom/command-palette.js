@@ -8,6 +8,7 @@ const CONTROL_ACTIONS = [
 	["V.U. display", "button-spectrogram", ["spectrogram", "visualiser"]],
 	["Mute", "button-mute", ["sound", "volume", "audio"]],
 	["Fullscreen", "button-fullscreen", ["screen", "display"]],
+	["Performance HUD", "button-stats", ["fps", "stats", "profiler", "performance", "diagnostics"]],
 ]
 
 const normalise = value => value.toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim()

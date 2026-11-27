@@ -76,6 +76,11 @@ if (!app.requestSingleInstanceLock())
 	quit()
 }
 
+// Keep real-time audio clock, MIDI output and camera tracking responsive even when
+// another window (e.g. a DAW) is focused alongside PhotoSYNTH.
+app.commandLine.appendSwitch('disable-renderer-backgrounding')
+app.commandLine.appendSwitch('disable-background-timer-throttling')
+
 
 
 const showVirtualMIDIPortUnavailableError = ( message, title="Oh no!" ) => {
@@ -156,7 +161,8 @@ function createWindow() {
 
 			// additionalArguments,
 
-			// backgroundThrottling:false,
+			// Keep real-time audio/MIDI and tracking unthrottled when partially occluded.
+			backgroundThrottling: false,
 			
 			// autoplayPolicy string (optional) - 
 			// Autoplay policy to apply to content in the window, can be 
@@ -488,20 +494,9 @@ app.whenReady().then(() => {
 		optimizer.watchWindowShortcuts(window)
 	})
 
-	app.on('activate', function () {
-		// On macOS it's common to re-create a window in the app when the
-		// dock icon is clicked and there are no other windows open.
-		if (BrowserWindow.getAllWindows().length === 0)
-		{
-			focusOrCreateMainWindow()
-		} else{
-			console.error("Not opening a browser window as one already open")
-		}
-	})
-
 	app.on('activate', () => {
-		// On OS X it's common to re-create a window in the app when the
-		// dock icon is clicked and there are no other windows open.
+		// On macOS it's common to re-create or focus a window when the
+		// dock icon is clicked.
 		focusOrCreateMainWindow()
 	})
 
@@ -509,17 +504,6 @@ app.whenReady().then(() => {
 		focusOrCreateMainWindow()
 	})
 
-})
-
-
-app.on('web-contents-created', function(event,contents) {
-	
-	console.log('web-contents-created', event, contents)
-	const anyContents = contents // as any
-	anyContents.on('new-window', function(){
-		console.log('new-window', event, contents)
-	
-	})
 })
 
 

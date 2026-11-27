@@ -45,6 +45,17 @@ describe('error dialog camera help', () => {
 		expect(document.querySelector('.camera-help').hidden).toBe(false)
 	})
 
+	test('treats camera-not-found as non-fatal and mentions uploading a video or image', () => {
+		const dialog = document.getElementById('errors')
+		const message = getErrorMessage('camera-not-found')
+		expect(message.solution).toMatch(/video or image/i)
+
+		showErrorCode('camera-not-found', { fatal: true })
+		expect(document.documentElement.classList.contains('fatal')).toBe(false)
+		expect(dialog.classList.contains('fatal')).toBe(false)
+		expect(dialog.querySelector('button.close').hidden).toBe(false)
+	})
+
 	test('keeps error alert audio present, respects mute/reduced-motion, and stops on dialog close', () => {
 		const dialog = document.getElementById('errors')
 		const audio = dialog.querySelector('audio')

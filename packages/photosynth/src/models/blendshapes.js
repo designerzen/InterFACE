@@ -59,7 +59,11 @@ export const BLENDSHAPE_IDS = [
  * compatible model output that omits names.
  */
 export const createBlendshapeScoreReader = (categories = []) => {
-	const scoresByName = new Map(categories.map(category => [category.categoryName, category.score]))
+	const scoresByName = new Map()
+	for (let i = 0; i < categories.length; i++) {
+		const category = categories[i]
+		if (category) scoresByName.set(category.categoryName, category.score)
+	}
 	return (categoryName, legacyIndex) => {
 		const namedScore = scoresByName.get(categoryName)
 		if (Number.isFinite(namedScore)) return namedScore
@@ -76,8 +80,10 @@ const average = (left, right) => (left + right) * 0.5
  * action blendshapes. These are expression strengths, not claims about a
  * person's internal emotional state.
  */
-export const inferExpressionParameters = categories => {
-	const score = createBlendshapeScoreReader(categories)
+export const inferExpressionParameters = categoriesOrReader => {
+	const score = typeof categoriesOrReader === 'function'
+		? categoriesOrReader
+		: createBlendshapeScoreReader(categoriesOrReader)
 	const browDown = average(score('browDownLeft', 1), score('browDownRight', 2))
 	const browInnerUp = score('browInnerUp', 3)
 	const browOuterUp = average(score('browOuterUpLeft', 4), score('browOuterUpRight', 5))

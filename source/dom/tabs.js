@@ -5,7 +5,8 @@ export const setupTabs = root => {
 	if (instances.has(root)) return instances.get(root)
 	const list = root.querySelector(':scope > [role="tablist"]')
 	const tabs = [...list.querySelectorAll('[role="tab"]')]
-	const panels = tabs.map(tab => root.querySelector(`#${CSS.escape(tab.getAttribute('aria-controls'))}`))
+	const escapeId = id => globalThis.CSS?.escape ? globalThis.CSS.escape(id) : String(id).replace(/([^\w-])/g, '\\$1')
+	const panels = tabs.map(tab => root.querySelector(`#${escapeId(tab.getAttribute('aria-controls'))}`))
 	const select = (index, focus = false) => {
 		tabs.forEach((tab, i) => {
 			tab.setAttribute('aria-selected', String(i === index))

@@ -1,4 +1,5 @@
 import { setToast } from './tooltips.js'
+import { setupTabs } from './tabs.js'
 import { getMIDIPortDisplayName, isDigitCMPSRPort } from '../hardware/digit/cmpsr.js'
 import { dispatchMIDIActivity, MIDI_ACTIVITY_EVENT, sendGuardedMIDIOutput } from '../audio/midi/midi-echo-guard.js'
 import { getPersonMIDIOutputs, getPersonMIDIChannel, getMIDIPortTransport } from '../audio/midi/midi-routing.js'
@@ -54,17 +55,23 @@ const createConnectionDiagram = (people, outputs, inputs) => {
 		const transport = getMIDIPortTransport(port)
 		return String(transport).includes('not reported') ? 'System MIDI' : transport
 	}
-	const node = (title, detail, kind = '') => `<div class="midi-map-node ${kind}"><strong>${escapeHTML(title)}</strong>${detail ? `<small>${escapeHTML(detail)}</small>` : ''}</div>`
+	const portIcon = (port, direction) => {
+		const icon = portProfile(port, direction)?.assets.icon
+		return icon ? `<img class="midi-map-node-icon" src="${escapeHTML(midiDeviceAssetURL(icon))}" alt="" loading="lazy" decoding="async">` : '<span class="midi-map-node-icon midi-map-icon-device" aria-hidden="true"></span>'
+	}
+	const node = (title, detail, kind = '', icon = '') => `<div class="midi-map-node ${kind}">${icon}<strong>${escapeHTML(title)}</strong>${detail ? `<small>${escapeHTML(detail)}</small>` : ''}</div>`
 	const wire = label => `<div class="midi-map-wire"><span>${escapeHTML(label)}</span><i aria-hidden="true"></i></div>`
-	const incoming = inputs.map((port, i) => `<div class="midi-map-row midi-map-input">${node(portLabel(port, 'Input', i), transportLabel(port))}${wire('All channels')}${node('PhotoSYNTH', describeMIDIDeviceIntegration(getMIDIDeviceIntegration(port), people))}</div>`).join('')
+	const personIcon = '<span class="midi-map-node-icon midi-map-icon-person" aria-hidden="true"></span>'
+	const appIcon = '<span class="midi-map-node-icon midi-map-icon-app" aria-hidden="true"></span>'
+	const incoming = inputs.map((port, i) => `<div class="midi-map-row midi-map-input">${node(portLabel(port, 'Input', i), transportLabel(port), '', portIcon(port, 'input'))}${wire('All channels')}${node('PhotoSYNTH', describeMIDIDeviceIntegration(getMIDIDeviceIntegration(port), people), '', appIcon)}</div>`).join('')
 	const outgoing = people.map((person, index) => {
 		const targets = routeOutputs(person, outputs, index)
 		const selection = person.options?.midiDevice ?? 'auto'
 		const inactive = !targets.length
-		return `<div class="midi-map-row${inactive ? ' is-unrouted' : ''}" data-midi-map-person="${index}" style="--route-colour:${['#90caff', '#e3b0ff', '#ffce86', '#85e0bb'][index % 4]}">${node(personLabel(person, index), '', 'midi-map-person')}${wire(inactive ? 'No MIDI sent' : channelLabel(routeChannel(person, outputs, people, index)))}<div class="midi-map-targets">${targets.length ? targets.map(port => node(portLabel(port, 'Output', outputs.indexOf(port)), transportLabel(port))).join('') : node(selection === 'none' ? 'MIDI output off' : selection === 'auto' || selection === 'all' ? 'No output connected' : 'Selected device disconnected', 'Choose an output below')}</div></div>`
+		return `<div class="midi-map-row${inactive ? ' is-unrouted' : ''}" data-midi-map-person="${index}" style="--route-colour:${['#90caff', '#e3b0ff', '#ffce86', '#85e0bb'][index % 4]}">${node(personLabel(person, index), '', 'midi-map-person', personIcon)}${wire(inactive ? 'No MIDI sent' : channelLabel(routeChannel(person, outputs, people, index)))}<div class="midi-map-targets">${targets.length ? targets.map(port => node(portLabel(port, 'Output', outputs.indexOf(port)), transportLabel(port), '', portIcon(port, 'output'))).join('') : node(selection === 'none' ? 'MIDI output off' : selection === 'auto' || selection === 'all' ? 'No output connected' : 'Selected device disconnected', 'Choose an output below')}</div></div>`
 	}).join('')
 	const unused = outputs.filter(port => !people.some((person, index) => routeOutputs(person, outputs, index).includes(port)))
-	return `<figure class="midi-connection-map" aria-labelledby="midi-map-title"><figcaption id="midi-map-title">Your connections</figcaption><p>People → MIDI channels → output devices</p>${incoming}${outgoing || '<p>No people active yet.</p>'}${unused.length ? `<div class="midi-map-unused"><span>Connected, not assigned</span>${unused.map(port => node(portLabel(port, 'Output', outputs.indexOf(port)), transportLabel(port))).join('')}</div>` : ''}</figure>`
+	return `<figure class="midi-connection-map" aria-labelledby="midi-map-title"><figcaption id="midi-map-title">Your connections</figcaption><p>People → MIDI channels → output devices</p>${incoming}${outgoing || '<p>No people active yet.</p>'}${unused.length ? `<div class="midi-map-unused"><span>Connected, not assigned</span>${unused.map(port => node(portLabel(port, 'Output', outputs.indexOf(port)), transportLabel(port), '', portIcon(port, 'output'))).join('')}</div>` : ''}</figure>`
 }
 
 export const createMIDIStatusEntries = (people = [], outputs = [], inputs = []) => {
@@ -229,6 +236,12 @@ export const renderMIDIDeviceMonitor = (people = [], outputs = [], inputs = []) 
 	if (summary) summary.textContent = !outputs.length ? 'Connect a MIDI output to send music.' : outputs.length === 1 ? 'Automatic routing with one output: each person gets their own channel.' : outputs.length < people.length ? 'Automatic routing with fewer outputs than people: devices are shared using separate channels.' : 'Automatic routing with dedicated outputs: each person gets their own device, sending on all channels.'
 	if (inputs.length + outputs.length && !getMIDIDeviceCatalogue()) loadMIDIDeviceCatalogue()
 	const devices = groupMIDIPortsByDevice(inputs, outputs)
+	const badge = document.getElementById('midi-device-count')
+	if (badge) {
+		const count = devices.length
+		badge.textContent = `${count} ${count === 1 ? 'device' : 'devices'}`
+		badge.dataset.connected = String(count > 0)
+	}
 	const partnerOf = (port, direction) => {
 		const group = devices.find(item => item[direction] === port)
 		return group?.[direction === 'input' ? 'output' : 'input'] ?? null
@@ -245,7 +258,7 @@ export const renderMIDIDeviceMonitor = (people = [], outputs = [], inputs = []) 
 	}).join('')
 	const detailsOpen = container.querySelector('[data-midi-details]')?.open ?? false
 	const devicesOpen = container.querySelector('[data-midi-device-details]')?.open ?? false
-	container.innerHTML = (outputs.length ? createRoutingPresets(people, outputs) : '') + (outputs.length || inputs.length ? createConnectionDiagram(people, outputs, inputs) : '') + (outputs.length ? `<details class="midi-person-routing" data-midi-details${detailsOpen ? ' open' : ''}><summary>Fine-tune devices and channels</summary>${routing || '<p>No people active</p>'}<button type="button" data-midi-reset>Restore automatic routing</button></details>` : '') + (cards.length ? `<details class="midi-port-details" data-midi-device-details${devicesOpen ? ' open' : ''}><summary>Device details · ${devices.length} ${devices.length === 1 ? 'device' : 'devices'} · ${inputs.length} ${inputs.length === 1 ? 'input' : 'inputs'} · ${outputs.length} ${outputs.length === 1 ? 'output' : 'outputs'}</summary><div class="midi-port-cards">${cards.join('')}</div></details>` : '')
+	container.innerHTML = (outputs.length ? createRoutingPresets(people, outputs) : '') + (outputs.length || inputs.length ? createConnectionDiagram(people, outputs, inputs) : '') + (outputs.length ? `<details class="accordion midi-person-routing" data-midi-details${detailsOpen ? ' open' : ''}><summary>Fine-tune devices and channels</summary>${routing || '<p>No people active</p>'}<button type="button" data-midi-reset>Restore automatic routing</button></details>` : '') + (cards.length ? `<details class="accordion midi-port-details" data-midi-device-details${devicesOpen ? ' open' : ''}><summary>Device details · ${devices.length} ${devices.length === 1 ? 'device' : 'devices'} · ${inputs.length} ${inputs.length === 1 ? 'input' : 'inputs'} · ${outputs.length} ${outputs.length === 1 ? 'output' : 'outputs'}</summary><div class="midi-port-cards">${cards.join('')}</div></details>` : '')
 }
 
 const refreshRouting = () => {
@@ -375,14 +388,52 @@ const setupMIDIPanelFrame = () => {
 	const scroll = panel?.querySelector('.midi-panel-scroll')
 	if (!scroll || panel.dataset.frameReady) return
 	panel.dataset.frameReady = 'true'
+	setupTabs(panel.querySelector('#midi-tabs'))
 	if (location.hash === '#folder-midi') panel.closest('.folder-menu')?.classList.add('midi-open')
 	const updateScroll = () => {
 		const overflowing = scroll.scrollHeight > scroll.clientHeight + 2
 		const atTop = scroll.scrollTop <= 2
 		const atBottom = scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 2
-		panel.querySelector('#midi-scroll-status').textContent = !overflowing ? 'All settings shown' : atBottom ? 'End of settings · scroll up for connections' : atTop ? 'More below · scroll for connections and settings' : 'More above and below'
-		panel.querySelector('[data-midi-scroll="-1"]').disabled = !overflowing || atTop
-		panel.querySelector('[data-midi-scroll="1"]').disabled = !overflowing || atBottom
+		const status = panel.querySelector('#midi-scroll-status')
+		const up = panel.querySelector('[data-midi-scroll="-1"]')
+		const down = panel.querySelector('[data-midi-scroll="1"]')
+		if (status) status.textContent = !overflowing ? 'All settings shown' : atBottom ? 'End of settings · scroll up for connections' : atTop ? 'More below · scroll for connections and settings' : 'More above and below'
+		if (up) up.disabled = !overflowing || atTop
+		if (down) down.disabled = !overflowing || atBottom
+	}
+	const syncStepButtons = () => {
+		for (const button of panel.querySelectorAll('button[data-midi-step-target][data-midi-step]')) {
+			const input = document.getElementById(button.dataset.midiStepTarget)
+			button.disabled = !input || input.disabled
+		}
+	}
+	for (const button of panel.querySelectorAll('button[data-midi-step-target][data-midi-step]')) {
+		button.addEventListener('click', () => {
+			const input = document.getElementById(button.dataset.midiStepTarget)
+			if (!input || input.disabled) return
+			const min = input.min === '' ? -Infinity : Number(input.min)
+			const max = input.max === '' ? Infinity : Number(input.max)
+			const next = Math.min(max, Math.max(min, (Number(input.value) || 0) + Number(button.dataset.midiStep)))
+			input.value = String(next)
+			input.dispatchEvent(new Event('change', { bubbles: true }))
+		})
+	}
+	panel.querySelector('#midi-eyebrow-mode')?.addEventListener('change', () => queueMicrotask(syncStepButtons))
+	const eyebrowCC = panel.querySelector('#midi-eyebrow-cc')
+	if (eyebrowCC && typeof MutationObserver !== 'undefined') {
+		new MutationObserver(syncStepButtons).observe(eyebrowCC, { attributes: true, attributeFilter: ['disabled'] })
+	}
+	panel.querySelector('[data-midi-enable-cta]')?.addEventListener('click', () => {
+		const toggle = document.getElementById('toggle-midi')
+		if (toggle && !toggle.checked) toggle.click()
+	})
+	panel.querySelector('[data-midi-open-cc]')?.addEventListener('click', () => {
+		document.getElementById('midi-cc-open')?.click()
+	})
+	for (const type of ['keydown', 'keyup']) {
+		panel.addEventListener(type, event => {
+			if (event.target.matches('input') && !['Tab', 'Escape'].includes(event.key)) event.stopPropagation()
+		})
 	}
 	const close = () => {
 		panel.closest('.folder-menu')?.classList.add('midi-dismissed')
@@ -404,7 +455,7 @@ const setupMIDIPanelFrame = () => {
 	document.querySelector('[href="#folder-midi"]')?.addEventListener('click', () => {
 		panel.closest('.folder-menu')?.classList.remove('midi-dismissed')
 		panel.closest('.folder-menu')?.classList.add('midi-open')
-		requestAnimationFrame(() => { updateScroll(); panel.querySelector('[data-midi-close]')?.focus({preventScroll:true}) })
+		requestAnimationFrame(() => { updateScroll(); syncStepButtons(); panel.querySelector('[data-midi-close]')?.focus({preventScroll:true}) })
 	})
 	scroll.addEventListener('scroll', updateScroll, {passive:true})
 	scroll.addEventListener('toggle', updateScroll, true)
@@ -415,6 +466,7 @@ const setupMIDIPanelFrame = () => {
 		if (content) observer.observe(content)
 	}
 	updateScroll()
+	syncStepButtons()
 }
 
 const monitorInputs = inputs => {

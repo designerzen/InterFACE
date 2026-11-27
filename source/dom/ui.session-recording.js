@@ -18,11 +18,38 @@ export const setupSessionRecordingUI=(controller,reportError,doc=document,status
 	const library=get('session-library'),replayLibrary=get('session-replay-library'),type=get('session-export-type'),take=get('session-export-take')
 	const replay=get('session-replay'),rewind=get('session-rewind'),forward=get('session-forward'),position=get('session-replay-position')
 	const recordConfirm=get('session-record-confirm'),exportConfirm=get('session-export-confirm'),replayConfirm=get('session-replay-confirm')
+	const els={
+		libraryPicker:get('session-library-picker'),
+		exportSection:get('session-export-section'),
+		deleteSection:get('session-delete-section'),
+		deleteBtn:get('session-delete'),
+		deleteAll:get('session-delete-all'),
+		deleteConfirm:get('session-delete-confirm'),
+		activeWarning:get('session-active-warning'),
+		stopAll:get('session-stop-all'),
+		refresh:get('session-refresh'),
+		errorManage:get('session-error-manage'),
+		errorRetry:get('session-error-retry'),
+		captureStatus:get('session-capture-status'),
+		replayChoose:get('session-replay-choose'),
+		replayProgress:get('session-replay-progress'),
+		replayTime:get('session-replay-time'),
+		duration:get('session-recording-duration'),
+		status:get('session-recording-status'),
+		errorBox:get('session-recording-error'),
+		errorNodes:[...doc.querySelectorAll('[data-session-error]')],
+	}
+	const setHidden=(node,value)=>{const next=!!value;if(node&&node.hidden!==next)node.hidden=next}
+	const setDisabled=(node,value)=>{const next=!!value;if(node&&node.disabled!==next)node.disabled=next}
+	const setAttr=(node,name,value)=>{if(node&&node.getAttribute(name)!==value)node.setAttribute(name,value)}
+	const setTitle=(node,value)=>{if(node&&node.title!==value)node.title=value}
 	let sessions=[],working=false,exporting=false,exportLoading=false,replayBusy=false,errorMessage='',refreshGeneration=0,replayGeneration=0,destroyed=false
 	let hudStateKey=''
+	let lastUpdateSignature=''
 	let pendingDelete=[]
 	const activeSession=id=>{const state=controller.state();return state.id===id&&(state.recording||state.midi)}
 	const write=(node,value)=>{
+		if(!node)return
 		const description=node.querySelector(':scope > .gadget-description')
 		const caption=description?[...node.childNodes].filter(child=>child!==description).map(child=>child.textContent).join(''):node.textContent
 		if(caption!==value){
@@ -34,8 +61,15 @@ export const setupSessionRecordingUI=(controller,reportError,doc=document,status
 	const show=id=>{const dialog=get(id);if(!dialog.open)dialog.showModal()}
 	const close=id=>{const dialog=get(id);if(dialog.open)dialog.close()}
 	const isVisible=node=>!node.closest('[hidden]')&&(node.checkVisibility?.({visibilityProperty:true})??true)
-	const update=(state=controller.state())=>{
+	const update=(state=controller.state(),fromTimer=false)=>{
 		if(destroyed)return
+		const playback=state.replay ?? {}
+		const durationSec=Math.floor(Math.max(0,state.durationMs||0)/1000)
+		// Fast-path skip during idle 250ms polls: avoids checkVisibility() style recalcs
+		// and redundant DOM attribute writes when nothing relevant has changed.
+		const signature=`${state.id||''}|${+!!state.recording}|${+!!state.midi}|${+!!state.busy}|${state.bpm||120}|${state.recording||state.midi?durationSec:0}|${+!!state.hasNotes}|${+!!state.hasMedia}|${playback.id||''}|${+!!playback.playing}|${+!!playback.loading}|${playback.id?playback.positionMs||0:0}|${playback.id?playback.durationMs||0:0}|${sessions.length}|${library.value}|${replayLibrary.value}|${type.value}|${type.options.length}|${take.value}|${+working}|${+exporting}|${+exportLoading}|${+replayBusy}|${+audio.checked}|${+video.checked}|${pendingDelete.length}|${errorMessage}`
+		if(fromTimer&&signature===lastUpdateSignature&&!playback.id&&!state.recording)return
+		lastUpdateSignature=signature
 		const hudDetail=state.recording?`Recording · ${formatRecordingTime(state.durationMs)}`:
 			state.midi?`MIDI recording · ${formatRecordingTime(state.durationMs)}`:''
 		if(hudStateKey!==hudDetail){
@@ -46,65 +80,71 @@ export const setupSessionRecordingUI=(controller,reportError,doc=document,status
 				tooltipDetails:[{label:'Capturing',value:state.recording?'Media and MIDI notes':'MIDI notes'}],
 			})
 		}
-		const playback=state.replay ?? {},hasSaved=sessions.some(hasData)
+		const hasSaved=sessions.some(hasData)
 		const active=activeSession(library.value)
 		// Controls that cannot act are hidden; disabled only covers brief busy moments.
 		const deletingBlocked=working||exporting||exportLoading||replayBusy||!!playback.loading||!!state.busy
 		const inactive=sessions.filter(s=>!activeSession(s.sessionId)).length
-		get('session-library-picker').hidden=!sessions.length
-		get('session-export-section').hidden=!sessions.length||!type.options.length
-		get('session-delete-section').hidden=!sessions.length
-		get('session-delete').hidden=!library.value||active
-		get('session-delete').disabled=deletingBlocked
-		get('session-delete-all').hidden=inactive<(active?1:2)
-		get('session-delete-all').disabled=deletingBlocked
-		get('session-delete-confirm').disabled=deletingBlocked||!pendingDelete.length||pendingDelete.some(activeSession)
-		get('session-active-warning').hidden=!active
-		get('session-stop-all').hidden=!state.recording&&!state.midi
-		get('session-stop-all').disabled=working||!!state.busy
-		get('session-refresh').hidden=!errorMessage
-		get('session-error-manage').disabled=working
-		get('session-error-retry').hidden=!!state.recording
-		get('session-error-retry').disabled=working||!!state.busy
-		write(get('session-capture-status'),state.recording?'Recording':'Record')
-		button.title=state.recording?'Stop recording':''
-		button.setAttribute('aria-pressed',String(state.recording))
-		button.setAttribute('aria-haspopup',state.recording?'false':'dialog')
-		button.disabled=!!state.busy||working||(replayBusy&&!state.recording)
+		setHidden(els.libraryPicker,!sessions.length)
+		setHidden(els.exportSection,!sessions.length||!type.options.length)
+		setHidden(els.deleteSection,!sessions.length)
+		setHidden(els.deleteBtn,!library.value||active)
+		setDisabled(els.deleteBtn,deletingBlocked)
+		setHidden(els.deleteAll,inactive<(active?1:2))
+		setDisabled(els.deleteAll,deletingBlocked)
+		setDisabled(els.deleteConfirm,deletingBlocked||!pendingDelete.length||pendingDelete.some(activeSession))
+		setHidden(els.activeWarning,!active)
+		setHidden(els.stopAll,!state.recording&&!state.midi)
+		setDisabled(els.stopAll,working||!!state.busy)
+		setHidden(els.refresh,!errorMessage)
+		setDisabled(els.errorManage,working)
+		setHidden(els.errorRetry,!!state.recording)
+		setDisabled(els.errorRetry,working||!!state.busy)
+		write(els.captureStatus,state.recording?'Recording':'Record')
+		setTitle(button,state.recording?'Stop recording':'')
+		setAttr(button,'aria-pressed',String(!!state.recording))
+		setAttr(button,'aria-haspopup',state.recording?'false':'dialog')
+		setDisabled(button,!!state.busy||working||(replayBusy&&!state.recording))
 		const beat=String(60000/Math.max(1,state.bpm||120))+'ms'
 		if(button.style.getPropertyValue('--record-beat-duration')!==beat)button.style.setProperty('--record-beat-duration',beat)
-		auto.disabled=!!state.busy||working
-		audio.disabled=video.disabled=!!state.busy||!!state.recording||working
-		recordConfirm.disabled=working||!!state.busy||(!audio.checked&&!video.checked)
-		save.hidden=!hasSaved&&!state.hasNotes&&!state.hasMedia
-		save.disabled=working||replayBusy
-		exportConfirm.disabled=working||exportLoading||exporting||!library.value||!type.value||(!['midi','dawproject','musicxml'].includes(type.value)&&!take.value)
+		setDisabled(auto,!!state.busy||working)
+		const mediaDisabled=!!state.busy||!!state.recording||working
+		setDisabled(audio,mediaDisabled)
+		setDisabled(video,mediaDisabled)
+		setDisabled(recordConfirm,working||!!state.busy||(!audio.checked&&!video.checked))
+		setHidden(save,!hasSaved&&!state.hasNotes&&!state.hasMedia)
+		setDisabled(save,working||replayBusy)
+		setDisabled(exportConfirm,working||exportLoading||exporting||!library.value||!type.value||(!['midi','dawproject','musicxml'].includes(type.value)&&!take.value))
 		write(exportConfirm,exporting?'Exporting…':'Export')
-		replay.hidden=!sessions.some(hasNotes)&&!state.hasNotes&&!playback.id
-		replay.disabled=working||replayBusy||!!playback.loading
+		setHidden(replay,!sessions.some(hasNotes)&&!state.hasNotes&&!playback.id)
+		setDisabled(replay,working||replayBusy||!!playback.loading)
 		write(replay,playback.playing?'Pause replay':playback.id&&playback.positionMs<playback.durationMs?'Resume replay':'Replay saved notes')
-		replay.setAttribute('aria-pressed',String(!!playback.playing))
-		replay.setAttribute('aria-haspopup',playback.id&&playback.positionMs<playback.durationMs?'false':'dialog')
-		replayConfirm.disabled=replayBusy||!replayLibrary.value
-		rewind.hidden=forward.hidden=!playback.id
-		rewind.disabled=forward.disabled=working||!!playback.loading||replayBusy
-		get('session-replay-choose').disabled=working||replayBusy
-		get('session-replay-progress').hidden=!playback.id||!isVisible(button)
-		if(isVisible(position)){
-			position.max=String(playback.durationMs||0)
-			if(doc.activeElement!==position)position.value=String(playback.positionMs||0)
-			write(get('session-replay-time'),formatRecordingTime(playback.positionMs)+' / '+formatRecordingTime(playback.durationMs))
+		setAttr(replay,'aria-pressed',String(!!playback.playing))
+		setAttr(replay,'aria-haspopup',playback.id&&playback.positionMs<playback.durationMs?'false':'dialog')
+		setDisabled(replayConfirm,replayBusy||!replayLibrary.value)
+		setHidden(rewind,!playback.id)
+		setHidden(forward,!playback.id)
+		const seekDisabled=working||!!playback.loading||replayBusy
+		setDisabled(rewind,seekDisabled)
+		setDisabled(forward,seekDisabled)
+		setDisabled(els.replayChoose,working||replayBusy)
+		const showReplayProgress=!!playback.id&&isVisible(button)
+		setHidden(els.replayProgress,!showReplayProgress)
+		if(showReplayProgress&&isVisible(position)){
+			const maxVal=String(playback.durationMs||0)
+			if(position.max!==maxVal)position.max=maxVal
+			const nextVal=String(playback.positionMs||0)
+			if(doc.activeElement!==position&&position.value!==nextVal)position.value=nextVal
+			write(els.replayTime,formatRecordingTime(playback.positionMs)+' / '+formatRecordingTime(playback.durationMs))
 		}
-		const time=get('session-recording-duration')
-		time.hidden=!state.recording
-		if(isVisible(time)){
-			const seconds=Math.floor(Math.max(0,state.durationMs||0)/1000)
-			write(time,formatRecordingTime(state.durationMs));time.setAttribute('datetime','PT'+seconds+'S')
+		const time=els.duration
+		setHidden(time,!state.recording)
+		if(state.recording&&isVisible(time)){
+			write(time,formatRecordingTime(state.durationMs));setAttr(time,'datetime','PT'+durationSec+'S')
 		}
-		const status=get('session-recording-status')
-		write(status,errorMessage||(playback.playing?'Replaying saved notes':state.recording?'Recording media · MIDI active':state.midi?'MIDI session active':'Recording paused'))
-		get('session-recording-error').hidden=!errorMessage
-		for(const node of doc.querySelectorAll('[data-session-error]'))write(node,errorMessage)
+		write(els.status,errorMessage||(playback.playing?'Replaying saved notes':state.recording?'Recording media · MIDI active':state.midi?'MIDI session active':'Recording paused'))
+		setHidden(els.errorBox,!errorMessage)
+		for(const node of els.errorNodes)write(node,errorMessage)
 	}
 	const fail=error=>{
 		const message=error?.message||String(error)
@@ -265,7 +305,7 @@ export const setupSessionRecordingUI=(controller,reportError,doc=document,status
 	})
 	try{auto.checked=localStorage.getItem('photosynth.autoMidiRecording')!=='false'}catch{}
 	run(async()=>{try{await controller.setAuto(auto.checked)}finally{await refresh()}})()
-	const timer=setInterval(()=>update(),250)
+	const timer=setInterval(()=>update(undefined,true),250)
 	const onPageHide=()=>controller.pauseReplay?.()
 	const destroy=()=>{destroyed=true;clearInterval(timer);statusAPI?.clearDeviceStatus('session-recording');controller.pauseReplay?.();window.removeEventListener('pagehide',onPageHide)}
 	window.addEventListener('pagehide',onPageHide)

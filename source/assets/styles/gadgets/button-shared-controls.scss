@@ -448,6 +448,12 @@
 		}
 	}
 
+	label[for="button-stats"]{
+		--col-select:var(--shade-green);
+		--bg:url(/source/assets/icons/speed-24px.svg);
+		anchor-name: --button-stats;
+	}
+
 	label[for="select-viz"]{
 		// --col-hover:$col-dark;
 		--col-hover:var(--shade-green);

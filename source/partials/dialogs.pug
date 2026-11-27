@@ -214,6 +214,20 @@ dialog#errors(aria-labelledby="error-title" aria-describedby="error-message erro
 	
 		button.close.button-close.if-recoverable(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
 
+dialog#camera-upload(aria-labelledby="camera-upload-title" aria-describedby="camera-upload-description")
+	form(method="dialog")
+		h5#camera-upload-title No camera found
+		p#camera-upload-description PhotoSYNTH could not find a camera on this device. Upload a video or image to use in place of the camera, or connect a camera to continue automatically.
+		label.camera-upload-dropzone(for="camera-upload-input")
+			span.camera-upload-dropzone-title Drop a video or image here, or choose a file
+			small.camera-upload-dropzone-hint Supports video (MP4, WebM, MOV) and images (PNG, JPG, WebP, GIF)
+			input#camera-upload-input.sr-only(type="file" accept="video/*,image/*")
+		p#camera-upload-status.camera-upload-status(role="status" aria-live="polite" hidden)
+		menu
+			li: button#button-camera-upload-choose.button.button-push.text-always(autofocus type="button") Choose video or image
+			li: button#button-camera-upload-retry.button.button-push.text-always(type="button") Check for camera
+		button.close.button-close(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog" aria-label="Close dialog")
+
 
 dialog#select-midi(aria-labelledby="select-midi-title")
 	form(method="dialog")

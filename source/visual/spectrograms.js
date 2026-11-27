@@ -2,6 +2,14 @@ import { normaliseVisualiser } from './visualiser-modes.js'
 import { drawExtraVisualiser, drawNoteHistory } from './visualiser-drawings.js'
 export { normaliseVisualiser } from './visualiser-modes.js'
 
+let reducedMotionQuery
+const prefersReducedMotion = () => {
+	if (reducedMotionQuery === undefined) {
+		reducedMotionQuery = globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)') ?? null
+	}
+	return Boolean(reducedMotionQuery?.matches)
+}
+
 let colourCycle = 0
 export const drawBars = (canvasContext, dataArray, bufferLength)=>{
 
@@ -12,10 +20,11 @@ export const drawBars = (canvasContext, dataArray, bufferLength)=>{
 	let barHeight
 	let x = 0
 
+	const rootClasses = globalThis.document?.documentElement?.classList
 	const reduceFlash = Boolean(
-		globalThis.document?.documentElement?.classList?.contains('a11y-photoSensitive') ||
-		globalThis.document?.documentElement?.classList?.contains('a11y-reduce-motion') ||
-		globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+		rootClasses?.contains('a11y-photoSensitive') ||
+		rootClasses?.contains('a11y-reduce-motion') ||
+		prefersReducedMotion()
 	)
 	if (!reduceFlash) {
 		colourCycle = ( colourCycle + 1 ) % 360

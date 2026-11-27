@@ -77,3 +77,17 @@ test('camera connection instructions persist across loading updates', () => {
 	setLoadProgress(1, 'Ready!', true)
 	expect(document.querySelector('label').textContent).not.toContain(message)
 })
+
+test('waiting action button is shown while waiting for media and cleared afterwards', () => {
+	jest.resetModules()
+	const { setLoadWaitingMessage } = require('../source/dom/load-progress.js')
+	const onClick = jest.fn()
+	setLoadWaitingMessage('No camera found.', { label: 'Upload video or image', onClick })
+	const button = document.querySelector('.load-waiting-action')
+	expect(button).not.toBeNull()
+	expect(button.textContent).toBe('Upload video or image')
+	button.click()
+	expect(onClick).toHaveBeenCalledTimes(1)
+	setLoadWaitingMessage('')
+	expect(document.querySelector('.load-waiting-action')).toBeNull()
+})

@@ -26,13 +26,40 @@ const drawLaidOutLine = (canvasContext, line, x, y, align="center") => {
 	canvasContext.fillText( line.text, lineX, y )
 }
 
+const PRETEXT_LAYOUT_CACHE_LIMIT = 256
+const pretextLayoutCache = new Map()
+
+const getCachedPretextLayout = (text, fontString, layoutWidth, resolvedLineHeight) => {
+	const key = `${fontString}\0${layoutWidth}\0${resolvedLineHeight}\0${text}`
+	const cached = pretextLayoutCache.get(key)
+	if (cached) return cached
+	const prepared = prepareWithSegments(text, fontString, { whiteSpace:"pre-wrap" })
+	const { lines } = layoutWithLines(prepared, layoutWidth, resolvedLineHeight)
+	let maxLineWidth = 0
+	for (let i = 0; i < lines.length; i++) {
+		if (lines[i].width > maxLineWidth) maxLineWidth = lines[i].width
+	}
+	const entry = {
+		lines,
+		height: lines.length * resolvedLineHeight,
+		lineCount: lines.length,
+		width: maxLineWidth
+	}
+	if (pretextLayoutCache.size >= PRETEXT_LAYOUT_CACHE_LIMIT) {
+		const oldestKey = pretextLayoutCache.keys().next().value
+		pretextLayoutCache.delete(oldestKey)
+	}
+	pretextLayoutCache.set(key, entry)
+	return entry
+}
+
 export const drawPretext = ( canvasContext, x, y, text='', size=10, align="center", font="Oxanium", invertColours=false, lineHeight, maxWidth=Number.POSITIVE_INFINITY ) => {
 	const fontString = getFontString(size, font)
 	const fontSize = getFontSizeValue(size)
 	const resolvedLineHeight = lineHeight ?? fontSize * 1.2
-	const prepared = prepareWithSegments(`${text}`, fontString, { whiteSpace:"pre-wrap" })
 	const layoutWidth = Number.isFinite(maxWidth) && maxWidth > 0 ? maxWidth : 100000
-	const { lines } = layoutWithLines(prepared, layoutWidth, resolvedLineHeight)
+	const layout = getCachedPretextLayout(`${text}`, fontString, layoutWidth, resolvedLineHeight)
+	const { lines } = layout
 
 	canvasContext.save()
 	canvasContext.font = fontString
@@ -47,9 +74,9 @@ export const drawPretext = ( canvasContext, x, y, text='', size=10, align="cente
 
 	canvasContext.restore()
 	return {
-		height: lines.length * resolvedLineHeight,
-		lineCount: lines.length,
-		width: Math.max(...lines.map(line => line.width), 0)
+		height: layout.height,
+		lineCount: layout.lineCount,
+		width: layout.width
 	}
 }
 

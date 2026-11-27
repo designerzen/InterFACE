@@ -58,6 +58,51 @@ const getWorkerEnhancedPrediction = (prediction) => new Promise( (resolve,reject
 	faceLandmarksWorker.postMessage(prediction)
 })
 
+// Downscale high-resolution video streams (e.g. 1080p/4K) before MediaPipe
+// inference. FaceLandmarker internally resizes to <=256px and outputs normalized
+// [0..1] coordinates, so uploading 1920x1080 pixels via texImage2D / glReadPixels
+// wastes GPU bandwidth and main-thread time with no accuracy gain.
+const MAX_INFERENCE_WIDTH = 640
+
+let inferenceCanvas = null
+let inferenceContext = null
+
+const getInferenceSource = inputElement => {
+	const width = inputElement?.videoWidth || inputElement?.naturalWidth || inputElement?.width || 0
+	const height = inputElement?.videoHeight || inputElement?.naturalHeight || inputElement?.height || 0
+	if (!width || !height || width <= MAX_INFERENCE_WIDTH || typeof document === 'undefined') {
+		return { source: inputElement, width, height }
+	}
+	const scale = MAX_INFERENCE_WIDTH / width
+	const targetWidth = MAX_INFERENCE_WIDTH
+	const targetHeight = Math.max(2, Math.round(height * scale) & ~1)
+	if (!inferenceCanvas) {
+		inferenceCanvas = document.createElement('canvas')
+		inferenceContext = inferenceCanvas.getContext('2d', { alpha: false, desynchronized: true })
+	}
+	if (!inferenceContext) {
+		return { source: inputElement, width, height }
+	}
+	if (inferenceCanvas.width !== targetWidth || inferenceCanvas.height !== targetHeight) {
+		inferenceCanvas.width = targetWidth
+		inferenceCanvas.height = targetHeight
+	}
+	inferenceContext.drawImage(inputElement, 0, 0, targetWidth, targetHeight)
+	return { source: inferenceCanvas, width: targetWidth, height: targetHeight }
+}
+
+const isInputElementReady = inputElement => {
+	if (!inputElement) return false
+	if (typeof inputElement.readyState === 'number' && inputElement.readyState < 2) return false
+	if (typeof inputElement.videoWidth === 'number' && typeof inputElement.videoHeight === 'number') {
+		return inputElement.videoWidth > 0 && inputElement.videoHeight > 0
+	}
+	if (typeof inputElement.naturalWidth === 'number' && typeof inputElement.naturalHeight === 'number') {
+		return inputElement.naturalWidth > 0 && inputElement.naturalHeight > 0
+	}
+	return true
+}
+
 /**
  * Send an input element and determine how the faces look within
  * @param {HTMLElement} inputElement 
@@ -65,30 +110,34 @@ const getWorkerEnhancedPrediction = (prediction) => new Promise( (resolve,reject
  * @param {Boolean} flipHorizontally 
  * @returns 
  */
-const predict = async (time, inputElement, detector, flipHorizontally=true ) => {
+const predict = async (time, inputElement, detector, flipHorizontally=true, metrics=null ) => {
+	if (metrics) {
+		metrics.didRun = false
+		metrics.inferenceMs = 0
+		metrics.faceCalcMs = 0
+	}
 
-	// const radio = inputElement.videoHeight / inputElement.videoWidth
-	// TODO: Resize video if too large
-	// video.style.width = videoWidth + "px"
-	// video.style.height = videoWidth * radio + "px"
-	// canvasElement.style.width = videoWidth + "px"
-	// canvasElement.style.height = videoWidth * radio + "px"
-	// canvasElement.width = video.videoWidth
-	// canvasElement.height = video.videoHeight
+	if (!isInputElementReady(inputElement))
+	{
+		return previousPrediction
+	}
 
 	// video has been updated!
 	if (lastVideoTime !== inputElement.currentTime) 
 	{
 		lastVideoTime = inputElement.currentTime
 
+		const prepared = getInferenceSource(inputElement)
+		if (!prepared) return previousPrediction
+
 		// The public API takes milliseconds and converts to microseconds itself.
 		// Clocks may have reduced precision, so explicitly handle equal readings.
 		const timestampMs = Math.max(performance.now(), lastDetectionTime + 0.001)
 		lastDetectionTime = timestampMs
-		const results = detector.detectForVideo( inputElement, timestampMs )
+		const detectStartedAt = performance.now()
+		const results = detector.detectForVideo( prepared.source, timestampMs )
+		const detectEndedAt = performance.now()
 		const people = []
-
-		// console.warn("Prediction:RESULTS", results )
 
 		// array
 		if (results.faceLandmarks) 
@@ -112,14 +161,25 @@ const predict = async (time, inputElement, detector, flipHorizontally=true ) => 
 				}
 			}
 
-			// console.error("Person", people)
-			// console.info("Prediction Person", elapsed,{ results, people  } )
+			if (metrics) {
+				metrics.didRun = true
+				metrics.inferenceMs = detectEndedAt - detectStartedAt
+				metrics.faceCalcMs = performance.now() - detectEndedAt
+				metrics.inferenceWidth = prepared.width
+				metrics.inferenceHeight = prepared.height
+			}
 
 			previousPrediction = people
 			return people
 
 		}	else{
 			// duplicate frame
+			if (metrics) {
+				metrics.didRun = true
+				metrics.inferenceMs = detectEndedAt - detectStartedAt
+				metrics.inferenceWidth = prepared.width
+				metrics.inferenceHeight = prepared.height
+			}
 		}
 		
 	}else{
@@ -199,11 +259,18 @@ export const loadFaceLandmarksModel = async (inputElement, options, progressCall
 	}
 
 	// now subscribe to events and monitor
+	const lastMetrics = {
+		didRun: false,
+		inferenceMs: 0,
+		faceCalcMs: 0,
+		inferenceWidth: 0,
+		inferenceHeight: 0,
+	}
 	const fetchModelData = async (time) => { 
-		const prediction = await predict(time, inputElement, detector, flipHorizontally) 
-		// console.error("results.prediction", {prediction} )
+		const prediction = await predict(time, inputElement, detector, flipHorizontally, lastMetrics) 
 		return prediction
 	}
+	fetchModelData.lastMetrics = lastMetrics
 
 	return fetchModelData
 }

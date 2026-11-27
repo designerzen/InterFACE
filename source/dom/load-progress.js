@@ -29,12 +29,26 @@ let requestFrame
 let currentMessage = ''
 let messageChangedAt = Date.now()
 let waitingMessage = ''
+let waitingActionButton = null
 
-export const setLoadWaitingMessage = (message = '') => {
+export const setLoadWaitingMessage = (message = '', action = null) => {
 	waitingMessage = message
 	if (message) {
 		progressMessage.setAttribute('role', 'status')
 		progressMessage.textContent = message
+	}
+	if (waitingActionButton) {
+		waitingActionButton.remove()
+		waitingActionButton = null
+	}
+	if (message && action?.label && typeof action.onClick === 'function' && progressBar?.parentNode) {
+		const button = doc.createElement('button')
+		button.type = 'button'
+		button.className = 'button button-push text-always load-waiting-action'
+		button.textContent = action.label
+		button.addEventListener('click', action.onClick)
+		progressBar.parentNode.appendChild(button)
+		waitingActionButton = button
 	}
 }
 

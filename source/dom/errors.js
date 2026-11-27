@@ -20,9 +20,10 @@ const setText = (id, text) => {
 	if (element) element.textContent = text
 }
 
-export const showErrorCode = (code, { fatal=true, details='' }={}) => {
+export const showErrorCode = (code, { fatal, details='' }={}) => {
 	const message = getErrorMessage(code) ?? ERROR_MESSAGES['camera-unavailable']
-	showError(message.problem, message.solution, fatal, details, {
+	const isFatal = code === 'camera-not-found' ? false : (fatal ?? true)
+	showError(message.problem, message.solution, isFatal, details, {
 		title:message.title,
 		primaryAction:message.primaryAction,
 		secondaryAction:message.secondaryAction,
@@ -80,6 +81,8 @@ export const showError = (error, solution, fatal=false, details="", options={} )
 
 		// add root class
 		body.classList.add("fatal")
+	}else{
+		body.classList.remove("fatal")
 	}
 
 	// no point closing the error if fatal

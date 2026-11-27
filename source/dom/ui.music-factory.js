@@ -10,31 +10,49 @@ export const setupMusicFactory = ({context, destination, stateMachine, onMode, o
 	const status = document.getElementById('music-factory-status')
 	const finish = document.getElementById('music-factory-finish')
 	const fresh = document.getElementById('music-factory-new')
+	const selectionToggle = document.getElementById('toggle-music-factory')
+	const selectionFeedback = document.querySelector('#music-factory-feedback p')
 	const abort = new AbortController()
 	let transportPaused = false
+	let lastSettingsKey = ''
 	const controller = createMusicFactory({
 		player:createMusicFactoryPlayer(context, destination, recordSessionEvent),
 		onMode:enabled => {
-			if (toggle) toggle.checked = enabled
-			if (controls) controls.hidden = !enabled
+			if (toggle && toggle.checked !== enabled) toggle.checked = enabled
+			if (controls && controls.hidden !== !enabled) controls.hidden = !enabled
 			toggle?.parentElement.classList.toggle('checked', enabled)
 			onMode?.(enabled)
 		},
 		onProfile,
-		onStatus:message => { if (status) status.textContent = message }
+		onStatus:message => { if (status && status.textContent !== message) status.textContent = message }
 	})
-	const settings = () => Object.fromEntries(['musicFactory', 'musicFactoryGenre', 'musicFactorySeed', 'players', 'key', 'bpm', 'muted', 'performanceDrums', 'rapidPercussion'].map(key => [key, stateMachine.get(key)]))
+	const SETTING_KEYS = ['musicFactory', 'musicFactoryGenre', 'musicFactorySeed', 'players', 'key', 'bpm', 'muted', 'performanceDrums', 'rapidPercussion']
+	const settingsKey = () => {
+		let key = ''
+		for (let i = 0; i < SETTING_KEYS.length; i++) {
+			key += `${stateMachine.get(SETTING_KEYS[i]) ?? ''}|`
+		}
+		return key
+	}
+	const settings = () => Object.fromEntries(SETTING_KEYS.map(key => [key, stateMachine.get(key)]))
 	const newSeed = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
-	const configure = () => {
-		if (stateMachine.get('musicFactory') && !stateMachine.get('musicFactorySeed')) stateMachine.set('musicFactorySeed', newSeed())
+	const configure = (force = false) => {
+		const nextKey = settingsKey()
+		if (!force && nextKey === lastSettingsKey) return
+		lastSettingsKey = nextKey
+		if (stateMachine.get('musicFactory') && !stateMachine.get('musicFactorySeed')) {
+			stateMachine.set('musicFactorySeed', newSeed())
+			lastSettingsKey = settingsKey()
+		}
 		controller.configure(settings())
-		const selectionToggle = document.getElementById('toggle-music-factory')
-		if (selectionToggle) selectionToggle.checked = controller.enabled
-		const selectionFeedback = document.querySelector('#music-factory-feedback p')
-		if (selectionFeedback) selectionFeedback.textContent = controller.enabled
+		const activeToggle = selectionToggle?.isConnected ? selectionToggle : document.getElementById('toggle-music-factory')
+		if (activeToggle && activeToggle.checked !== controller.enabled) activeToggle.checked = controller.enabled
+		const activeFeedback = selectionFeedback?.isConnected ? selectionFeedback : document.querySelector('#music-factory-feedback p')
+		const feedbackText = controller.enabled
 			? 'Music factory: all players shape a piece together.'
 			: 'Musical instrument: your movements play notes directly.'
-		if (genre) genre.value = controller.profile.id
+		if (activeFeedback && activeFeedback.textContent !== feedbackText) activeFeedback.textContent = feedbackText
+		if (genre && genre.value !== controller.profile.id) genre.value = controller.profile.id
 	}
 	if (genre) {
 		for (const profile of MUSIC_FACTORY_PROFILES) {
@@ -57,7 +75,7 @@ export const setupMusicFactory = ({context, destination, stateMachine, onMode, o
 	document.addEventListener('visibilitychange', () => controller.pause(document.hidden || transportPaused), {signal:abort.signal})
 	window.addEventListener('pagehide', event => { if (event.persisted) controller.pause(true); else api.destroy() }, {signal:abort.signal})
 	window.addEventListener('pageshow', () => controller.pause(document.hidden || transportPaused), {signal:abort.signal})
-	configure()
+	configure(true)
 	if (toggle) toggle.checked = controller.enabled
 	if (controls) controls.hidden = !controller.enabled
 	const api = {
@@ -66,7 +84,7 @@ export const setupMusicFactory = ({context, destination, stateMachine, onMode, o
 		get drumArranger() { return controller.drumArranger },
 		get ensemble() { return controller.ensemble },
 		observe:(...args) => controller.observe(...args),
-		tick:tick => { configure(); controller.tick(tick) },
+		tick:tick => { configure(); if (controller.enabled) controller.tick(tick) },
 		selectPreset(preset) {
 			stateMachine.set('musicFactoryGenre', musicFactoryGenreForPreset(preset)); configure()
 		},

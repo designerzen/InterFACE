@@ -1,4 +1,4 @@
-import { drawFaceFeatures } from '../visual/2d.face-features.js'
+import { drawFaceFeatures, hasEnabledFaceFeatures } from '../visual/2d.face-features.js'
 import { drawBars, drawVisualiser } from '../visual/spectrograms.js'
 
 // We may want a maximim size
@@ -90,6 +90,8 @@ export default class AbstractDisplay{
 	drawsFaceFeaturesOnCanvas = false
 	faceFeatureOverlay = null
 	faceFeatureContext = null
+	effectsDirty = false
+	faceFeaturesDirty = false
 
 	// method to run to kickstart unless option autoStart:true
 	start = () => { console.info("Display starting", this ) }
@@ -221,8 +223,14 @@ export default class AbstractDisplay{
 	}
 
 	clearFaceFeatures(){
-		this.faceFeatureContext?.clearRect(0, 0, this.faceFeatureOverlay.width, this.faceFeatureOverlay.height)
-		this.effectsContext?.clearRect(0, 0, this.width, this.height)
+		if (this.faceFeaturesDirty && this.faceFeatureContext) {
+			this.faceFeatureContext.clearRect(0, 0, this.faceFeatureOverlay.width, this.faceFeatureOverlay.height)
+		}
+		this.faceFeaturesDirty = false
+		if (this.effectsDirty && this.effectsContext) {
+			this.effectsContext.clearRect(0, 0, this.width, this.height)
+		}
+		this.effectsDirty = false
 	}
 
 	getEffectsContext(){
@@ -238,11 +246,19 @@ export default class AbstractDisplay{
 		}
 		return this.effectsContext
 	}
-	getParticleContext(){ return this.getEffectsContext() }
+	getParticleContext(){
+		const context = this.getEffectsContext()
+		if (context) this.effectsDirty = true
+		return context
+	}
 
 	/** Render facial details above renderers that own a WebGL/WebGPU canvas. */
 	drawFaceFeatures(person, colours, beatJustPlayed = false){
 		if (this.drawsFaceFeaturesOnCanvas || typeof document === 'undefined' || !this.canvas?.parentNode)
+		{
+			return false
+		}
+		if (!person?.data || !hasEnabledFaceFeatures(this.options, person.options))
 		{
 			return false
 		}
@@ -264,7 +280,9 @@ export default class AbstractDisplay{
 			this.faceFeatureOverlay.width = this.canvas.width
 			this.faceFeatureOverlay.height = this.canvas.height
 		}
-		return drawFaceFeatures(this.faceFeatureContext, person, colours, this.options, beatJustPlayed)
+		const drew = drawFaceFeatures(this.faceFeatureContext, person, colours, this.options, beatJustPlayed)
+		if (drew) this.faceFeaturesDirty = true
+		return drew
 	}
 	
 	/**
@@ -340,7 +358,12 @@ export default class AbstractDisplay{
 	/**
 	 * Empty the canvas and paint it transparent
 	 */
-	clear() { this.effectsContext?.clearRect(0, 0, this.width, this.height) }
+	clear() {
+		if (this.effectsDirty && this.effectsContext) {
+			this.effectsContext.clearRect(0, 0, this.width, this.height)
+		}
+		this.effectsDirty = false
+	}
 
 	/**
 	 * Draw a Person model to the screen
@@ -353,6 +376,7 @@ export default class AbstractDisplay{
 	drawElement(element, x = 0, y = 0, flip = false, width = this.width, height = this.height, options = {}){
 		const context = this.getEffectsContext()
 		if (!context) return
+		this.effectsDirty = true
 		context.save()
 		if (options.blendMode) context.globalCompositeOperation = options.blendMode
 		if (options.opacity !== undefined) context.globalAlpha = Math.max(0, Math.min(1, options.opacity))
@@ -368,7 +392,10 @@ export default class AbstractDisplay{
 	 */
 	drawBars(dataArray, bufferLength){
 		const context = this.getEffectsContext()
-		if (context) drawBars(context, dataArray, bufferLength)
+		if (context) {
+			this.effectsDirty = true
+			drawBars(context, dataArray, bufferLength)
+		}
 	}
 	
 	/**
@@ -378,7 +405,10 @@ export default class AbstractDisplay{
 	 */
 	drawVisualiser(dataArray, bufferLength, type, timeData, notes){
 		const context = this.getEffectsContext()
-		if (context) drawVisualiser(context, dataArray, bufferLength, type, timeData, notes)
+		if (context) {
+			this.effectsDirty = true
+			drawVisualiser(context, dataArray, bufferLength, type, timeData, notes)
+		}
 	}
 
 	drawInstrument(boundingBox, instrumentName, extra){}

@@ -235,4 +235,56 @@ describe('MIDI device monitor', () => {
 		expect(controls.querySelector('[data-person-option="midiDevice"]').value).toBe('out-b')
 		expect(controls.querySelector('[data-person-option="midiPort"]').value).toBe('4')
 	})
+
+	test('switches MIDI tabs, updates device count badge, and nudges stepper inputs', () => {
+		document.body.innerHTML = `
+			<div id="control-panel-midi" class="folder-menu">
+				<a href="#folder-midi">MIDI</a>
+				<menu id="folder-midi">
+					<header>
+						<span id="midi-device-count" data-connected="false">0 devices</span>
+						<input id="toggle-midi" type="checkbox">
+						<button id="midi-cc-open" type="button">CC codes</button>
+						<button data-midi-close type="button">Close</button>
+					</header>
+					<div id="midi-tabs" class="tabs">
+						<div class="tabs-list" role="tablist">
+							<button id="midi-devices-tab" role="tab" aria-selected="true" aria-controls="midi-devices-tabpanel">Devices</button>
+							<button id="midi-controls-tab" role="tab" aria-selected="false" aria-controls="midi-controls-tabpanel" tabindex="-1">Expression</button>
+						</div>
+						<div class="midi-panel-scroll">
+							<fieldset id="midi-panel">
+								<div id="midi-devices-tabpanel" role="tabpanel">
+									<div id="midi-monitor-empty"><button type="button" data-midi-enable-cta>Enable</button></div>
+									<div id="midi-monitor-devices"></div>
+								</div>
+								<div id="midi-controls-tabpanel" role="tabpanel" hidden>
+									<button type="button" data-midi-step-target="midi-cc-channel" data-midi-step="-1">−</button>
+									<input id="midi-cc-channel" type="number" min="1" max="16" value="16">
+									<button type="button" data-midi-step-target="midi-cc-channel" data-midi-step="1">+</button>
+								</div>
+							</fieldset>
+						</div>
+					</div>
+				</menu>
+			</div>`
+		setupMIDIMenu()
+		document.getElementById('midi-controls-tab').click()
+		expect(document.getElementById('midi-devices-tabpanel').hidden).toBe(true)
+		expect(document.getElementById('midi-controls-tabpanel').hidden).toBe(false)
+
+		const channel = document.getElementById('midi-cc-channel')
+		const onChange = jest.fn()
+		channel.addEventListener('change', onChange)
+		document.querySelector('[data-midi-step="1"]').click()
+		expect(channel.value).toBe('16')
+		document.querySelector('[data-midi-step="-1"]').click()
+		expect(channel.value).toBe('15')
+		expect(onChange).toHaveBeenCalledTimes(2)
+
+		renderMIDIDeviceMonitor([], [{ id: 'out-1', name: 'Synth' }], [])
+		const badge = document.getElementById('midi-device-count')
+		expect(badge.textContent).toBe('1 device')
+		expect(badge.dataset.connected).toBe('true')
+	})
 })

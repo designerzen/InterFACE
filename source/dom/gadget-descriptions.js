@@ -43,6 +43,7 @@ const descriptions = {
 	'button-toggle-overlay': { on: 'The text and symbol overlay canvas is visible.', off: 'The text and symbol overlay canvas is hidden.' },
 	'button-subtitles': { on: 'Text overlays are shown during the performance.', off: 'Text overlays are hidden during the performance.' },
 	'button-hud': { on: 'The input device display is visible.', off: 'The input device display is hidden.' },
+	'button-stats': { on: 'The real-time FPS and performance profiler HUD is visible.', off: 'Show the real-time FPS and performance profiler HUD.' },
 	'button-overlay': { on: 'Face overlays are enabled. Use the individual controls to choose what is shown.', off: 'Face overlays are disabled.' },
 	'folder-engine': 'Choose the voice engine and adjust its settings for all players. Percussion uses its own engine.',
 	'select-voice-engine': 'Choose the voice engine for all players. Percussion uses its own engine.',
@@ -124,6 +125,7 @@ export const setupGadgetDescriptions = panel => {
 	const entries = new Map()
 	let sequence = 0
 	let pending = false
+	let needsScan = true
 	const hostFor = control => control.labels?.[0] || (control.matches('button, a') ? control : control.parentElement)
 	const attach = (control, host, description) => {
 		if (description.parentElement !== host) host.append(description)
@@ -133,24 +135,27 @@ export const setupGadgetDescriptions = panel => {
 			control.setAttribute('aria-describedby', [...refs].join(' '))
 		}
 	}
-	const refresh = () => {
-		for (const control of panel.querySelectorAll(selector)) {
-			if (labelOnlyControls.has(control.id) || control.closest('#folder-volume, #mixer-panel')) continue
-			if (control.closest('dialog') || (control.tagName !== 'SELECT' && control.closest('select'))) continue
-			const host = hostFor(control)
-			if (entries.has(control)) { attach(control, host, entries.get(control).description); continue }
-			const key = control.matches('.folder-link') ? control.hash.slice(1) : control.id
-			const label = host.cloneNode(true)
-			label.querySelectorAll('input, select, textarea, kbd, .controls-list-value, .gadget-description').forEach(element => element.remove())
-			const fallback = control.getAttribute('aria-label') || label.textContent.trim().replace(/\s+/g, ' ')
-			if (!descriptions[key] && !fallback) continue
-			const description = document.createElement('small')
-			description.className = 'gadget-description sr-only'
-			description.id = `gadget-description-${++sequence}`
-			// Referenced descriptions remain readable without becoming part of the label/name.
-			description.setAttribute('aria-hidden', 'true')
-			attach(control, host, description)
-			entries.set(control, { description, definition: descriptions[key] || fallback })
+	const refresh = (forceScan = false) => {
+		if (forceScan || needsScan) {
+			needsScan = false
+			for (const control of panel.querySelectorAll(selector)) {
+				if (labelOnlyControls.has(control.id) || control.closest('#folder-volume, #mixer-panel')) continue
+				if (control.closest('dialog') || (control.tagName !== 'SELECT' && control.closest('select'))) continue
+				const host = hostFor(control)
+				if (entries.has(control)) { attach(control, host, entries.get(control).description); continue }
+				const key = control.matches('.folder-link') ? control.hash.slice(1) : control.id
+				const label = host.cloneNode(true)
+				label.querySelectorAll('input, select, textarea, kbd, .controls-list-value, .gadget-description').forEach(element => element.remove())
+				const fallback = control.getAttribute('aria-label') || label.textContent.trim().replace(/\s+/g, ' ')
+				if (!descriptions[key] && !fallback) continue
+				const description = document.createElement('small')
+				description.className = 'gadget-description sr-only'
+				description.id = `gadget-description-${++sequence}`
+				// Referenced descriptions remain readable without becoming part of the label/name.
+				description.setAttribute('aria-hidden', 'true')
+				attach(control, host, description)
+				entries.set(control, { description, definition: descriptions[key] || fallback })
+			}
 		}
 		for (const [control, { description, definition }] of entries) {
 			if (!panel.contains(control)) { description.remove(); entries.delete(control); continue }
@@ -165,18 +170,27 @@ export const setupGadgetDescriptions = panel => {
 			if (description.textContent !== text) description.textContent = text
 		}
 	}
-	const schedule = () => {
+	const schedule = (rescan = false) => {
+		if (rescan) needsScan = true
 		if (pending) return
 		pending = true
 		window.queueMicrotask(() => { pending = false; refresh() })
 	}
-	refresh()
-	for (const event of ['input', 'change', 'click', 'focusin']) panel.addEventListener(event, schedule)
-	document.addEventListener('fullscreenchange', schedule)
+	refresh(true)
+	for (const event of ['input', 'change', 'click', 'focusin']) panel.addEventListener(event, () => schedule(false))
+	document.addEventListener('fullscreenchange', () => schedule(false))
 	const observer = new window.MutationObserver(mutations => {
-		if (mutations.some(mutation => !mutation.target.closest?.('.gadget-description'))) schedule()
+		let shouldRefresh = false
+		let rescan = false
+		for (const mutation of mutations) {
+			const target = mutation.target
+			if (target.closest?.('.gadget-description, #face-buttons, .instrument-panel, dialog')) continue
+			shouldRefresh = true
+			if (mutation.type === 'childList') rescan = true
+		}
+		if (shouldRefresh) schedule(rescan)
 	})
 	observer.observe(panel, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'checked', 'disabled', 'aria-pressed', 'aria-expanded', 'aria-describedby'] })
-	panel.gadgetDescriptions = { refresh }
+	panel.gadgetDescriptions = { refresh: () => refresh(true) }
 	return panel.gadgetDescriptions
 }

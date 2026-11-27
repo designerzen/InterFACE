@@ -6,6 +6,7 @@ export class WebGPUPaint {
 		this.width = Math.max(1, Math.floor(width))
 		this.height = Math.max(1, Math.floor(height))
 		this.index = 0
+		this.uniformData = new Float32Array(4)
 		this.uniforms = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
 		this.sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear' })
 		const module = device.createShaderModule({ code: `
@@ -49,6 +50,7 @@ export class WebGPUPaint {
 			alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' }
 		})
 		this.textures = [this.createTexture(), this.createTexture()]
+		this.views = this.textures.map(texture => texture.createView())
 		this.groups = this.textures.map(texture => this.createGroup(texture))
 		this.clear()
 	}
@@ -63,11 +65,11 @@ export class WebGPUPaint {
 			{ binding: 2, resource: { buffer: this.uniforms } }
 		] })
 	}
-	get view(){ return this.textures[this.index].createView() }
+	get view(){ return this.views[this.index] }
 	clear(){
 		const encoder = this.device.createCommandEncoder()
-		for (const texture of this.textures) {
-			const pass = encoder.beginRenderPass({ colorAttachments: [{ view: texture.createView(),
+		for (const view of this.views) {
+			const pass = encoder.beginRenderPass({ colorAttachments: [{ view,
 				clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] })
 			pass.end()
 		}
@@ -75,7 +77,11 @@ export class WebGPUPaint {
 		this.index = 0
 	}
 	blit(view, group, pipeline, loadOp = 'clear', offsetX = 0, offsetY = 0){
-		this.device.queue.writeBuffer(this.uniforms, 0, new Float32Array([this.width, this.height, offsetX, offsetY]))
+		this.uniformData[0] = this.width
+		this.uniformData[1] = this.height
+		this.uniformData[2] = offsetX
+		this.uniformData[3] = offsetY
+		this.device.queue.writeBuffer(this.uniforms, 0, this.uniformData)
 		const encoder = this.device.createCommandEncoder()
 		const pass = encoder.beginRenderPass({ colorAttachments: [{ view,
 			clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp, storeOp: 'store' }] })
@@ -87,7 +93,7 @@ export class WebGPUPaint {
 	}
 	feedback(offsetX, offsetY){
 		const next = 1 - this.index
-		this.blit(this.textures[next].createView(), this.groups[this.index], this.feedbackPipeline, 'clear', offsetX, offsetY)
+		this.blit(this.views[next], this.groups[this.index], this.feedbackPipeline, 'clear', offsetX, offsetY)
 		this.index = next
 	}
 	paintCanvas(canvas){

@@ -25,6 +25,8 @@ import { showPlayerSelector } from './dom/ui.player-selection.js'
 import { prepareLookingGlassIntegration } from './dom/looking-glass-integration.js'
 import { setToast, toggleTooltips, updateTooltipPositions } from './dom/tooltips.js'
 import { createInputStatusOverlay } from './dom/ui.input-status.js'
+import { createPerformanceHud } from './dom/performance-hud.js'
+import { createPerformanceProfiler } from './utils/performance-profiler.js'
 import { setupRecordings } from './dom/ui.recording.js'
 import { connectSelect, connectReverbControls, connectReverbSelector, enhanceSelects, populateSelect } from './dom/select.js'
 import { getReverbSpace } from './audio/effects/reverb-spaces.js'
@@ -250,8 +252,10 @@ const EXTENDED_PERCUSSION_PART_ALIASES = Object.freeze(Object.fromEntries(
 // HARDWARE
 import { watchMouseCoords  } from './hardware/mouse.js'
 import { ERROR_NO_CAMERAS, fetchVideoCameras, findBestCamera, loadCamera } from './hardware/camera.js'
-import { waitForCamera } from './hardware/wait-for-camera.js'
+import { isMissingCamera, waitForCamera } from './hardware/wait-for-camera.js'
+import { isSupportedMediaFile, loadUploadedMediaSource, stopUploadedMediaSource } from './hardware/media-source.js'
 import { setLoadWaitingMessage } from './dom/load-progress.js'
+import { showCameraUploadDialog } from './dom/camera-upload-dialog.js'
 
 // MIDI
 import MIDIConnectionManager from './audio/midi/midi-connection-manager.js'
@@ -884,9 +888,41 @@ export const createInterface = (
 	let fetchPredictionFromEngine
 	let peoplePredictions
 	const frameStallMonitor = createFrameStallMonitor()
+	const performanceProfiler = createPerformanceProfiler({ frameStallMonitor })
 	// Available after a long session without keeping a profiler recording open.
 	globalThis.photosynthFrameStalls = frameStallMonitor
+	globalThis.photosynthProfiler = performanceProfiler
 	document.addEventListener('visibilitychange', () => frameStallMonitor.reset())
+
+	let performanceHud = null
+	let setStatsEnabled = enabled => {
+		const next = Boolean(enabled)
+		stateMachine.set('stats', next)
+		performanceHud?.toggle(next)
+		const statsInput = doc.getElementById('button-stats')
+		if (statsInput && statsInput.checked !== next) {
+			statsInput.checked = next
+			statsInput.parentElement?.classList.toggle('checked', next)
+		}
+		return next
+	}
+	performanceHud = createPerformanceHud(performanceProfiler, {
+		doc,
+		onClose: () => setStatsEnabled(false),
+	})
+	if (stateMachine.get('stats')) {
+		performanceHud.show()
+	}
+	globalThis.electron?.profiler?.onToggle?.(() => {
+		setStatsEnabled(!performanceHud.isVisible())
+	})
+	const trackedDialogs = Array.from(doc.querySelectorAll('dialog'))
+	const hasOpenDialog = () => {
+		for (let i = 0; i < trackedDialogs.length; i++) {
+			if (trackedDialogs[i].open) return true
+		}
+		return false
+	}
 
 	// As each sample is 2403 ms long, we should try and do it 
 	// as a factor of that, so perhaps bars would be better than BPM?
@@ -2151,19 +2187,15 @@ export const createInterface = (
 					onMIDIPerformanceAvailable(midiFile)
 					return midiFile
 
-				case "video/mp4":
-				case "video/avi":
-				case "video/m4v":
-				case "video/mkv":
-					// TODO:
-					// disconnect camera stream from video and 
-					// load in the video file dropped by the user
-					// and use that as the source for the predictions
-					destroyCamera(video)
-					setupVideoStream(video, file)
-					break
-
 				default:
+					if (isSupportedMediaFile(file))
+					{
+						destroyCamera(video)
+						const loaded = await setupVideoStream(video, file)
+						setToast(`Using uploaded ${loaded.kind}: ${loaded.name}`, 0, 'camera')
+						setFeedback(`Using uploaded ${loaded.kind} in place of camera`, 0, 'camera')
+						return loaded
+					}
 					console.warn("Dropped file", {file} , "Ignoring as not sure how to interpret it")
 			}
 			return null
@@ -2612,6 +2644,11 @@ export const createInterface = (
 		if (layout) layout.closest('label').hidden = displayType !== DISPLAY_TYPES.DISPLAY_COMPOSITE
 		main.classList.toggle("flag-transparent", Boolean(newDisplay.transparentCanvas))
 		syncDisplayToMedia(inputElement)
+		performanceProfiler.updateMetadata({
+			displayType: newDisplay.type,
+			canvasWidth: newDisplay.width,
+			canvasHeight: newDisplay.height,
+		})
 
 		// save the display type for next time
 		if (saveAndExclaim)
@@ -2642,22 +2679,22 @@ export const createInterface = (
 	})
 
 	/**
-	 * Use the specified file to start streaming video
-	 * onto the video element
+	 * Use the specified video or image file in place of a live camera stream
+	 * @param {HTMLVideoElement} videoStream
 	 * @param {File} file 
 	 */	
-	const setupVideoStream = (videoStream, file) => {
+	const setupVideoStream = async (videoStream, file) => {
+		const wasLoading = isLoading
 		isLoading = true
-		const streamSource = URL.createObjectURL(file)
-		videoStream.src = streamSource
-		videoStream.setAttribute('controls', true)
-		videoStream.classList.toggle("reverse", false)
-		// resize canvas - may have to wait for metadata to be available...
-		videoStream.onloadedmetadata = () =>{ 
+		try{
+			const loaded = await loadUploadedMediaSource(videoStream, file)
+			camera = loaded.stream ?? null
 			syncDisplayToMedia( videoStream )
-			isLoading = false
+			console.info("Uploaded media loaded in place of camera", {file, video: videoStream, loaded})
+			return loaded
+		} finally {
+			isLoading = wasLoading
 		}
-		console.info("Video dropped by user", {file, video: videoStream, streamSource})	
 	}
 
 	/**
@@ -2668,6 +2705,8 @@ export const createInterface = (
 		if (!videoStream) {
 			throw Error("No Video Element to target")
 		}
+
+		stopUploadedMediaSource(videoStream)
 
 		// Stop all media tracks from the video stream
 		if (videoStream.srcObject) {
@@ -2680,27 +2719,60 @@ export const createInterface = (
 
 		// Clear src attribute if video element has a file source
 		if (videoStream.src) {
-			URL.revokeObjectURL(videoStream.src)
+			if (videoStream.src.startsWith('blob:')) {
+				URL.revokeObjectURL(videoStream.src)
+			}
+			videoStream.removeAttribute('src')
 			videoStream.src = ''
 		}
 
 		// Pause and reset the video element
 		videoStream.pause()
 		videoStream.currentTime = 0
-		videoStream.setAttribute('controls', false)
+		videoStream.controls = false
+		videoStream.removeAttribute('controls')
 	}
 
 	/**
-	 * Setup the Web Camera in relation to the video element
-	 * @param {VideoElement} videoStream 
+	 * Setup the Web Camera in relation to the video element, falling back to a
+	 * non-fatal video/image upload dialog when no camera is found.
+	 * @param {HTMLVideoElement} videoStream 
 	 * @param {Function} onProgress 
-	 * @returns {String} Status message
+	 * @returns {Promise<Object>} Status result
 	 */
 	const setupCamera = async( videoStream, onProgress ) => {
 
 		//const deviceId = store.has('camera') ? store.getItem('camera').deviceId : undefined
 		let investigation
 		let quantityOfCameras = 0
+		let uploadedMedia = null
+		let usingUploadedMedia = false
+		let uploadDialogController = null
+		let triggerCameraRetry = null
+		const waitAbortController = new AbortController()
+
+		const openCameraUploadDialog = () => {
+			if (uploadDialogController) return
+			uploadDialogController = showCameraUploadDialog({
+				onFileSelected: async file => {
+					const loaded = await loadUploadedMediaSource(videoStream, file)
+					uploadedMedia = loaded
+					usingUploadedMedia = true
+					waitAbortController.abort(loaded)
+				},
+				onRetryCamera: async () => {
+					const videoCameraDevices = await fetchVideoCameras()
+					if (videoCameraDevices.length > 0) {
+						triggerCameraRetry?.()
+						return true
+					}
+					return false
+				},
+				onClose: () => {
+					uploadDialogController = null
+				}
+			})
+		}
 
 		videoStream.classList.toggle("reverse", false)
 		
@@ -2710,24 +2782,42 @@ export const createInterface = (
 				// console.info("Camera status", status)
 				onProgress && onProgress(status)
 			}), waiting => {
-				const message = waiting ? 'No camera found. Connect or enable a camera to continue. Loading will resume automatically.' : ''
-				setLoadWaitingMessage(message)
-				if (waiting) setFeedback(message, 0, 'camera')
+				if (waiting) {
+					const message = 'No camera found. Upload a video or image, or connect a camera to continue.'
+					setLoadWaitingMessage(message, {
+						label: 'Upload video or image',
+						onClick: openCameraUploadDialog,
+					})
+					setFeedback(message, 0, 'camera')
+					openCameraUploadDialog()
+				} else {
+					setLoadWaitingMessage('')
+					uploadDialogController?.close('resolved')
+					uploadDialogController = null
+				}
+			}, {
+				signal: waitAbortController.signal,
+				onRetryReady: retry => {
+					triggerCameraRetry = retry
+				}
 			})
 			quantityOfCameras = investigation.videoCameraDevices.length
 		
 		}catch(error){
-			console.error("Camera not found SHOW ERROR", error)
-			setToast("No cameras are available on this device", 0, 'camera')
-			// setFeedback("Camera not found", 0, 'camera')
+			if (uploadedMedia) {
+				quantityOfCameras = 0
+			} else {
+				console.error("Camera error", error)
+				setToast("Camera could not be accessed on this device", 0, 'camera')
 
-			return {
-				success:false,
-				error
+				return {
+					success:false,
+					error
+				}
 			}
 		}
 		
-		if (quantityOfCameras < 1)
+		if (!uploadedMedia && quantityOfCameras < 1)
 		{
 			console.error( "No Camera found" )
 			setToast("No cameras located on this device", 0, 'camera')
@@ -2738,7 +2828,7 @@ export const createInterface = (
 			}
 		}
 		
-		camera = investigation.camera
+		camera = uploadedMedia ? (uploadedMedia.stream ?? null) : investigation.camera
 		
 		// resize canvas to fit video with repect to orientation
 		const resizeCanvasAndVideo = () => {
@@ -2759,6 +2849,7 @@ export const createInterface = (
 			isCameraLoading = true
 			let newCamera
 			try{
+				stopUploadedMediaSource(videoStream)
 				newCamera = await loadCamera( videoStream, selected.value, selected.label )
 			
 				console.info("New camera selected", newCamera, {video: videoStream})
@@ -2766,6 +2857,8 @@ export const createInterface = (
 				if (newCamera)
 				{
 					camera = newCamera
+					usingUploadedMedia = false
+					uploadedMedia = null
 					// resize canvvas to match video!
 					// otherwise the aspect-ratio might not be the same
 					resizeCanvasAndVideo()
@@ -2782,8 +2875,28 @@ export const createInterface = (
 
 			}catch(error){
 				console.error("Camera:Error > ",{selected,error})
-				setToast( `Camera ${selected.label} could not be accessed`, 0 )
-				showError( `Camera ${selected.label} could not be accessed`, "the requested camera appears to either be already in use by other software, or it cannot be directly accessed. Try closing other programs and swapping the USB port if possible.", true, "", { cameraHelp:true })
+				if (isMissingCamera(error)) {
+					setToast(`Camera ${selected.label} was not found — upload a video or image instead`, 0, 'camera')
+					showCameraUploadDialog({
+						onFileSelected: async file => {
+							const loaded = await loadUploadedMediaSource(videoStream, file)
+							camera = loaded.stream ?? null
+							usingUploadedMedia = true
+							uploadedMedia = loaded
+							resizeCanvasAndVideo()
+							setToast(`Using uploaded ${loaded.kind}: ${loaded.name}`, 0, 'camera')
+							setFeedback(`Using uploaded ${loaded.kind} in place of camera`, 0, 'camera')
+						},
+						onRetryCamera: async () => {
+							const videoCameraDevices = await fetchVideoCameras()
+							updateCameraSelector(videoCameraDevices)
+							return videoCameraDevices.length > 0
+						}
+					})
+				} else {
+					setToast( `Camera ${selected.label} could not be accessed`, 0 )
+					showError( `Camera ${selected.label} could not be accessed`, "the requested camera appears to either be already in use by other software, or it cannot be directly accessed. Try closing other programs and swapping the USB port if possible.", true, "", { cameraHelp:true })
+				}
 			}
 			 
 			isCameraLoading = false
@@ -2791,8 +2904,10 @@ export const createInterface = (
 
 		// show / hide camera button
 		const updateCameraSelector = videoCameraDevices => {
-			setupCameraForm(videoCameraDevices, onCameraSelected)
-			main.classList.toggle( "multiple-cameras", videoCameraDevices.length > 1 )
+			if (videoCameraDevices.length > 0) {
+				setupCameraForm(videoCameraDevices, onCameraSelected)
+			}
+			main.classList.toggle( "multiple-cameras", usingUploadedMedia ? videoCameraDevices.length > 0 : videoCameraDevices.length > 1 )
 		}
 
 		// check to see if there are multiple cameras and we want a selector
@@ -2802,22 +2917,29 @@ export const createInterface = (
 		}
 
 		// now ensure that we update the list when devices are added
-		navigator.mediaDevices.ondevicechange = async (event) => {
-			
-			// FIXME: Sometimes software triggers updates here where no devices
-			// have been addeed or removed so we should compare first
-			const videoCameraDevices = await fetchVideoCameras()
-			updateCameraSelector( videoCameraDevices )
-			
-			console.info("New Camera Detected", {videoCameraDevices, event })
-			setFeedback( `New cameras detected!`, 0, 'camera' )
+		if (navigator.mediaDevices)
+		{
+			navigator.mediaDevices.ondevicechange = async (event) => {
+				
+				// FIXME: Sometimes software triggers updates here where no devices
+				// have been addeed or removed so we should compare first
+				const videoCameraDevices = await fetchVideoCameras()
+				updateCameraSelector( videoCameraDevices )
+				
+				console.info("New Camera Detected", {videoCameraDevices, event })
+				if (videoCameraDevices.length > 0) {
+					setFeedback( `New cameras detected!`, 0, 'camera' )
+				}
+			}
 		}
 		
-		const cameraFeedbackMessage = investigation.saved ? 
-										"Found saved camera" : 
-										quantityOfCameras > 1 ? 
-											"Located a Camera but you can change it in Settings > Camera" : 
-											"Located front facing camera"		
+		const cameraFeedbackMessage = uploadedMedia ?
+										`Using uploaded ${uploadedMedia.kind}: ${uploadedMedia.name}` :
+										investigation.saved ? 
+											"Found saved camera" : 
+											quantityOfCameras > 1 ? 
+												"Located a Camera but you can change it in Settings > Camera" : 
+												"Located front facing camera"		
 		return {
 			success:true,
 			message:cameraFeedbackMessage
@@ -3013,14 +3135,18 @@ export const createInterface = (
 			}	
 			
 			if (mtvMode && !isPhotosensitiveSafe()) {
+				const vizStart = performance.now()
 				const canvas = butterchurnVisualiser.render(audioContext, getMasterMixdown(), display.width, display.height, mtvMode.preset)
 				if (canvas) display.drawElement(canvas, 0, 0, false, display.width, display.height, { blendMode:mtvMode.blendMode, opacity:normaliseMTVStrength(stateMachine.get('mtvStrength')) })
+				performanceProfiler.recordPhase('visualiser', performance.now() - vizStart)
 			}
 			if (visualiserMode)
 			{
+				const vizStart = performance.now()
 				const audioFrame = sampleVisualiserAudio(analyser, visualiserMode, !!recorder)
 				display.drawVisualiser(audioFrame.frequency, audioFrame.length, visualiserMode.id, audioFrame.time, visualiserNotes.update())
 				if (recorder && waveforms.length < 3600) waveforms.push(audioFrame.frequency.slice())
+				performanceProfiler.recordPhase('visualiser', performance.now() - vizStart)
 			}
 		}
 
@@ -3059,12 +3185,12 @@ export const createInterface = (
 			const assignedPersonIndexes = new Set(personPredictionMatches.map(match => match.personIndex))
 			if (directionsSession) {
 				const challengeSnapshot = directionsSession.update(personPredictionMatches.map(match => match.person), {
-					paused:document.hidden || isRecording() || hasUserStayedAfterTimeout || !stateMachine.get('text') || !!document.querySelector('dialog[open]') || (setFeedback() && !directionOwnsFeedback)
+					paused:document.hidden || isRecording() || hasUserStayedAfterTimeout || !stateMachine.get('text') || hasOpenDialog() || (setFeedback() && !directionOwnsFeedback)
 				})
 				directionsFeedback.render(stateMachine.get('text') ? challengeSnapshot : null)
 			}
 
-
+			const personPhaseStart = performance.now()
 			// to the person that was nearest in the last prediction
 			for (let i=0, l=personPredictionMatches.length; i < l; ++i)
 			{
@@ -3196,6 +3322,7 @@ export const createInterface = (
 					//console.info(index, "KILLING for time" + person.name, person.deadForDuration * 0.001 )
 				}
 			})
+			performanceProfiler.recordPhase('personUpdate', performance.now() - personPhaseStart)
 		// }
 
 		// No predictions to drive the engine...
@@ -3290,6 +3417,7 @@ export const createInterface = (
 		}
 		
 
+		const overlayPhaseStart = performance.now()
 		// update the keyboard if it is available
 		if (musicalKeyboard)
 		{
@@ -3319,10 +3447,13 @@ export const createInterface = (
 		{
 			overlayDisplay?.flushFrame(display?.getParticleContext?.() ?? display?.canvas2DContext ?? null)
 		}
+		performanceProfiler.recordPhase('overlay', performance.now() - overlayPhaseStart)
 
 		// Present after the particles have joined the faces and audio visualiser
 		// on the main canvas, ready for the next MTV feedback frame.
+		const displayPhaseStart = performance.now()
 		display?.render()
+		performanceProfiler.recordPhase('displayRender', performance.now() - displayPhaseStart)
 
 		// finallyu reset this flag
 		if (hasBeatJustPlayed)
@@ -3340,30 +3471,41 @@ export const createInterface = (
 	const USER_HOGGING_SYSTEM_LIMIT = stateMachine.get("restartAfter") ?? 10_000
 	const predictionLoop = async ()=>{
 		frameStallMonitor.beginFrame(inputElement.currentTime)
+		performanceProfiler.beginFrame(inputElement.currentTime)
 
 		const quantityOfActivePlayersPreviously = quantityOfActivePlayers
 
 		if (!isPredictionEngineBusy && shouldLoopBeAllowed())
 		{
-			// console.info("Display:Loop-RENDER")
 			isPredictionEngineBusy = true
 			const inferenceStartedAt = performance.now()
-			//peoplePredictions = await fetchPredictionFromEngine()
 			fetchPredictionFromEngine( clock.now ).then(updatedPrediction=>{
-			 	peoplePredictions = updatedPrediction
+				peoplePredictions = updatedPrediction
 			}).catch(error => {
 				console.error('Face prediction failed', error)
 			}).finally(() => {
 				isPredictionEngineBusy = false
 			})
-			frameStallMonitor.phase('inference', performance.now() - inferenceStartedAt)
-			// isPredictionEngineBusy = false
-			//usePredictions(peoplePredictions)
-			
+			const totalInferenceElapsed = performance.now() - inferenceStartedAt
+			frameStallMonitor.phase('inference', totalInferenceElapsed)
+			if (typeof performanceProfiler !== 'undefined') {
+				const lastMetrics = fetchPredictionFromEngine?.lastMetrics
+				if (lastMetrics?.didRun) {
+					performanceProfiler.recordPhase('inference', lastMetrics.inferenceMs)
+					performanceProfiler.recordPhase('faceCalc', lastMetrics.faceCalcMs)
+					if (lastMetrics.inferenceWidth && lastMetrics.inferenceHeight) {
+						performanceProfiler.updateMetadata({
+							inferenceWidth: lastMetrics.inferenceWidth,
+							inferenceHeight: lastMetrics.inferenceHeight,
+						})
+					}
+				} else if (totalInferenceElapsed > 0.05) {
+					performanceProfiler.recordPhase('inference', totalInferenceElapsed)
+				}
+			}
 		}else{
 			// Re-use the prediction from last time as the prediction engine
 			// is lagging behind the animation loop
-			// console.info("Display:Loop-reuse")
 		}
 		
 		if (peoplePredictions)
@@ -3375,19 +3517,28 @@ export const createInterface = (
 			// first check to see if we have new people or people have left...
 			if (quantityOfActivePlayers !== peoplePredictions.length )
 			{
-				// a person has joined...
-				if (quantityOfActivePlayers < peoplePredictions.length )
-				{
-					// console.info( "people joined!", peoplePredictions.length )
-				
-				}else{
-					// console.info( "people left!", peoplePredictions.length )
-				}
 				quantityOfActivePlayers = peoplePredictions.length
 			}
 		}else{
 			quantityOfActivePlayers = 0
 		}
+
+		if ((counter & 31) === 0) {
+			performanceProfiler.updateMetadata({
+				displayType: display?.type ?? 'none',
+				canvasWidth: display?.width ?? 0,
+				canvasHeight: display?.height ?? 0,
+				overlayWidth: overlayDisplay?.width ?? 0,
+				overlayHeight: overlayDisplay?.height ?? 0,
+				videoWidth: inputElement?.videoWidth || inputElement?.naturalWidth || 0,
+				videoHeight: inputElement?.videoHeight || inputElement?.naturalHeight || 0,
+				activePlayers: quantityOfActivePlayers,
+				audioState: audioContext?.state ?? 'unknown',
+				audioSampleRate: audioContext?.sampleRate ?? 0,
+				audioBaseLatencyMs: (audioContext?.baseLatency ?? 0) * 1000,
+			})
+		}
+		performanceProfiler.endFrame()
 
 		if (quantityOfActivePlayers === 0)
 		{
@@ -3548,6 +3699,7 @@ export const createInterface = (
 		// lag
 		statistics.lag = lag
 		statistics.drift = drift
+		performanceProfiler.recordAudioTiming({ lag, drift })
 
 		// The app has been running for over x amount of time
 		// if (elapsed > TIME_BEFORE_REFRESH)
@@ -3982,8 +4134,9 @@ export const createInterface = (
 
 				if (cameraResult.success === false){
 					setFeedback( "", 0)
-					showErrorCode(getCameraErrorCode(cameraResult.error), {
-						fatal:true,
+					const cameraErrorCode = getCameraErrorCode(cameraResult.error)
+					showErrorCode(cameraErrorCode, {
+						fatal: cameraErrorCode !== 'camera-not-found',
 						details:String(cameraResult.error?.message ?? cameraResult.error ?? '')
 					})
 					return reject(cameraResult.error)
@@ -4894,6 +5047,13 @@ export const createInterface = (
 			inputStatusOverlay.setEnabled(hudEnabled)
 		}, stateMachine.get('hud') )
 
+		if (doc.getElementById("button-stats"))
+		{
+			toggles.stats = setToggle( "button-stats", status => {
+				setStatsEnabled(status)
+			}, stateMachine.get('stats') )
+		}
+
 		const showOverlayToggle = document.getElementById("button-toggle-overlay")
 		if (showOverlayToggle)
 		{
@@ -5216,11 +5376,8 @@ export const createInterface = (
 
 		// pick the body parts and return the method used to create them
 		const modelTypes = []
-		if (stateMachine.get("trackHands"))
-		{
-			modelTypes.push("hands")
-			loadTotal++
-		}
+		// Hand tracking is not yet wired into the prediction loop; avoid importing
+		// its MediaPipe bundle/WASM runtime during startup until it is active.
 		if (stateMachine.get("trackFace"))
 		{
 			modelTypes.push("face")

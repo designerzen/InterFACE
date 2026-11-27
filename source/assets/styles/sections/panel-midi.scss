@@ -1,440 +1,1276 @@
-#folder-midi{
+// MIDI routing drawer, device cards, connection map, CC reference & device guide.
+// Reuses PhotoSYNTH theme tokens (--shade-*), .control-settings, .tabs, .switch,
+// .volume-step-button, details.accordion, and shared SVG icons.
+
+@property --brow-lift { syntax: '<number>'; inherits: false; initial-value: 0; }
+@keyframes MIDIBrowLift {
+	0%, 20% { --brow-lift: 0; }
+	50% { --brow-lift: -1; }
+	80%, 100% { --brow-lift: 0.45; }
+}
+@keyframes midi-device-pulse {
+	0%, 100% { transform: scale(1); opacity: 0.75; }
+	50% { transform: scale(1.7); opacity: 1; }
+}
+
+// Drawer shell & visibility ----------------------------------------------------
+.controls #folder-midi {
+	--midi-surface: var(--shade-dark, #252225);
+	--midi-surface-elevated: color-mix(in srgb, var(--shade-white, #e7dbd5) 7%, var(--midi-surface));
+	--midi-surface-card: color-mix(in srgb, var(--shade-white, #e7dbd5) 4%, var(--midi-surface));
+	--midi-ink: var(--shade-white, #e7dbd5);
+	--midi-muted: color-mix(in srgb, var(--midi-ink) 72%, transparent);
+	--midi-rule: color-mix(in srgb, var(--midi-ink) 20%, transparent);
+	--midi-border: color-mix(in srgb, var(--midi-ink) 32%, transparent);
+	--midi-accent: var(--shade-yellow, #ab8e54);
+	--midi-active: var(--shade-blue, #455c63);
+	--midi-ok: var(--shade-green, #606345);
+	--tabs-border: var(--midi-rule);
+	--tabs-accent: var(--midi-accent);
+	--tabs-hover-background: color-mix(in srgb, var(--midi-ink) 10%, transparent);
+	--tabs-active-background: color-mix(in srgb, var(--midi-ink) 16%, transparent);
+
 	box-sizing: border-box;
-	inline-size: min(58rem, 100vw);
+	position: fixed;
+	inset: max(.5rem, env(safe-area-inset-top)) .5rem max(.5rem, env(safe-area-inset-bottom)) auto;
+	inline-size: min(56rem, calc(100vw - 1rem));
+	max-inline-size: calc(100vw - 1rem);
+	block-size: auto;
+	max-block-size: none;
+	min-block-size: 0;
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background: var(--midi-surface);
+	background-image: none;
+	color: var(--midi-ink);
+	border: 1px solid var(--midi-border);
+	border-radius: var(--curve, .75rem);
+	box-shadow: var(--shadow);
+	font-size: 16px;
+	line-height: 1.45;
+	text-align: left;
+	text-shadow: none;
+
+	&::after { display: none; }
+	> * { flex-grow: 0; min-inline-size: 0; }
+	[hidden] { display: none !important; }
+	:focus-visible { outline: 3px solid var(--midi-accent); outline-offset: 2px; }
+
+	// Isolate MIDI form elements from .controls toolbar tile overrides
+	label {
+		position: static;
+		margin: 0;
+		padding: 0;
+		min-width: 0;
+		min-height: 0;
+		background: none;
+		color: inherit;
+		text-shadow: none;
+		box-shadow: none;
+		&::before, &::after { display: none; }
+		select, input {
+			position: static;
+			inset: auto;
+			order: 0;
+			opacity: 1;
+			overflow: visible;
+			pointer-events: auto;
+		}
+	}
+
+	// Compact PhotoSYNTH pill switch inside header & toggle rows
+	input[type="checkbox"].switch {
+		--width: 5.5rem;
+		--pad: 6px;
+		--button-border-size: 2px;
+		position: relative;
+		flex: 0 0 var(--width);
+		inline-size: var(--width);
+		min-inline-size: var(--width);
+		max-inline-size: var(--width);
+		min-block-size: 36px;
+		block-size: 36px;
+		margin: 0;
+		padding: 0;
+		opacity: 1;
+		order: 0;
+		font-size: .72rem;
+		letter-spacing: .04em;
+		&::before { font-size: inherit; }
+		&::after { padding-top: 0; font-size: inherit; }
+		&:checked::before {
+			background-color: var(--shade-green, #4a7c59);
+			background-image: linear-gradient(
+				color-mix(in srgb, var(--shade-green, #4a7c59) 85%, white),
+				var(--shade-green, #4a7c59)
+			);
+		}
+	}
+}
+
+#control-panel-midi.midi-dismissed #folder-midi,
+#control-panel-midi:not(.midi-open) #folder-midi {
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+	animation: none;
+	* { visibility: hidden; pointer-events: none; }
+}
+#control-panel-midi.midi-open #folder-midi {
+	visibility: visible;
+	opacity: 1;
+	pointer-events: auto;
+	animation: none;
+	transform: none;
+	> * { visibility: visible; }
+}
+
+// Sticky header ----------------------------------------------------------------
+.controls #folder-midi .midi-panel-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: .65rem .85rem;
+	padding: .65rem .85rem;
+	border-block-end: 1px solid var(--midi-rule);
+	background: var(--midi-surface-elevated);
+	z-index: 3;
+}
+
+.controls #folder-midi .midi-panel-brand {
+	display: flex;
+	align-items: center;
+	gap: .6rem;
+	min-inline-size: 0;
+	margin-inline-end: auto;
+}
+
+.controls #folder-midi .midi-panel-icon {
+	flex: 0 0 1.5rem;
+	inline-size: 1.5rem;
+	block-size: 1.5rem;
+	background-color: currentColor;
+	mask: url(/source/assets/icons/midi-copyright-free.svg) center / contain no-repeat;
+	-webkit-mask: url(/source/assets/icons/midi-copyright-free.svg) center / contain no-repeat;
+}
+
+// states.scss hides global h2 while active; explicitly restore visibility here
+.controls #folder-midi .midi-panel-title {
+	display: block;
+	visibility: visible;
+	opacity: 1;
+	width: auto;
+	margin: 0;
+	color: var(--midi-ink);
+	font-size: 1.15rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.controls #folder-midi .midi-device-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: .35rem;
+	padding: .2rem .55rem;
+	border: 1px solid var(--midi-border);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--midi-ink) 8%, transparent);
+	color: var(--midi-muted);
+	font-size: .75rem;
+	font-weight: 600;
+	white-space: nowrap;
+
+	&[data-connected="true"] {
+		border-color: color-mix(in srgb, var(--midi-ok) 80%, white);
+		background: color-mix(in srgb, var(--midi-ok) 35%, transparent);
+		color: var(--midi-ink);
+	}
+}
+
+.controls #folder-midi .midi-panel-header-actions {
+	display: flex;
+	align-items: center;
+	gap: .6rem;
+	flex-wrap: wrap;
+}
+
+.controls #folder-midi .midi-enable {
+	display: inline-flex;
+	align-items: center;
+	gap: .5rem;
+	min-block-size: 44px;
+	font-size: .85rem;
+	font-weight: 600;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+// Shared action & header buttons inside the MIDI panel -------------------------
+.controls #folder-midi :is(.midi-header-button, .midi-action-button, button[data-midi-reset], .midi-device-actions button) {
+	--bg: none;
+	--icon-visible: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: .45rem;
+	position: static;
+	inline-size: auto;
+	min-inline-size: 44px;
 	max-inline-size: 100%;
-	max-block-size: calc(100dvh - env(safe-area-inset-top, 0px));
-	overflow-x: hidden;
+	min-block-size: 44px;
+	block-size: auto;
+	margin: 0;
+	padding: .45rem .85rem;
+	border: 1px solid var(--midi-border);
+	border-radius: calc(var(--curve, .75rem) * .55);
+	background: color-mix(in srgb, var(--midi-ink) 11%, var(--midi-surface));
+	background-image: none;
+	color: var(--midi-ink);
+	font: 600 .88rem/1.2 inherit;
+	letter-spacing: normal;
+	text-transform: none;
+	text-shadow: none;
+	box-shadow: none;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background var(--ease-m, 90ms) ease, border-color var(--ease-m, 90ms) ease;
+
+	&::before, &::after { display: none; }
+	&:hover:not(:disabled) {
+		background: color-mix(in srgb, var(--midi-ink) 18%, var(--midi-surface));
+		border-color: var(--midi-ink);
+	}
+	&:disabled { opacity: .45; cursor: not-allowed; }
+}
+
+// Semantic monochrome SVG icons via mask on ::before
+.controls #folder-midi :is(
+	#midi-cc-open,
+	#midi-cc-sync,
+	[data-midi-open-cc],
+	[data-midi-enable-cta],
+	[data-midi-guide],
+	[data-midi-test],
+	[data-midi-reset]
+)::before {
+	content: "";
+	display: inline-block;
+	position: static;
+	flex: 0 0 1.1rem;
+	inline-size: 1.1rem;
+	block-size: 1.1rem;
+	background-color: currentColor;
+	mask-position: center;
+	mask-repeat: no-repeat;
+	mask-size: contain;
+	-webkit-mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: contain;
+}
+
+.controls #folder-midi #midi-cc-open::before,
+.controls #folder-midi [data-midi-open-cc]::before {
+	mask-image: url(/source/assets/icons/view_list-24px.svg);
+	-webkit-mask-image: url(/source/assets/icons/view_list-24px.svg);
+}
+.controls #folder-midi #midi-cc-sync::before {
+	mask-image: url(/source/assets/icons/send.svg);
+	-webkit-mask-image: url(/source/assets/icons/send.svg);
+}
+.controls #folder-midi [data-midi-enable-cta]::before {
+	mask-image: url(/source/assets/icons/midi-copyright-free.svg);
+	-webkit-mask-image: url(/source/assets/icons/midi-copyright-free.svg);
+}
+.controls #folder-midi [data-midi-guide]::before {
+	mask-image: url(/source/assets/icons/help_outline_black_24dp.svg);
+	-webkit-mask-image: url(/source/assets/icons/help_outline_black_24dp.svg);
+}
+.controls #folder-midi [data-midi-test]::before {
+	mask-image: url(/source/assets/icons/music_note-24px.svg);
+	-webkit-mask-image: url(/source/assets/icons/music_note-24px.svg);
+}
+.controls #folder-midi [data-midi-reset]::before {
+	mask-image: url(/source/assets/icons/autorenew_black_24dp.svg);
+	-webkit-mask-image: url(/source/assets/icons/autorenew_black_24dp.svg);
+}
+
+.controls #folder-midi :is(#midi-cc-sync, [data-midi-enable-cta]) {
+	border-color: color-mix(in srgb, var(--midi-accent) 70%, var(--midi-ink));
+	background: color-mix(in srgb, var(--midi-accent) 26%, var(--midi-surface));
+	&:hover:not(:disabled) {
+		background: color-mix(in srgb, var(--midi-accent) 38%, var(--midi-surface));
+	}
+}
+
+// Tabs & scroll container ------------------------------------------------------
+.controls #folder-midi #midi-tabs {
+	min-block-size: 0;
+	block-size: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+
+	> .tabs-list {
+		background: color-mix(in srgb, var(--midi-surface-elevated) 70%, var(--midi-surface));
+		padding: .35rem .85rem;
+		gap: .4rem;
+		> .tab {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: .45rem;
+			font-size: .92rem;
+			font-weight: 600;
+			color: var(--midi-muted);
+			&[aria-selected="true"] { color: var(--midi-ink); }
+		}
+	}
+}
+
+.controls #folder-midi .midi-tab-icon {
+	flex: 0 0 1.1rem;
+	inline-size: 1.1rem;
+	block-size: 1.1rem;
+	background-color: currentColor;
+	mask-position: center;
+	mask-repeat: no-repeat;
+	mask-size: contain;
+	-webkit-mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: contain;
+}
+.controls #folder-midi .midi-tab-icon-devices {
+	mask-image: url(/source/assets/icons/cable.svg);
+	-webkit-mask-image: url(/source/assets/icons/cable.svg);
+}
+.controls #folder-midi .midi-tab-icon-controls {
+	mask-image: url(/source/assets/icons/equalizer.svg);
+	-webkit-mask-image: url(/source/assets/icons/equalizer.svg);
+}
+
+.controls #folder-midi .midi-panel-scroll {
+	flex: 1 1 auto;
+	min-block-size: 0;
 	overflow-y: auto;
+	overflow-x: hidden;
 	overscroll-behavior: contain;
 	scrollbar-gutter: stable;
+	padding: clamp(.75rem, 2vw, 1.25rem);
+	scroll-padding-block: .75rem;
+	touch-action: pan-y;
+	position: relative;
 }
 
-#midi-panel{
-	box-shadow: none;
-	inline-size: min(56rem, calc(100vw - (var(--pad) * 2)));
+.controls #folder-midi #midi-panel {
+	box-sizing: border-box;
+	inline-size: 100%;
 	min-inline-size: 0;
 	max-inline-size: 100%;
-	margin-inline: auto;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	box-shadow: none;
 	display: grid;
 	align-content: start;
-	gap: calc(var(--pad) * .65);
-	color: var(--shade-white, #fff);
+	gap: 1.25rem;
+	color: var(--midi-ink);
+	pointer-events: auto;
+	> *, fieldset > * { animation: none; pointer-events: auto; }
 }
 
-#midi-monitor{ display: grid; align-content: start; gap: calc(var(--pad) * .6); border-block-start: 1px solid currentColor; padding-block-start: calc(var(--pad) * .6); }
-#midi-monitor-title{
-	position: sticky;
-	top: 0;
-	z-index: 2;
-	margin: 0;
-	padding-block: .25rem;
-	background: var(--col-bottom, #090505);
-	font-size: clamp(1rem, 2vw, 1.35rem);
+.controls #folder-midi .tabs-panel {
+	overflow: visible;
+	display: grid;
+	align-content: start;
+	gap: 1.25rem;
 }
-#midi-monitor-devices{
+
+// Empty state ------------------------------------------------------------------
+#midi-monitor {
+	display: grid;
+	align-content: start;
+	gap: 1rem;
+}
+
+.midi-empty-state {
+	display: grid;
+	justify-items: center;
+	gap: .75rem;
+	padding: clamp(1.75rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem);
+	border: 1px dashed var(--midi-border);
+	border-radius: var(--curve, .75rem);
+	background: var(--midi-surface-card);
+	text-align: center;
+}
+
+.midi-empty-graphics {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: .75rem;
+	margin-block-end: .25rem;
+}
+
+.midi-empty-badge {
+	display: grid;
+	place-items: center;
+	inline-size: 3.5rem;
+	block-size: 3.5rem;
+	border-radius: 50%;
+	border: 1px solid var(--midi-border);
+	background: color-mix(in srgb, var(--midi-ink) 8%, transparent);
+	&::before {
+		content: "";
+		inline-size: 1.9rem;
+		block-size: 1.9rem;
+		background-color: var(--midi-ink);
+		opacity: .85;
+		mask-position: center;
+		mask-repeat: no-repeat;
+		mask-size: contain;
+		-webkit-mask-position: center;
+		-webkit-mask-repeat: no-repeat;
+		-webkit-mask-size: contain;
+	}
+}
+.midi-empty-badge-din::before {
+	mask-image: url(/source/assets/icons/midi-copyright-free.svg);
+	-webkit-mask-image: url(/source/assets/icons/midi-copyright-free.svg);
+}
+.midi-empty-badge-usb::before {
+	mask-image: url(/source/assets/icons/usb.svg);
+	-webkit-mask-image: url(/source/assets/icons/usb.svg);
+}
+
+.midi-empty-title {
+	margin: 0;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--midi-ink);
+}
+
+.midi-empty-copy {
+	margin: 0;
+	max-inline-size: 42ch;
+	color: var(--midi-muted);
+	font-size: .9rem;
+	line-height: 1.5;
+}
+
+.midi-empty-listening {
+	display: inline-flex;
+	align-items: center;
+	gap: .45rem;
+	margin: .25rem 0 0;
+	padding: .35rem .8rem;
+	border: 1px solid color-mix(in srgb, var(--midi-ok) 75%, white);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--midi-ok) 25%, transparent);
+	color: var(--midi-ink);
+	font-size: .82rem;
+	font-weight: 600;
+}
+
+.midi-status-dot {
+	inline-size: .55rem;
+	block-size: .55rem;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--midi-ok) 60%, #70df91);
+	box-shadow: 0 0 .5rem currentColor;
+}
+
+#control-panel-midi.open .midi-status-dot,
+#control-panel-midi.midi-open .midi-status-dot,
+#folder-midi:target .midi-status-dot {
+	animation: midi-device-pulse 2s ease-out infinite;
+}
+
+#folder-midi:has(#toggle-midi:checked) .midi-empty-enable { display: none; }
+#folder-midi:not(:has(#toggle-midi:checked)) .midi-empty-listening { display: none; }
+
+// Expression & CC settings groups (reuses .control-settings conventions) -------
+.controls #folder-midi .midi-settings-group {
+	display: grid;
+	gap: 1rem;
+	min-inline-size: 0;
+	margin: 0;
+	padding: 1.15rem;
+	border: 1px solid var(--midi-rule);
+	border-radius: var(--curve, .75rem);
+	background: var(--midi-surface-card);
+	box-shadow: none;
+}
+
+.controls #folder-midi .midi-section-heading {
+	float: left;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: .55rem;
+	margin: 0 0 .25rem;
+	padding: 0;
+	color: var(--midi-ink);
+	font-size: 1.05rem;
+	font-weight: 700;
+	text-align: left;
+	text-shadow: none;
+	& + * { clear: both; }
+	&::before {
+		content: "";
+		flex: 0 0 1.25rem;
+		inline-size: 1.25rem;
+		block-size: 1.25rem;
+		background-color: var(--midi-accent);
+		mask-position: center;
+		mask-repeat: no-repeat;
+		mask-size: contain;
+		-webkit-mask-position: center;
+		-webkit-mask-repeat: no-repeat;
+		-webkit-mask-size: contain;
+	}
+}
+.controls #folder-midi .midi-heading-eyebrow::before {
+	mask-image: url(/source/assets/icons/gesture.svg);
+	-webkit-mask-image: url(/source/assets/icons/gesture.svg);
+}
+.controls #folder-midi .midi-heading-cc::before {
+	mask-image: url(/source/assets/icons/settings_input_component_black_24dp.svg);
+	-webkit-mask-image: url(/source/assets/icons/settings_input_component_black_24dp.svg);
+}
+
+// Eyebrow expression SVG preview (matches Head movement panel face style) ------
+.midi-eyebrow-layout {
+	display: grid;
+	grid-template-columns: 6.25rem minmax(0, 1fr);
+	align-items: center;
+	gap: 1rem 1.25rem;
+}
+
+.controls #folder-midi .midi-eyebrow-preview {
+	// base.scss fixes aria-hidden svgs in place; put this back into flow
+	position: static;
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+	overflow: visible;
+	pointer-events: none;
+}
+.midi-eyebrow-skull {
+	fill: color-mix(in srgb, var(--midi-ink) 8%, transparent);
+	stroke: var(--midi-ink);
+	stroke-width: 2.5;
+}
+.midi-eyebrow-guide {
+	stroke: var(--midi-accent);
+	stroke-width: 1.5;
+	stroke-dasharray: 4 4;
+	opacity: .75;
+}
+.midi-eyebrow-features {
+	fill: var(--midi-ink);
+	path { fill: none; stroke: var(--midi-ink); stroke-width: 2.5; stroke-linecap: round; }
+}
+.midi-eyebrow-brows {
+	fill: none;
+	stroke: var(--midi-accent);
+	stroke-width: 3;
+	stroke-linecap: round;
+	translate: 0 calc(var(--brow-lift) * 6px);
+	animation: MIDIBrowLift 2.6s ease-in-out infinite;
+}
+
+.midi-fields-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+	gap: 1rem;
+	min-inline-size: 0;
+}
+
+.controls #folder-midi .midi-field {
+	display: grid;
+	gap: .45rem;
+	align-content: start;
+	min-inline-size: 0;
+
+	> label {
+		font-size: .88rem;
+		font-weight: 600;
+		color: var(--midi-ink);
+	}
+}
+
+.controls #folder-midi .midi-toggle-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .75rem;
+	min-block-size: 44px;
+	padding: .45rem .75rem;
+	border: 1px solid var(--midi-rule);
+	border-radius: calc(var(--curve, .75rem) * .55);
+	background: color-mix(in srgb, var(--midi-ink) 5%, transparent);
+
+	> label {
+		font-size: .92rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+}
+
+// Visible selects (both customizable base-select & native fallback) ------------
+.controls #folder-midi select {
+	box-sizing: border-box;
+	position: static;
+	inset: auto;
+	opacity: 1;
+	order: 0;
+	inline-size: 100%;
+	min-inline-size: 0;
+	max-inline-size: 100%;
+	min-block-size: 44px;
+	padding: .5rem .8rem;
+	border: 1px solid var(--midi-border);
+	border-radius: calc(var(--curve, .75rem) * .55);
+	background-color: var(--midi-surface);
+	color: var(--midi-ink);
+	font: 500 .92rem/1.3 inherit;
+	text-align: left;
+	cursor: pointer;
+	&:hover:not(:disabled) { border-color: var(--midi-ink); }
+	&:disabled { opacity: .45; cursor: not-allowed; }
+	option { background: var(--midi-surface); color: var(--midi-ink); }
+}
+
+@supports (appearance: base-select) {
+	.controls #folder-midi #midi-eyebrow-mode {
+		appearance: base-select;
+		display: inline-flex;
+		align-items: center;
+		gap: .5rem;
+		&::picker-icon { opacity: 1; color: var(--midi-muted); }
+	}
+}
+
+// Numeric steppers (reuses .volume-step-button pattern from volume & head) -----
+.controls #folder-midi .midi-stepper {
+	display: grid;
+	grid-template-columns: 44px minmax(0, 1fr) 44px;
+	gap: .35rem;
+	align-items: stretch;
+
+	input[type="number"] {
+		box-sizing: border-box;
+		position: static;
+		opacity: 1;
+		inline-size: 100%;
+		min-inline-size: 0;
+		min-block-size: 44px;
+		padding: .35rem .5rem;
+		border: 1px solid var(--midi-border);
+		border-radius: calc(var(--curve, .75rem) * .55);
+		background: var(--midi-surface);
+		color: var(--midi-ink);
+		font: 700 1.05rem/1.2 ui-monospace, monospace;
+		font-variant-numeric: tabular-nums;
+		text-align: center;
+		appearance: textfield;
+		-moz-appearance: textfield;
+		&::-webkit-inner-spin-button,
+		&::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+		&:disabled { opacity: .45; cursor: not-allowed; }
+	}
+
+	.midi-step-button {
+		--bg: none;
+		--icon-visible: 0;
+		inline-size: 44px;
+		min-inline-size: 44px;
+		block-size: 44px;
+		min-block-size: 44px;
+		margin: 0;
+		padding: 0;
+		border: 1px solid var(--midi-border);
+		border-radius: calc(var(--curve, .75rem) * .55);
+		background: color-mix(in srgb, var(--midi-ink) 11%, var(--midi-surface));
+		background-image: none;
+		color: var(--midi-ink);
+		font-size: 1.35rem;
+		font-weight: 600;
+		text-shadow: none;
+		box-shadow: none;
+		&::before, &::after { display: none; }
+		&:hover:not(:disabled) {
+			background: color-mix(in srgb, var(--midi-ink) 18%, var(--midi-surface));
+			border-color: var(--midi-ink);
+		}
+		&:disabled { opacity: .4; cursor: not-allowed; }
+	}
+}
+
+.midi-help {
+	margin: 0;
+	color: var(--midi-muted);
+	font-size: .86rem;
+	line-height: 1.5;
+}
+
+.midi-cc-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .6rem;
+	align-items: center;
+}
+
+// Connected devices, presets & connection diagram ------------------------------
+#midi-routing-summary { margin: 0; color: var(--midi-muted); font-size: .88rem; line-height: 1.5; }
+
+#midi-monitor-devices {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	grid-auto-rows: max-content;
 	align-content: start;
-	align-items: start;
-	gap: calc(var(--pad) * .45);
+	gap: 1rem;
 }
-.midi-device-card{
-	position: relative;
+
+.midi-presets,
+.midi-connection-map {
 	display: grid;
-	grid-template-columns: minmax(12rem, 1fr) minmax(20rem, auto);
+	gap: .6rem;
+	min-inline-size: 0;
+}
+.midi-presets h4,
+.midi-presets p,
+.midi-connection-map > p { margin: 0; }
+.midi-presets > p:first-of-type,
+.midi-connection-map > p { font-size: .84rem; line-height: 1.45; color: var(--midi-muted); }
+
+.midi-preset-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .6rem;
+}
+
+.controls #folder-midi button.midi-preset {
+	--bg: none;
+	--icon-visible: 0;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-areas: "icon title" "desc desc" "note note";
 	align-items: center;
 	align-content: start;
-	gap: calc(var(--pad) * .75);
+	gap: .35rem .55rem;
+	inline-size: 100%;
 	min-inline-size: 0;
-	padding: calc(var(--pad) * .6) calc(var(--pad) * .75);
-	border: 1px solid color-mix(in srgb, var(--shade-white, #fff) 32%, transparent);
-	border-radius: calc(var(--curve, .5rem) * .75);
-	background: color-mix(in srgb, #090505 94%, var(--shade-white, #fff));
-	color: var(--shade-white, #fff);
-	overflow: hidden;
+	max-inline-size: none;
+	block-size: auto;
+	min-block-size: 0;
+	margin: 0;
+	padding: .75rem .85rem;
+	border: 1px solid var(--midi-rule);
+	border-radius: calc(var(--curve, .75rem) * .7);
+	background: var(--midi-surface-card);
+	background-image: none;
+	color: var(--midi-ink);
+	text-align: start;
+	white-space: normal;
+	font: inherit;
+	text-transform: none;
+	letter-spacing: normal;
+	text-shadow: none;
+	box-shadow: none;
+	cursor: pointer;
+
+	&::before {
+		content: "";
+		grid-area: icon;
+		display: block;
+		position: static;
+		inline-size: 1.15rem;
+		block-size: 1.15rem;
+		background-color: var(--midi-accent);
+		mask-position: center;
+		mask-repeat: no-repeat;
+		mask-size: contain;
+		-webkit-mask-position: center;
+		-webkit-mask-repeat: no-repeat;
+		-webkit-mask-size: contain;
+	}
+	&::after { display: none; }
+	&[data-midi-preset="auto"]::before {
+		mask-image: url(/source/assets/icons/auto_awesome-24px.svg);
+		-webkit-mask-image: url(/source/assets/icons/auto_awesome-24px.svg);
+	}
+	&[data-midi-preset="shared"]::before {
+		mask-image: url(/source/assets/icons/hub.svg);
+		-webkit-mask-image: url(/source/assets/icons/hub.svg);
+	}
+	&[data-midi-preset="dedicated"]::before {
+		mask-image: url(/source/assets/icons/swap_horiz.svg);
+		-webkit-mask-image: url(/source/assets/icons/swap_horiz.svg);
+	}
+	&[data-midi-preset="broadcast"]::before {
+		mask-image: url(/source/assets/icons/route.svg);
+		-webkit-mask-image: url(/source/assets/icons/route.svg);
+	}
+
+	> strong { grid-area: title; font-size: .92rem; }
+	> span { grid-area: desc; font-size: .8rem; line-height: 1.4; color: var(--midi-muted); }
+	> small { grid-area: note; font-size: .74rem; line-height: 1.35; color: var(--midi-accent); }
+
+	&:hover:not(:disabled) {
+		border-color: var(--midi-border);
+		background: var(--midi-surface-elevated);
+	}
+	&[aria-pressed="true"] {
+		border-color: var(--midi-accent);
+		background: color-mix(in srgb, var(--midi-active) 45%, var(--midi-surface));
+		box-shadow: inset 0 0 0 1px var(--midi-accent);
+	}
+	&:disabled { opacity: .45; cursor: not-allowed; }
 }
-.midi-device-card[data-midi-direction="input"]{ grid-template-columns: minmax(0, 1fr); }
-.midi-device-card header{ display: flex; align-items: start; justify-content: space-between; gap: var(--pad); }
-.midi-device-name{ min-inline-size: 0; }
-.midi-device-card h4{ margin: 0; color: inherit; font-size: clamp(1rem, 1.5vw, 1.35rem); line-height: 1.05; overflow-wrap: anywhere; }
-.midi-device-status{ display: grid; justify-items: end; flex: 0 0 auto; gap: .35rem; }
-.midi-device-kind{ font-size: .68rem; letter-spacing: .08em; text-transform: none; color: color-mix(in srgb, currentColor 72%, transparent); }
-.midi-device-manufacturer{ margin: .2rem 0 0; color: color-mix(in srgb, currentColor 72%, transparent); font-size: .74rem; line-height: 1.15; }
-.midi-device-activity{
+
+.midi-shared-target { max-inline-size: 25rem; }
+.midi-preset-status { color: var(--midi-accent); font-size: .84rem; font-weight: 600; }
+
+// Visual connection diagram ----------------------------------------------------
+.midi-connection-map {
+	margin: 0;
+	padding: .9rem;
+	border: 1px solid var(--midi-rule);
+	border-radius: var(--curve, .75rem);
+	background: var(--midi-surface-card);
+	figcaption { font-size: 1rem; font-weight: 700; text-align: left; }
+}
+
+.midi-map-row {
+	--route-colour: color-mix(in srgb, var(--midi-ink) 70%, var(--midi-active));
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(6.5rem, .65fr) minmax(0, 1fr);
+	align-items: center;
+	padding-block: .3rem;
+}
+
+.midi-map-node {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: .15rem .55rem;
+	min-inline-size: 0;
+	padding: .6rem .7rem;
+	border: 1px solid color-mix(in srgb, var(--route-colour) 55%, var(--midi-rule));
+	border-radius: calc(var(--curve, .75rem) * .55);
+	background: var(--midi-surface-elevated);
+	overflow-wrap: anywhere;
+
+	&:not(:has(.midi-map-node-icon)) { grid-template-columns: minmax(0, 1fr); }
+	.midi-map-node-icon {
+		grid-row: 1 / span 2;
+		inline-size: 1.5rem;
+		block-size: 1.5rem;
+		object-fit: contain;
+	}
+	img.midi-map-node-icon {
+		padding: .15rem;
+		border-radius: .3rem;
+		background: var(--shade-white, #fff);
+	}
+	span.midi-map-node-icon {
+		display: block;
+		background-color: var(--route-colour);
+		mask-position: center;
+		mask-repeat: no-repeat;
+		mask-size: contain;
+		-webkit-mask-position: center;
+		-webkit-mask-repeat: no-repeat;
+		-webkit-mask-size: contain;
+	}
+	.midi-map-icon-person {
+		mask-image: url(/source/assets/icons/face.svg);
+		-webkit-mask-image: url(/source/assets/icons/face.svg);
+	}
+	.midi-map-icon-device {
+		mask-image: url(/source/assets/icons/midi-copyright-free.svg);
+		-webkit-mask-image: url(/source/assets/icons/midi-copyright-free.svg);
+	}
+	.midi-map-icon-app {
+		mask-image: url(/source/assets/icons/piano-24px.svg);
+		-webkit-mask-image: url(/source/assets/icons/piano-24px.svg);
+	}
+	strong { font-size: .86rem; line-height: 1.25; }
+	small { font-size: .72rem; line-height: 1.35; color: var(--midi-muted); }
+}
+
+.midi-map-person { border-inline-start: .3rem solid var(--route-colour); }
+.midi-map-targets { display: grid; gap: .45rem; }
+
+.midi-map-wire {
+	min-inline-size: 0;
+	color: var(--route-colour);
+	text-align: center;
+	span { display: block; font-size: .72rem; padding: 0 .35rem .35rem; }
+	i {
+		position: relative;
+		display: block;
+		border-block-start: 2px solid currentColor;
+		&::after {
+			content: "";
+			position: absolute;
+			right: 0;
+			top: -5px;
+			border-block: 4px solid transparent;
+			border-inline-start: 7px solid currentColor;
+		}
+	}
+}
+.midi-map-row.is-unrouted .midi-map-wire i { border-block-start-style: dashed; opacity: .5; }
+
+.midi-map-unused {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .5rem;
+	border-block-start: 1px solid var(--midi-rule);
+	padding-block-start: .7rem;
+	font-size: .8rem;
+	> span { grid-column: 1 / -1; color: var(--midi-muted); }
+}
+
+// Accordions & per-person fine-tuning ------------------------------------------
+.controls #folder-midi details.accordion {
+	display: grid;
+	gap: .65rem;
+	margin: 0;
+	> summary {
+		--bg: none;
+		--icon: none;
+		padding: .75rem 1rem;
+		font-size: .94rem;
+		font-weight: 700;
+		border-radius: calc(var(--curve, .75rem) * .6);
+	}
+}
+
+.midi-person-route {
+	display: grid;
+	grid-template-columns: minmax(5rem, .7fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+	align-items: center;
+	gap: .65rem;
+	padding-block: .65rem;
+	border-block-end: 1px solid var(--midi-rule);
+	strong { overflow-wrap: anywhere; }
+}
+
+.midi-port-cards {
+	display: grid;
+	gap: .75rem;
+	padding-block: .25rem;
+}
+
+// Device cards -----------------------------------------------------------------
+.midi-device-card {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	align-content: start;
+	gap: .65rem;
+	min-inline-size: 0;
+	padding: .85rem;
+	border: 1px solid var(--midi-border);
+	border-radius: calc(var(--curve, .75rem) * .7);
+	background: var(--midi-surface-card);
+	color: var(--midi-ink);
+	overflow: hidden;
+
+	header {
+		display: flex;
+		align-items: start;
+		justify-content: space-between;
+		gap: .75rem;
+		&:has(.midi-device-icon) {
+			justify-content: start;
+			.midi-device-status { margin-inline-start: auto; }
+		}
+	}
+	h4 { margin: 0; color: inherit; font-size: 1.05rem; line-height: 1.15; overflow-wrap: anywhere; }
+}
+
+.midi-device-icon {
+	flex: 0 0 auto;
+	inline-size: 2.5rem;
+	block-size: 2.5rem;
+	padding: .3rem;
+	border-radius: .4rem;
+	background: var(--shade-white, #fff);
+	object-fit: contain;
+}
+.midi-device-name { min-inline-size: 0; }
+.midi-device-status { display: grid; justify-items: end; flex: 0 0 auto; gap: .3rem; }
+.midi-device-kind {
+	padding: .1rem .45rem;
+	border: 1px solid var(--midi-rule);
+	border-radius: 999px;
+	font-size: .7rem;
+	font-weight: 600;
+	letter-spacing: .04em;
+	color: var(--midi-muted);
+}
+.midi-device-manufacturer { margin: .2rem 0 0; color: var(--midi-muted); font-size: .78rem; line-height: 1.2; }
+.midi-device-connection { margin: 0; font-size: .8rem; color: var(--midi-muted); overflow-wrap: anywhere; }
+
+.midi-device-activity {
 	display: flex;
 	align-items: center;
 	gap: .4rem;
 	min-block-size: 1rem;
 	max-inline-size: 15rem;
-	font: .7rem/1 ui-monospace, monospace;
-	color: color-mix(in srgb, currentColor 68%, transparent);
+	font: .72rem/1 ui-monospace, monospace;
+	color: var(--midi-muted);
+	&::before {
+		content: "";
+		inline-size: .55rem;
+		block-size: .55rem;
+		flex: 0 0 auto;
+		border-radius: 50%;
+		background: currentColor;
+		box-shadow: 0 0 0 0 currentColor;
+	}
+	span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
-.midi-device-activity::before{
-	content: "";
-	inline-size: .55rem;
-	block-size: .55rem;
-	flex: 0 0 auto;
-	border-radius: 50%;
-	background: currentColor;
-	box-shadow: 0 0 0 0 currentColor;
+.midi-device-card[data-activity="input"] .midi-device-activity { color: #70df91; }
+.midi-device-card[data-activity="output"] .midi-device-activity { color: #7fc8ff; }
+.midi-device-card.is-active .midi-device-activity::before { animation: midi-device-pulse .55s ease-out; }
+
+.midi-device-routes {
+	border-block-start: 1px solid var(--midi-rule);
+	padding-block-start: .55rem;
+	display: grid;
+	gap: .45rem;
+	p { margin: 0; font-size: .88rem; line-height: 1.45; overflow-wrap: anywhere; }
 }
-.midi-device-activity span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.midi-device-card[data-activity="input"] .midi-device-activity{ color: var(--green, #70df91); }
-.midi-device-card[data-activity="output"] .midi-device-activity{ color: var(--blue, #7fc8ff); }
-.midi-device-card.is-active .midi-device-activity::before{ animation: midi-device-pulse .55s ease-out; }
-.midi-device-routing{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 10rem); align-items: end; gap: calc(var(--pad) * .6); margin: 0; padding: 0; border: 0; }
-.midi-device-assignment{ display: grid; min-inline-size: 0; gap: .35rem; }
-.midi-device-routing-label{ color: color-mix(in srgb, currentColor 78%, transparent); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: none; }
-.midi-device-people{ display: flex; flex-wrap: wrap; gap: .4rem; }
-.midi-device-person{
-	display: inline-flex;
-	align-items: center;
-	gap: .35rem;
-	min-block-size: 2rem;
-	padding: .3rem .5rem;
-	border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
-	border-radius: calc(var(--curve, .5rem) * .5);
-	background: color-mix(in srgb, currentColor 6%, transparent);
+
+.midi-device-channel {
+	display: grid;
+	gap: .3rem;
 	color: inherit;
-	font-size: .78rem;
-	cursor: pointer;
+	font-size: .82rem;
+	font-weight: 600;
 }
-.controls #folder-midi .midi-device-person::before,
-.controls #folder-midi .midi-device-channel::before{ display: none; }
-.midi-device-person:has(input:checked){ border-color: var(--shade-active, #7fc8ff); background: color-mix(in srgb, var(--shade-active, #7fc8ff) 24%, transparent); }
-.controls #folder-midi .midi-device-person input{
-	position: static;
-	inset: auto;
-	inline-size: 1rem;
-	block-size: 1rem;
-	min-inline-size: 1rem;
-	max-inline-size: 1rem;
-	margin: 0;
-	border: revert;
-	appearance: auto;
-	opacity: 1;
-	overflow: visible;
-}
-.midi-device-channel{ display: grid; gap: .35rem; color: inherit; }
-.controls #folder-midi .midi-device-channel select{
-	display: block;
-	position: static;
-	inset: auto;
-	inline-size: 100%;
-	min-inline-size: 0;
-	max-inline-size: none;
-	min-block-size: 2.1rem;
-	padding: .35rem 1.6rem .35rem .55rem;
-	border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
-	border-radius: calc(var(--curve, .5rem) * .5);
-	background-color: #171313;
-	color: var(--shade-white, #fff);
-	font: inherit;
-	font-size: .78rem;
-	appearance: auto;
-	opacity: 1;
-	overflow: visible;
-}
-.midi-device-channel option{ background: #171313; color: var(--shade-white, #fff); }
-.midi-device-card header:has(.midi-device-icon){ justify-content: start; }
-.midi-device-card header:has(.midi-device-icon) .midi-device-status{ margin-inline-start: auto; }
-.midi-device-icon{ flex: 0 0 auto; inline-size: 2.4rem; block-size: 2.4rem; padding: .3rem; border-radius: .4rem; background: var(--shade-white, #fff); object-fit: contain; }
-.midi-device-match,
-.midi-device-actions,
-.midi-device-about{ grid-column: 1 / -1; }
-.midi-device-match{ margin: 0; font-size: .78rem; line-height: 1.4; color: color-mix(in srgb, currentColor 82%, transparent); }
-.midi-device-match[data-matched-by="unmatched"]{ color: var(--yellow, #ffce86); }
-.midi-device-actions{ display: flex; flex-wrap: wrap; align-items: end; gap: calc(var(--pad) * .6); }
-.midi-device-actions .midi-device-channel{ flex: 1 1 14rem; min-inline-size: 0; }
-.midi-device-about > summary{ cursor: pointer; padding-block: .35rem; font-size: .82rem; font-weight: 700; }
-.midi-device-about[open]{ display: grid; gap: calc(var(--pad) * .5); }
-.midi-device-about section{ display: grid; gap: .3rem; }
-.midi-device-about h5{ margin: 0; font-size: .7rem; letter-spacing: .06em; color: color-mix(in srgb, currentColor 72%, transparent); }
-.midi-device-about p{ margin: 0; font-size: .78rem; line-height: 1.45; }
-.midi-device-identity{ display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .2rem .8rem; margin: 0; font-size: .76rem; }
-.midi-device-identity dt{ color: color-mix(in srgb, currentColor 72%, transparent); }
-.midi-device-identity dd{ margin: 0; overflow-wrap: anywhere; font-family: var(--font-mono, ui-monospace, monospace); }
-.midi-device-tags{ display: flex; flex-wrap: wrap; gap: .3rem; margin: 0; padding: 0; list-style: none; }
-.midi-device-tags li{ padding: .15rem .5rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 1rem; font-size: .72rem; }
-.midi-device-list{ display: grid; gap: .2rem; margin: 0; padding-inline-start: 1.1rem; font-size: .76rem; }
-.midi-device-list a{ color: inherit; }
-.midi-device-mappings{ border-collapse: collapse; font-size: .76rem; }
-.midi-device-mappings th{ padding: .15rem .8rem .15rem 0; font-weight: 400; text-align: start; }
-.midi-device-mappings td{ font-family: var(--font-mono, ui-monospace, monospace); }
-.midi-device-diagrams{ display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: calc(var(--pad) * .5); }
-.midi-device-diagrams figure{ display: grid; gap: .3rem; margin: 0; }
-.midi-device-diagrams img{ inline-size: 100%; block-size: auto; max-block-size: 16rem; padding: .4rem; border-radius: .4rem; background: var(--shade-white, #fff); object-fit: contain; }
-.midi-device-diagrams figcaption{ font-size: .7rem; color: color-mix(in srgb, currentColor 72%, transparent); }
-@keyframes midi-device-pulse{ 50%{ transform: scale(1.7); box-shadow: 0 0 .8rem currentColor; } }
-@media (prefers-reduced-motion: reduce){ .midi-device-card.is-active .midi-device-activity::before{ animation: none; } }
-@media (max-width: 48rem){
-	.midi-device-card{ grid-template-columns: minmax(0, 1fr); }
-	.midi-device-routing{ grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 10rem); }
-}
-@media (max-width: 30rem){ .midi-device-routing{ grid-template-columns: 1fr; } }
 
-#no-midi-devices{
+.midi-device-people {
 	display: flex;
-	flex-direction: column;
+	flex-wrap: wrap;
+	gap: .35rem .8rem;
+	margin: .25rem 0 0;
+	padding: .5rem .65rem;
+	border: 1px solid var(--midi-rule);
+	border-radius: .45rem;
+	font-size: .8rem;
+	legend { padding-inline: .3rem; font-weight: 700; }
+	label { display: inline-flex; align-items: center; gap: .35rem; min-block-size: 32px; cursor: pointer; }
+	input[type="checkbox"] { appearance: auto; inline-size: 1.05rem; block-size: 1.05rem; accent-color: var(--midi-accent); }
+	small { flex-basis: 100%; color: var(--midi-muted); }
+}
+
+.midi-device-echo {
+	display: flex;
 	align-items: center;
-	gap:var(--pad);
-	box-shadow: none;
+	gap: .4rem;
+	margin-block-start: .25rem;
+	font-size: .82rem;
+	cursor: pointer;
+	input[type="checkbox"] { appearance: auto; inline-size: 1.05rem; block-size: 1.05rem; accent-color: var(--midi-accent); }
+	+ small { display: block; font-size: .74rem; color: var(--midi-muted); }
 }
 
-#no-midi-devices[hidden]{
-	display: none;
+.midi-device-match {
+	margin: 0;
+	font-size: .8rem;
+	line-height: 1.4;
+	color: var(--midi-muted);
+	&[data-matched-by="unmatched"] { color: var(--midi-accent); }
 }
 
-#toggle-midi{
-	opacity: 1;
-}
-
-label[for="waiting-for-midi-devices"]{
+.midi-device-actions {
 	display: flex;
-	gap:var(--pad);
-    align-items: center;
-	flex-direction: row-reverse;
+	flex-wrap: wrap;
+	align-items: end;
+	gap: .6rem;
+	.midi-device-channel { flex: 1 1 14rem; min-inline-size: 0; }
 }
 
-#waiting-for-midi-devices{
-	--size:1rem; 
+.midi-device-about {
+	> summary { cursor: pointer; padding-block: .35rem; font-size: .84rem; font-weight: 700; }
+	&[open] { display: grid; gap: .6rem; }
+	section { display: grid; gap: .3rem; }
+	h5 { margin: 0; font-size: .74rem; letter-spacing: .05em; color: var(--midi-muted); }
+	p { margin: 0; font-size: .8rem; line-height: 1.45; }
+}
+.midi-device-identity {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: .2rem .8rem;
+	margin: 0;
+	font-size: .78rem;
+	dt { color: var(--midi-muted); }
+	dd { margin: 0; overflow-wrap: anywhere; font-family: var(--font-mono, ui-monospace, monospace); }
+}
+.midi-device-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .3rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	li { padding: .15rem .55rem; border: 1px solid var(--midi-rule); border-radius: 999px; font-size: .74rem; }
+}
+.midi-device-list { display: grid; gap: .2rem; margin: 0; padding-inline-start: 1.1rem; font-size: .78rem; a { color: inherit; } }
+.midi-device-mappings {
+	border-collapse: collapse;
+	font-size: .78rem;
+	th { padding: .15rem .8rem .15rem 0; font-weight: 400; text-align: start; }
+	td { font-family: var(--font-mono, ui-monospace, monospace); }
+}
+.midi-device-diagrams {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+	gap: .6rem;
+	figure { display: grid; gap: .3rem; margin: 0; }
+	img { inline-size: 100%; block-size: auto; max-block-size: 16rem; padding: .4rem; border-radius: .4rem; background: var(--shade-white, #fff); object-fit: contain; }
+	figcaption { font-size: .72rem; color: var(--midi-muted); }
 }
 
-#midi-monitor-empty[hidden]{ display: none; }
-#midi-monitor-empty{ padding: 1.5rem; border: 1px dashed currentColor; border-radius: .5rem; text-align: center; }
-#midi-routing-summary{ margin: 0; line-height: 1.5; }
-.midi-device-card{ grid-template-columns: minmax(0, 1fr); }
-.midi-device-connection{ margin: 0; font-size: .8rem; opacity: .8; overflow-wrap: anywhere; }
-.midi-device-routes{ border-block-start: 1px solid #ffffff30; padding-block-start: .5rem; }
-.midi-device-routes p{ margin: .25rem 0; font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; }
-.midi-person-routing{ display: grid; gap: 1rem; margin-block-start: 1rem; }
-.midi-person-routing h4{ margin: 0; }
-.midi-person-route{ display: grid; grid-template-columns: minmax(5rem, .7fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .65rem; padding-block: .75rem; border-block-end: 1px solid #ffffff30; }
-.midi-person-route strong{ overflow-wrap: anywhere; }
-.controls #folder-midi .midi-person-route select{ min-block-size: 2.75rem; font-size: .9rem; }
-@media(max-width: 36rem){
-	.midi-person-route{ grid-template-columns: minmax(0, 1fr); }
-	.midi-person-route > span{ display: none; }
+// Legacy hidden container
+#no-midi-devices { display: flex; flex-direction: column; align-items: center; gap: var(--pad); box-shadow: none; &[hidden] { display: none; } }
+
+// Responsive adjustments -------------------------------------------------------
+@media (max-width: 36rem) {
+	.controls #folder-midi .midi-panel-header { gap: .45rem; padding: .55rem .65rem; }
+	.controls #folder-midi .midi-panel-scroll { padding: .65rem; }
+	.midi-eyebrow-layout { grid-template-columns: minmax(0, 1fr); }
+	.controls #folder-midi .midi-eyebrow-preview { max-inline-size: 5.5rem; justify-self: center; }
+	.midi-person-route {
+		grid-template-columns: minmax(0, 1fr);
+		> span { display: none; }
+	}
+	.midi-map-row { grid-template-columns: minmax(0, .85fr) minmax(3.8rem, .6fr) minmax(0, 1.15fr); }
+	.midi-map-node { padding: .45rem; strong { font-size: .8rem; } small { font-size: .65rem; } }
+	.midi-map-wire span { font-size: .65rem; padding: 0 .15rem .3rem; }
 }
 
-.midi-presets, .midi-connection-map{ display: grid; gap: .8rem; min-inline-size: 0; }
-.midi-presets h4, .midi-presets p, .midi-connection-map p{ margin: 0; }
-.midi-presets p, .midi-connection-map > p{ font-size: .85rem; line-height: 1.5; opacity: .85; }
-.midi-preset-grid{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
-.controls #folder-midi button.midi-preset{
- display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
- inline-size: 100%; min-inline-size: 0; block-size: auto; min-block-size: 9rem; margin: 0;
- padding: .9rem; gap: .45rem; border: 1px solid #ffffff40; border-radius: .65rem;
- background: #191723; color: #fff; text-align: start; white-space: normal;
- font: inherit; text-transform: none; letter-spacing: normal; box-shadow: none;
-}
-.controls #folder-midi button.midi-preset::before, .controls #folder-midi button.midi-preset::after{ display: none; }
-.controls #folder-midi button.midi-preset[aria-pressed="true"]{ border-color: #90caff; background: #203347; box-shadow: inset 0 0 0 1px #90caff; }
-.controls #folder-midi button.midi-preset:disabled{ opacity: .5; cursor: not-allowed; }
-.controls #folder-midi button.midi-preset:focus-visible{ outline: 3px solid #ffce86; outline-offset: 3px; }
-.midi-preset > span:not(.midi-preset-sketch), .midi-preset small{ font-size: .8rem; line-height: 1.4; }
-.midi-preset-sketch{ font: 1rem ui-monospace, monospace; color: #90caff; }
-.midi-shared-target{ max-inline-size: 25rem; }
-.midi-preset-status{ color: #90caff; }
-.midi-connection-map{ margin: .5rem 0; padding: 1rem; border: 1px solid #ffffff30; border-radius: .65rem; background: #11101b; }
-.midi-connection-map figcaption{ font-size: 1.1rem; font-weight: 700; }
-.midi-map-row{ --route-colour: #b2bdd3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(7rem, .65fr) minmax(0, 1fr); align-items: center; padding-block: .6rem; }
-.midi-map-node{ display: grid; align-content: center; min-inline-size: 0; gap: .35rem; padding: .8rem; border: 1px solid var(--route-colour, #ffffff40); border-radius: .5rem; background: #211e30; overflow-wrap: anywhere; }
-.midi-map-person{ border-inline-start: .3rem solid var(--route-colour); }
-.midi-map-node strong{ font-size: .9rem; }
-.midi-map-node small{ font-size: .73rem; line-height: 1.4; opacity: .8; }
-.midi-map-targets{ display: grid; gap: .5rem; }
-.midi-map-wire{ min-inline-size: 0; color: var(--route-colour); text-align: center; }
-.midi-map-wire span{ display: block; font-size: .75rem; padding: 0 .4rem .4rem; }
-.midi-map-wire i{ position: relative; display: block; border-block-start: 2px solid currentColor; }
-.midi-map-wire i::after{ content: ''; position: absolute; right: 0; top: -5px; border-block: 4px solid transparent; border-inline-start: 7px solid currentColor; }
-.midi-map-row.is-unrouted .midi-map-wire i{ border-block-start-style: dashed; opacity: .5; }
-.midi-map-unused{ display: grid; gap: .5rem; border-block-start: 1px solid #ffffff25; padding-block-start: .75rem; font-size: .8rem; }
-.midi-person-routing > summary{ cursor: pointer; padding-block: .8rem; font-weight: 700; }
-.midi-person-routing[open]{ margin-block-end: 1rem; }
-@media(max-width: 36rem){
- .midi-preset-grid{ grid-template-columns: minmax(0, 1fr); }
- .controls #folder-midi button.midi-preset{ min-block-size: 0; }
- .midi-map-row{ grid-template-columns: minmax(0, 1fr); }
- .midi-map-wire{ display: flex; align-items: center; justify-content: center; gap: .6rem; min-block-size: 3rem; }
- .midi-map-wire span{ padding: 0; }
- .midi-map-wire i{ block-size: 2rem; border-block-start: 0; border-inline-start: 2px solid currentColor; }
- .midi-map-wire i::after{ top: auto; bottom: 0; right: -3px; border-inline: 4px solid transparent; border-block-start: 7px solid currentColor; border-block-end: 0; }
- .midi-map-row.is-unrouted .midi-map-wire i{ border-inline-start-style: dashed; }
+@media (prefers-reduced-motion: reduce) {
+	.midi-eyebrow-brows,
+	.midi-status-dot,
+	.midi-device-card.is-active .midi-device-activity::before { animation: none; }
 }
 
-// Keep the connection map and common setup actions within easy reach.
-.midi-presets, .midi-connection-map{ gap: .5rem; }
-.controls #folder-midi button.midi-preset{ min-block-size: 0; padding: .65rem .8rem; gap: .3rem; }
-.midi-presets > p:first-of-type{ font-size: .78rem; }
-.midi-preset-grid{ gap: .5rem; }
-.midi-connection-map{ padding: .75rem; margin: .25rem 0; }
-.midi-map-row{ padding-block: .25rem; }
-.midi-map-node{ padding: .55rem .65rem; gap: .2rem; }
-.midi-map-node small{ font-size: .68rem; }
-.midi-map-wire span{ font-size: .7rem; }
-.midi-person-routing, .midi-port-details{ margin: 0; }
-.midi-person-routing > summary, .midi-port-details > summary{ padding: .65rem .2rem; font-size: .9rem; cursor: pointer; }
-.midi-port-cards{ display: grid; gap: .5rem; padding-block: .5rem; }
-.midi-map-unused{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.midi-map-unused > span{ grid-column: 1 / -1; }
-@media(max-width: 36rem){
- .midi-preset-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
- .controls #folder-midi button.midi-preset{ padding: .6rem; }
- .midi-preset strong{ font-size: .85rem; }
- .midi-preset > span:not(.midi-preset-sketch), .midi-preset small{ font-size: .72rem; }
- .midi-map-row{ grid-template-columns: minmax(0, .8fr) minmax(3.8rem, .65fr) minmax(0, 1.2fr); }
- .midi-map-node{ padding: .45rem; }
- .midi-map-node strong{ font-size: .8rem; }
- .midi-map-node small{ font-size: .63rem; }
- .midi-map-wire{ display: block; min-block-size: 0; }
- .midi-map-wire span{ font-size: .65rem; padding: 0 .15rem .3rem; }
- .midi-map-wire i{ block-size: auto; border-inline-start: 0; border-block-start: 2px solid currentColor; }
- .midi-map-wire i::after{ top: -5px; bottom: auto; right: 0; border-block: 4px solid transparent; border-inline-start: 7px solid currentColor; border-inline-end: 0; }
- .midi-map-row.is-unrouted .midi-map-wire i{ border-block-start-style: dashed; }
-}
+// MIDI CC reference dialog (shares theme tokens) -------------------------------
+dialog#midi-cc-dialog {
+	--midi-surface: var(--shade-dark, #252225);
+	--midi-ink: var(--shade-white, #e7dbd5);
+	--midi-muted: color-mix(in srgb, var(--midi-ink) 72%, transparent);
+	--midi-rule: color-mix(in srgb, var(--midi-ink) 20%, transparent);
+	--midi-accent: var(--shade-yellow, #ab8e54);
 
-// MIDI owns its frame; generic folder animations and close overlays must not
-// turn the whole panel into a scroll container or cover its controls.
-.controls #folder-midi{
- position: fixed; inset: max(.5rem, env(safe-area-inset-top)) .5rem max(.5rem, env(safe-area-inset-bottom)) auto;
- inline-size: min(56rem, calc(100vw - 1rem)); max-inline-size: calc(100vw - 1rem);
- block-size: auto; max-block-size: none; min-block-size: 0;
- display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
- margin: 0; padding: 0; overflow: hidden; scrollbar-gutter: auto;
- background: #15121b; color: #fff; border: 1px solid #ffffff50; border-radius: .65rem;
- font-size: 16px; line-height: 1.4; text-shadow: none;
+	width: min(54rem, calc(100vw - 2rem));
+	max-width: calc(100vw - 2rem);
+	max-height: calc(100dvh - 2rem);
+	height: auto;
+	padding: 1.15rem;
+	background: var(--midi-surface);
+	background-image: none;
+	color: var(--midi-ink);
+	border: 1px solid color-mix(in srgb, var(--midi-ink) 32%, transparent);
+	border-radius: var(--curve, .75rem);
+	font-size: 14px;
+	line-height: 1.5;
+	text-shadow: none;
+	overflow: auto;
 }
-.controls #folder-midi::after{ display: none; }
-.controls #folder-midi > *{ flex-grow: 0; min-inline-size: 0; }
-.controls #folder-midi .midi-panel-header{
- display: flex; align-items: center; gap: .75rem; padding: .65rem .8rem;
- border-block-end: 1px solid #ffffff40; background: #211c2b; z-index: 3;
-}
-.controls #folder-midi .midi-panel-header h2{ margin: 0; margin-inline-end: auto; font-size: 1rem; line-height: 1.2; }
-.controls #folder-midi .midi-enable{ display: flex; align-items: center; gap: .4rem; padding: 0; font-size: .8rem; min-block-size: 44px; white-space: nowrap; }
-.controls #folder-midi .midi-enable::before{ display: none; }
-.controls #folder-midi #toggle-midi{ position: static; inset: auto; order: 0; inline-size: 1.1rem; block-size: 1.1rem; min-width: 1.1rem; max-width: 1.1rem; margin: 0; appearance: auto; opacity: 1; }
-.controls #folder-midi .midi-panel-scroll{
- min-block-size: 0; overflow-y: scroll; overflow-x: hidden; overscroll-behavior: contain;
- scrollbar-width: auto; scrollbar-color: #b9accb #282130; scrollbar-gutter: stable;
- padding: .75rem; scroll-padding-block: .75rem; touch-action: pan-y; position: relative;
-}
-.controls #folder-midi .midi-panel-scroll::-webkit-scrollbar{ width: 12px; }
-.controls #folder-midi .midi-panel-scroll::-webkit-scrollbar-thumb{ background: #b9accb; border: 3px solid #282130; border-radius: 8px; }
-.controls #folder-midi .midi-panel-scroll::-webkit-scrollbar-track{ background: #282130; }
-.controls #folder-midi #midi-panel{ inline-size: 100%; padding: 0; margin: 0; border: 0; min-inline-size: 0; }
-.controls #folder-midi #midi-monitor{ border: 0; padding: 0; }
-.controls #folder-midi #midi-monitor-title{ position: static; background: none; font-size: .95rem; }
-.controls #folder-midi .midi-panel-footer{ display: flex; align-items: center; gap: .5rem; padding: .4rem .75rem; border-block-start: 1px solid #ffffff40; background: #211c2b; z-index: 3; }
-.controls #folder-midi #midi-scroll-status{ margin-inline-end: auto; font-size: .75rem; }
-.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button:not(.button-close){
- display: inline-flex; align-items: center; justify-content: center; position: static;
- min-width: 44px; min-height: 44px; width: auto; height: auto; margin: 0; padding: .4rem .65rem;
- border: 1px solid #ffffff70; border-radius: .4rem; color: #fff; background: #352c44;
- font: 600 .85rem/1.2 system-ui, sans-serif; text-shadow: none; letter-spacing: normal; box-shadow: none;
-}
-.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button:not(.button-close)::before,
-.controls #folder-midi :is(.midi-panel-header, .midi-panel-footer) button:not(.button-close)::after{ display: none; }
-.controls #folder-midi button:disabled{ opacity: .45; }
-.controls #folder-midi :focus-visible{ outline: 2px solid #ffce86; outline-offset: 2px; }
-#control-panel-midi.midi-dismissed #folder-midi{ visibility: hidden; opacity: 0; pointer-events: none; animation: none; }
-#control-panel-midi.midi-dismissed #folder-midi *{ visibility: hidden; pointer-events: none; }
-@media(max-width: 380px){
- .controls #folder-midi .midi-panel-header{ gap: .4rem; padding: .5rem; }
- .controls #folder-midi .midi-panel-scroll{ padding: .5rem; }
-}
+#midi-cc-dialog form { display: grid; gap: .8rem; margin: 0; padding: 0; }
+#midi-cc-dialog .midi-cc-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-inline-end: 3rem; }
+#midi-cc-dialog h2 { visibility: visible; opacity: 1; margin: 0; font-size: 1.2rem; font-weight: 700; line-height: 1.3; }
+#midi-cc-dialog p { margin: 0; }
+#midi-cc-dialog .midi-cc-hint { color: var(--midi-muted); font-size: .82rem; }
+#midi-cc-dialog :focus-visible { outline: 2px solid var(--midi-accent); outline-offset: 2px; }
+#midi-cc-dialog .midi-cc-table-scroll { max-height: 58dvh; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--midi-rule); border-radius: calc(var(--curve, .75rem) * .5); }
+#midi-cc-dialog table { width: 100%; border-collapse: collapse; text-align: start; font-size: .85rem; }
+#midi-cc-dialog caption { padding: .6rem .75rem; text-align: start; color: var(--midi-muted); }
+#midi-cc-dialog th, #midi-cc-dialog td { padding: .6rem .75rem; border-bottom: 1px solid var(--midi-rule); vertical-align: top; text-align: start; }
+#midi-cc-dialog thead th { position: sticky; top: 0; background: color-mix(in srgb, var(--midi-ink) 12%, var(--midi-surface)); z-index: 1; }
+#midi-cc-dialog tbody th { color: var(--midi-accent); font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+#midi-cc-dialog tbody tr:nth-child(even) { background: color-mix(in srgb, var(--midi-ink) 4%, transparent); }
+#midi-cc-dialog td:nth-child(2) { min-width: 7rem; }
+#midi-cc-dialog td:last-child { overflow-wrap: anywhere; }
 
-// Open on activation, not on pointer focus: focus-triggered folders can cover
-// their own launcher before the click finishes on small screens.
-#control-panel-midi:not(.midi-open) #folder-midi,
-#control-panel-midi:not(.midi-open) #folder-midi *{ visibility: hidden; pointer-events: none; }
-#control-panel-midi:not(.midi-open) #folder-midi{ opacity: 0; animation: none; }
-#control-panel-midi.midi-open #folder-midi{ visibility: visible; opacity: 1; pointer-events: auto; animation: none; transform: none; }
-#control-panel-midi.midi-open #folder-midi > *{ visibility: visible; }
+// First-connection MIDI device guide dialog (shares theme tokens) --------------
+dialog.midi-device-guide {
+	--midi-surface: var(--shade-dark, #252225);
+	--midi-ink: var(--shade-white, #e7dbd5);
+	--midi-muted: color-mix(in srgb, var(--midi-ink) 72%, transparent);
+	--midi-rule: color-mix(in srgb, var(--midi-ink) 22%, transparent);
+	--midi-accent: var(--shade-yellow, #ab8e54);
 
-.controls #folder-midi button[data-midi-reset]{
- display: inline-flex; align-items: center; justify-content: center; min-width: 0; max-width: 100%;
- width: auto; height: auto; min-height: 44px; margin: .5rem 0; padding: .5rem .75rem;
- border: 1px solid #ffffff70; border-radius: .4rem; background: #352c44; color: #fff;
- font: 600 .85rem/1.3 system-ui, sans-serif; text-shadow: none; letter-spacing: normal; white-space: normal;
+	width: min(40rem, calc(100vw - 2rem));
+	max-width: calc(100vw - 2rem);
+	max-height: calc(100dvh - 2rem);
+	height: auto;
+	padding: 1.15rem;
+	background: var(--midi-surface);
+	background-image: none;
+	color: var(--midi-ink);
+	border: 1px solid color-mix(in srgb, var(--midi-ink) 32%, transparent);
+	border-radius: var(--curve, .75rem);
+	font-size: 14px;
+	line-height: 1.5;
+	text-shadow: none;
+	overflow: auto;
 }
-.controls #folder-midi button[data-midi-reset]::before,
-.controls #folder-midi button[data-midi-reset]::after{ display: none; }
-.controls #folder-midi button.midi-preset{ max-width: none; }
-.controls #folder-midi .midi-device-channel{ font-size: .8rem; }
-.controls #folder-midi .midi-device-channel select{ order: 0; }
-
-// MIDI CC reference shares the routing panel's colours with a compact table.
-dialog#midi-cc-dialog{
- width: min(54rem, calc(100vw - 2rem)); max-width: calc(100vw - 2rem);
- max-height: calc(100dvh - 2rem); height: auto; padding: 1rem;
- background: #15121b; background-image: none; color: #fff;
- border: 1px solid #ffffff50; border-radius: .75rem;
- font: 14px/1.5 system-ui, sans-serif; text-shadow: none; overflow: auto;
-}
-#midi-cc-dialog form{ display: grid; gap: .8rem; margin: 0; padding: 0; }
-#midi-cc-dialog .midi-cc-dialog-header{ display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-#midi-cc-dialog h2{ margin: 0; font: 700 1.15rem/1.3 system-ui, sans-serif; }
-#midi-cc-dialog p{ margin: 0; }
-#midi-cc-dialog .midi-cc-hint{ color: #c5bbd3; font-size: .8rem; }
-#midi-cc-dialog button{ position: static; width: auto; height: auto; min-height: 44px; margin: 0; padding: .4rem .7rem; border: 1px solid #ffffff70; border-radius: .4rem; background: #352c44; color: #fff; font: 600 .85rem/1.2 system-ui, sans-serif; box-shadow: none; letter-spacing: normal; }
-#midi-cc-dialog button::before, #midi-cc-dialog button::after{ display: none; }
-#midi-cc-dialog :focus-visible{ outline: 2px solid #ffce86; outline-offset: 2px; }
-#midi-cc-dialog .midi-cc-table-scroll{ max-height: 58dvh; overflow: auto; overscroll-behavior: contain; border: 1px solid #ffffff30; border-radius: .4rem; }
-#midi-cc-dialog table{ width: 100%; border-collapse: collapse; text-align: start; font-size: .85rem; }
-#midi-cc-dialog caption{ padding: .6rem .75rem; text-align: start; color: #c5bbd3; }
-#midi-cc-dialog th, #midi-cc-dialog td{ padding: .6rem .75rem; border-bottom: 1px solid #ffffff20; vertical-align: top; text-align: start; }
-#midi-cc-dialog thead th{ position: sticky; top: 0; background: #352c44; z-index: 1; }
-#midi-cc-dialog tbody th{ color: #90caff; font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
-#midi-cc-dialog tbody tr:nth-child(even){ background: #ffffff05; }
-#midi-cc-dialog td:nth-child(2){ min-width: 7rem; }
-#midi-cc-dialog td:last-child{ overflow-wrap: anywhere; }
-
-// Device cards: choose how an input plays and who it augments
-.midi-device-routes .midi-device-channel{ margin-block-start: .35rem; }
-.midi-device-people{ display: flex; flex-wrap: wrap; gap: .3rem .8rem; margin: .4rem 0 0; padding: .4rem .6rem; border: 1px solid color-mix(in srgb, currentColor 25%, transparent); border-radius: .4rem; font-size: .76rem; }
-.midi-device-people legend{ padding-inline: .3rem; font-weight: 700; }
-.midi-device-people label{ display: inline-flex; align-items: center; gap: .3rem; }
-.midi-device-people small{ flex-basis: 100%; color: color-mix(in srgb, currentColor 72%, transparent); }
-.midi-device-echo{ display: flex; align-items: center; gap: .3rem; margin-block-start: .4rem; font-size: .76rem; }
-.midi-device-echo + small{ display: block; font-size: .7rem; color: color-mix(in srgb, currentColor 72%, transparent); }
-
-// Shown when a MIDI device is connected for the first time
-dialog.midi-device-guide{
- width: min(40rem, calc(100vw - 2rem)); max-width: calc(100vw - 2rem);
- max-height: calc(100dvh - 2rem); height: auto; padding: 1rem;
- background: #15121b; background-image: none; color: #fff;
- border: 1px solid #ffffff50; border-radius: .75rem;
- font: 14px/1.5 system-ui, sans-serif; text-shadow: none; overflow: auto;
-}
-.midi-device-guide form{ display: grid; gap: .8rem; margin: 0; padding: 0; }
-.midi-device-guide p{ margin: 0; }
-.midi-device-guide h2{ margin: 0; font: 700 1.15rem/1.3 system-ui, sans-serif; }
-.midi-device-guide h3{ margin: 0; font: 700 .9rem/1.3 system-ui, sans-serif; }
-.midi-device-guide-header{ display: flex; align-items: center; gap: .8rem; }
-.midi-device-guide-header img{ flex: 0 0 auto; padding: .3rem; border-radius: .4rem; background: #fff; object-fit: contain; }
-.midi-device-guide-header p{ color: #c5bbd3; font-size: .8rem; }
-.midi-device-guide-header .button-close{ margin-inline-start: auto; }
-.midi-device-guide-steps{ display: grid; gap: .3rem; margin: 0; padding-inline-start: 1.3rem; }
-.midi-device-guide fieldset{ display: grid; gap: .4rem; margin: 0; padding: .6rem .8rem; border: 1px solid #ffffff40; border-radius: .5rem; }
-.midi-device-guide legend{ padding-inline: .3rem; font-weight: 700; }
-.midi-device-guide-modes label{ display: flex; align-items: start; gap: .5rem; cursor: pointer; }
-.midi-device-guide-modes label span{ display: grid; }
+.midi-device-guide form { display: grid; gap: .8rem; margin: 0; padding: 0; }
+.midi-device-guide p { margin: 0; }
+.midi-device-guide h2 { visibility: visible; opacity: 1; margin: 0; font-size: 1.15rem; font-weight: 700; line-height: 1.3; }
+.midi-device-guide h3 { margin: 0; font-size: .92rem; font-weight: 700; line-height: 1.3; }
+.midi-device-guide-header { display: flex; align-items: center; gap: .8rem; padding-inline-end: 3rem; }
+.midi-device-guide-header img { flex: 0 0 auto; padding: .3rem; border-radius: .4rem; background: var(--shade-white, #fff); object-fit: contain; }
+.midi-device-guide-header p { color: var(--midi-muted); font-size: .82rem; }
+.midi-device-guide-steps { display: grid; gap: .3rem; margin: 0; padding-inline-start: 1.3rem; }
+.midi-device-guide fieldset { display: grid; gap: .4rem; margin: 0; padding: .65rem .85rem; border: 1px solid var(--midi-rule); border-radius: .5rem; }
+.midi-device-guide legend { padding-inline: .3rem; font-weight: 700; }
+.midi-device-guide-modes label { display: flex; align-items: start; gap: .5rem; cursor: pointer; span { display: grid; } }
 .midi-device-guide-modes small,
-.midi-device-guide-people small{ color: #c5bbd3; font-size: .78rem; }
-.midi-device-guide-people{ grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); }
-.midi-device-guide-people label{ display: flex; align-items: center; gap: .4rem; min-block-size: 2rem; }
-.midi-device-guide-people small{ grid-column: 1 / -1; }
-.midi-device-guide-echo{ display: flex; align-items: center; gap: .4rem; min-block-size: 2rem; font-weight: 700; }
-.midi-device-guide-echo + small{ display: block; margin-block-start: -.4rem; color: #c5bbd3; font-size: .78rem; }
-.midi-device-guide input{ accent-color: #ffce86; }
-.midi-device-guide details summary{ cursor: pointer; font-weight: 700; }
-.midi-device-guide a{ color: #90caff; }
-.midi-device-guide-actions{ display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; }
-.midi-device-guide-actions button{ position: static; width: auto; height: auto; min-height: 44px; margin: 0; padding: .4rem .9rem; border: 1px solid #ffffff70; border-radius: .4rem; background: #352c44; color: #fff; font: 600 .85rem/1.2 system-ui, sans-serif; box-shadow: none; letter-spacing: normal; }
+.midi-device-guide-people small { color: var(--midi-muted); font-size: .78rem; }
+.midi-device-guide-people { grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); label { display: flex; align-items: center; gap: .4rem; min-block-size: 2rem; } small { grid-column: 1 / -1; } }
+.midi-device-guide-echo { display: flex; align-items: center; gap: .4rem; min-block-size: 2rem; font-weight: 700; + small { display: block; margin-block-start: -.4rem; color: var(--midi-muted); font-size: .78rem; } }
+.midi-device-guide input { accent-color: var(--midi-accent); }
+.midi-device-guide details summary { cursor: pointer; font-weight: 700; }
+.midi-device-guide a { color: var(--midi-accent); }
+.midi-device-guide-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; }
+.midi-device-guide-actions button {
+	--bg: none;
+	--icon-visible: 0;
+	position: static;
+	width: auto;
+	height: auto;
+	min-height: 44px;
+	margin: 0;
+	padding: .45rem .9rem;
+	border: 1px solid color-mix(in srgb, var(--midi-ink) 35%, transparent);
+	border-radius: calc(var(--curve, .75rem) * .5);
+	background: color-mix(in srgb, var(--midi-ink) 12%, var(--midi-surface));
+	background-image: none;
+	color: var(--midi-ink);
+	font: 600 .88rem/1.2 inherit;
+	box-shadow: none;
+	letter-spacing: normal;
+	text-shadow: none;
+	&::before, &::after { display: none; }
+}
 .midi-device-guide-actions button[value="save"],
-.midi-device-guide-actions button[value="seen"]{ background: #ffce86; border-color: #ffce86; color: #15121b; }
-.midi-device-guide-actions button::before, .midi-device-guide-actions button::after{ display: none; }
-.midi-device-guide :focus-visible{ outline: 2px solid #ffce86; outline-offset: 2px; }
+.midi-device-guide-actions button[value="seen"] {
+	background: var(--midi-accent);
+	border-color: var(--midi-accent);
+	color: var(--midi-surface);
+}
+.midi-device-guide :focus-visible { outline: 2px solid var(--midi-accent); outline-offset: 2px; }

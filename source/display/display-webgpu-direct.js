@@ -42,6 +42,8 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	// DPR tracking
 	dpr = 1
 	pointData = null
+	_uniformData = new Float32Array(8)
+	_pointBuffer = null
 	lastColour = '#ffffff'
 	frameHasDrawn = false
 	destroyed = false
@@ -138,8 +140,8 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	paintEffects(){
 		if (this.effectsPainted) return
 		if (this.effectsCanvas) {
-			this.effectsCanvas.hidden = true
-			this.getPaint().paintCanvas(this.effectsCanvas)
+			if (!this.effectsCanvas.hidden) this.effectsCanvas.hidden = true
+			if (this.effectsDirty) this.getPaint().paintCanvas(this.effectsCanvas)
 		}
 		this.effectsPainted = true
 	}
@@ -287,24 +289,63 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	}
 
 	/**
+	 * Convert HSL directly to normalized [r, g, b, a] floats (zero allocations)
+	 */
+	hslToRgbaNormalized(h, s, l, a = 1) {
+		h = ((h % 360) + 360) % 360
+		s = s / 100
+		l = l / 100
+
+		const c = (1 - Math.abs(2 * l - 1)) * s
+		const hp = h / 60
+		const x = c * (1 - Math.abs((hp % 2) - 1))
+
+		let r = 0, g = 0, b = 0
+		if (hp < 1) { r = c; g = x }
+		else if (hp < 2) { r = x; g = c }
+		else if (hp < 3) { g = c; b = x }
+		else if (hp < 4) { g = x; b = c }
+		else if (hp < 5) { r = x; b = c }
+		else if (hp < 6) { r = c; b = x }
+
+		const m = l - c / 2
+		return [
+			Math.max(0, Math.min(1, r + m)),
+			Math.max(0, Math.min(1, g + m)),
+			Math.max(0, Math.min(1, b + m)),
+			Math.max(0, Math.min(1, a))
+		]
+	}
+
+	/**
 	 * Draw landmarks as soft points only.
 	 */
-	drawLandmarks(data, colorHex) {
+	drawLandmarks(data, colorHexOrRgba) {
 		if (!this.available || this.recovering || !this.device || !this.pipeline || !this.uniformBuffer || !this.bindGroup) return
 
 		const numPoints = Math.floor(data.length / 2)
 		if (numPoints === 0) return
 		this.beginFrame()
 
-		const uniformData = new Float32Array([
-			this.canvasWidth,
-			this.canvasHeight,
-			this.options.dotSize,
-			0, // padding
-			...this.hexToRgba(colorHex).map(v => v / 255)
-		])
+		const u = this._uniformData ??= new Float32Array(8)
+		u[0] = this.canvasWidth
+		u[1] = this.canvasHeight
+		u[2] = this.options.dotSize
+		u[3] = 0
+		if (Array.isArray(colorHexOrRgba)) {
+			u[4] = colorHexOrRgba[0]
+			u[5] = colorHexOrRgba[1]
+			u[6] = colorHexOrRgba[2]
+			u[7] = colorHexOrRgba[3]
+		} else {
+			const rgba = this.hexToRgba(colorHexOrRgba)
+			u[4] = rgba[0] / 255
+			u[5] = rgba[1] / 255
+			u[6] = rgba[2] / 255
+			u[7] = rgba[3] / 255
+		}
 
-		this.device.queue.writeBuffer(this.uniformBuffer, 0, uniformData)
+		this.device.queue.writeBuffer(this.uniformBuffer, 0, u)
 		this.ensureVertexBufferCapacity(data.byteLength)
 		this.device.queue.writeBuffer(this.vertexBuffer, 0, data)
 
@@ -361,8 +402,8 @@ export default class DisplayWebGPU extends AbstractDisplay {
 	 * Draw a person's landmarks
 	 */
 	drawPerson(person, beatJustPlayed, colours, options = {}) {
-		const settings = { ...this.options, ...person.options, ...options }
-		if (settings.drawMask === false) return
+		const drawMask = options.drawMask ?? person.options?.drawMask ?? this.options.drawMask
+		if (drawMask === false) return
 		const prediction = person.data
 		const landmarks = getPredictionLandmarks(prediction)
 		if (!prediction || landmarks.length === 0) return
@@ -376,14 +417,21 @@ export default class DisplayWebGPU extends AbstractDisplay {
 			: landmarks
 		const hue = colours?.h ?? person.hue ?? 0
 
-		const pointData = new Float32Array(pointLandmarks.length * 2)
+		const neededFloats = pointLandmarks.length * 2
+		if (!this._pointBuffer || this._pointBuffer.length < neededFloats) {
+			this._pointBuffer = new Float32Array(neededFloats)
+		}
+		const pointData = this._pointBuffer.length === neededFloats
+			? this._pointBuffer
+			: this._pointBuffer.subarray(0, neededFloats)
+		const w = this.canvasWidth
+		const h = this.canvasHeight
 		for (let i = 0; i < pointLandmarks.length; i++) {
-			pointData[i * 2] = (pointLandmarks[i].x || 0) * this.canvasWidth
-			pointData[i * 2 + 1] = (pointLandmarks[i].y || 0) * this.canvasHeight
+			pointData[i * 2] = (pointLandmarks[i].x || 0) * w
+			pointData[i * 2 + 1] = (pointLandmarks[i].y || 0) * h
 		}
 
-		const hex = this.hslToHex(hue, colours.s ?? 100, colours.l ?? 50, getDisplayColourAlpha(colours, options))
-		this.lastColour = hex
+		const rgba = this.hslToRgbaNormalized(hue, colours.s ?? 100, colours.l ?? 50, getDisplayColourAlpha(colours, options))
 		this.pointData = pointData
 
 		applyWebGPUParticleMarch({
@@ -393,7 +441,7 @@ export default class DisplayWebGPU extends AbstractDisplay {
 			dimensions:2
 		})
 
-		this.drawLandmarks(this.pointData, hex)
+		this.drawLandmarks(this.pointData, rgba)
 	}
 
 	/**
@@ -415,8 +463,8 @@ export default class DisplayWebGPU extends AbstractDisplay {
 		this.beginFrame()
 		this.paintEffects()
 		if (this.faceFeatureOverlay) {
-			this.faceFeatureOverlay.hidden = true
-			this.getPaint().paintCanvas(this.faceFeatureOverlay)
+			if (!this.faceFeatureOverlay.hidden) this.faceFeatureOverlay.hidden = true
+			if (this.faceFeaturesDirty) this.getPaint().paintCanvas(this.faceFeatureOverlay)
 		}
 		this.getPaint().present(this.context)
 		this.frameStarted = this.effectsPainted = false

@@ -1,74 +1,102 @@
 header.midi-panel-header
-	h2 MIDI routing
-	label.midi-enable(for="toggle-midi") Enable MIDI
-		input#toggle-midi(type="checkbox" aria-label="Enable MIDI devices")
-	button#midi-cc-open(type="button" aria-haspopup="dialog" aria-controls="midi-cc-dialog") CC codes
-	button.midi-panel-close.button-close(type="button" data-midi-close aria-label="Close MIDI panel")
+	.midi-panel-brand
+		span.midi-panel-icon(aria-hidden="true")
+		h2.midi-panel-title MIDI routing
+		span#midi-device-count.midi-device-badge(data-connected="false" aria-live="polite") 0 devices
+	.midi-panel-header-actions
+		label.midi-enable(for="toggle-midi")
+			span Enable MIDI
+			input#toggle-midi.switch(type="checkbox" role="switch" aria-label="Enable MIDI devices")
+		button#midi-cc-open.midi-header-button(type="button" aria-haspopup="dialog" aria-controls="midi-cc-dialog") CC codes
+		button.midi-panel-close.button-close(type="button" data-midi-close aria-label="Close MIDI panel")
 
-.midi-panel-scroll(tabindex="0" role="region" aria-label="MIDI connections and routing" aria-describedby="midi-scroll-status")
-	fieldset#midi-panel
-		legend.sr-only MIDI routing
+#midi-tabs.tabs
+	.tabs-list(role="tablist" aria-label="MIDI sections")
+		button#midi-devices-tab.tab(type="button" role="tab" aria-selected="true" aria-controls="midi-devices-tabpanel" tabindex="0")
+			span.midi-tab-icon.midi-tab-icon-devices(aria-hidden="true")
+			span Devices &amp; routing
+		button#midi-controls-tab.tab(type="button" role="tab" aria-selected="false" aria-controls="midi-controls-tabpanel" tabindex="-1")
+			span.midi-tab-icon.midi-tab-icon-controls(aria-hidden="true")
+			span Expression &amp; CC
 
-		//- button#button-midi( type="button" aria-label="Connect a MIDI instrument and click here") MIDI<span id="midi-device">Connected</span>
+	.midi-panel-scroll(tabindex="0" role="region" aria-label="MIDI connections and routing")
+		fieldset#midi-panel.control-settings
+			legend.sr-only MIDI routing
 
-		//- MIDI Input options
-		#midi-input-gadgets(hidden)
-			label(for="midi-inputs" hidden) MIDI Devices Inputs
-				select#midi-inputs(name="midi-inputs")
+			//- MIDI Input options (legacy hidden hooks)
+			#midi-input-gadgets(hidden)
+				label(for="midi-inputs" hidden) MIDI Devices Inputs
+					select#midi-inputs(name="midi-inputs")
 
-		//- MIDI Output options
-		#midi-output-gadgets(hidden)
-			label(for="midi-outputs" hidden) MIDI Devices Outputs
-				select#midi-outputs(name="midi-outputs" multiple)
+			//- MIDI Output options (legacy hidden hooks)
+			#midi-output-gadgets(hidden)
+				label(for="midi-outputs" hidden) MIDI Devices Outputs
+					select#midi-outputs(name="midi-outputs" multiple)
 
-		section#midi-monitor(aria-labelledby="midi-monitor-title")
-			h3#midi-monitor-title Connected MIDI devices
-			p#midi-monitor-empty.info Connect MIDI devices - zero devices found.
-			p#midi-routing-summary.info(hidden) Connect a MIDI output to send music.
-			#midi-monitor-devices(aria-live="polite" aria-label="Connected MIDI devices")
+			#midi-devices-tabpanel.tabs-panel(role="tabpanel" aria-labelledby="midi-devices-tab")
+				section#midi-monitor(aria-labelledby="midi-monitor-title")
+					h3#midi-monitor-title.sr-only Connected MIDI devices
+					#midi-monitor-empty.midi-empty-state
+						.midi-empty-graphics(aria-hidden="true")
+							span.midi-empty-badge.midi-empty-badge-din
+							span.midi-empty-badge.midi-empty-badge-usb
+						p.midi-empty-title Connect MIDI devices — zero devices found
+						p.midi-empty-copy Plug in a USB or Bluetooth MIDI controller, hardware synth, or virtual MIDI port. Connected gear appears here automatically.
+						p.midi-empty-listening(role="status")
+							span.midi-status-dot(aria-hidden="true")
+							| MIDI enabled · waiting for devices
+						button.midi-empty-enable.midi-action-button(type="button" data-midi-enable-cta) Enable MIDI &amp; scan
+					p#midi-routing-summary.info(hidden) Connect a MIDI output to send music.
+					#midi-monitor-devices(aria-live="polite" aria-label="Connected MIDI devices")
 
-		section(aria-labelledby="midi-eyebrow-title")
-			h3#midi-eyebrow-title Eyebrow expression
-			label(for="midi-eyebrow-mode") Eyebrow MIDI output
-				select#midi-eyebrow-mode
-					option(value="cc") MIDI CC
-					option(value="pitchbend") Pitch bend
-			label(for="midi-eyebrow-cc") Eyebrow CC number
-				input#midi-eyebrow-cc(type="number" min="0" max="119" value="74")
-			p Enable Eyebrow expression in each person's instrument settings. Output follows that person's MIDI device and channel. CC values span 0–127 with relaxed eyebrows at 64; pitch bend centres at 0.
+			#midi-controls-tabpanel.tabs-panel(role="tabpanel" aria-labelledby="midi-controls-tab" hidden)
+				fieldset.midi-settings-group(aria-labelledby="midi-eyebrow-title")
+					legend#midi-eyebrow-title.midi-section-heading.midi-heading-eyebrow Eyebrow expression
+					.midi-eyebrow-layout
+						svg.midi-eyebrow-preview(viewBox="0 0 120 104" aria-hidden="true" focusable="false")
+							line.midi-eyebrow-guide(x1="14" y1="34" x2="106" y2="34")
+							ellipse.midi-eyebrow-skull(cx="60" cy="56" rx="28" ry="34")
+							g.midi-eyebrow-brows
+								path(d="M42 40 Q49 35 55 39")
+								path(d="M65 39 Q71 35 78 40")
+							g.midi-eyebrow-features
+								circle(cx="49" cy="50" r="3")
+								circle(cx="71" cy="50" r="3")
+								path(d="M50 68 Q60 74 70 68")
+						.midi-fields-grid
+							.control-settings-field.midi-field
+								label(for="midi-eyebrow-mode") Eyebrow MIDI output
+								select#midi-eyebrow-mode(aria-describedby="midi-eyebrow-help")
+									+rich-option("MIDI CC", optionPath("M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"), "0–127 · relaxed 64")(value="cc")
+									+rich-option("Pitch bend", optionPath("M3 16c4-9 8-9 12 0s4 4 6-4"), "centred at 0")(value="pitchbend")
+							.control-settings-field.midi-field.midi-stepper-field
+								label(for="midi-eyebrow-cc") Eyebrow CC number
+								.midi-stepper
+									button.volume-step-button.midi-step-button(type="button" data-midi-step-target="midi-eyebrow-cc" data-midi-step="-1" aria-label="Decrease eyebrow CC number") −
+									input#midi-eyebrow-cc(type="number" min="0" max="119" value="74" inputmode="numeric" aria-describedby="midi-eyebrow-help")
+									button.volume-step-button.midi-step-button(type="button" data-midi-step-target="midi-eyebrow-cc" data-midi-step="1" aria-label="Increase eyebrow CC number") +
+					p#midi-eyebrow-help.midi-help Enable Eyebrow expression in each person’s instrument settings. Output follows that person’s MIDI device and channel; CC spans 0–127 (relaxed at 64) and pitch bend centres at 0.
 
-		section(aria-labelledby="midi-cc-title")
-			h3#midi-cc-title MIDI app controls
-			label(for="midi-cc-enabled") Enable two-way CC control
-				input#midi-cc-enabled(type="checkbox" checked)
-			label(for="midi-cc-channel") App control channel
-				input#midi-cc-channel(type="number" min="1" max="16" value="16")
-			p Use values 0–63 for off and 64–127 for on. Faders span their full range. Selectors span their options in order. Changes send CC to all connected outputs on this channel.
-			button#midi-cc-sync(type="button") Send current controls
+				fieldset.midi-settings-group(aria-labelledby="midi-cc-title")
+					legend#midi-cc-title.midi-section-heading.midi-heading-cc MIDI app controls
+					.midi-fields-grid
+						.control-settings-toggle.midi-toggle-row
+							label(for="midi-cc-enabled") Enable two-way CC control
+							input#midi-cc-enabled.switch(type="checkbox" role="switch" checked aria-describedby="midi-cc-help")
+						.control-settings-field.midi-field.midi-stepper-field
+							label(for="midi-cc-channel") App control channel
+							.midi-stepper
+								button.volume-step-button.midi-step-button(type="button" data-midi-step-target="midi-cc-channel" data-midi-step="-1" aria-label="Decrease app control channel") −
+								input#midi-cc-channel(type="number" min="1" max="16" value="16" inputmode="numeric" aria-describedby="midi-cc-help")
+								button.volume-step-button.midi-step-button(type="button" data-midi-step-target="midi-cc-channel" data-midi-step="1" aria-label="Increase app control channel") +
+					p#midi-cc-help.midi-help Use values 0–63 for off and 64–127 for on. Faders span their full range; selectors span options in order. Changes send CC to all connected outputs on this channel.
+					.midi-cc-actions
+						button#midi-cc-sync.midi-action-button(type="button") Send current controls
+						button.midi-action-button.midi-action-secondary(type="button" data-midi-open-cc aria-haspopup="dialog" aria-controls="midi-cc-dialog") View CC codes
 
-
-
-	//- If there are no devices show this item instead
-	fieldset#no-midi-devices(hidden)
-
-		//- p#no-midi-suggestion.info Please connect a MIDI device
-
-		p#no-midi-inputs.warning(hidden) No MIDI Input Devices were located!
-		p#no-midi-outputs.warning(hidden) No MIDI Output Devices were located!
-
-		label(for="waiting-for-midi-devices" hidden) Please connect a MIDI Device
-			progress#waiting-for-midi-devices
-
-		//- FIXME:
-		//- button#load-midi( aria-label="Load in a MIDI file" ) Load MIDI File
-
-		//- label(for="midi-inputs-output") MIDI Devices Inputs
-		//- output#midi-inputs-output
-
-		//- label(for="midi-outputs-output") MIDI Devices Outputs
-		//- output#midi-outputs-output
-
-footer.midi-panel-footer
-	span#midi-scroll-status Scroll to explore connections and settings
-	button(type="button" data-midi-scroll="-1" aria-label="Scroll MIDI panel up") ↑
-	button(type="button" data-midi-scroll="1" aria-label="Scroll MIDI panel down") ↓
+		//- If there are no devices show this item instead (legacy hidden hooks)
+		fieldset#no-midi-devices(hidden)
+			p#no-midi-inputs.warning(hidden) No MIDI Input Devices were located!
+			p#no-midi-outputs.warning(hidden) No MIDI Output Devices were located!
+			label(for="waiting-for-midi-devices" hidden) Please connect a MIDI Device
+				progress#waiting-for-midi-devices

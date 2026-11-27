@@ -1,7 +1,7 @@
 /**
  * CTRL to expose the menu or run in debug mode
  */
-import { app, shell, Menu } from "electron"
+import { app, BrowserWindow, shell, Menu } from "electron"
 import { requestUpdateCheck } from './updates.ts'
 
 const IS_MAC = process.platform === "darwin"
@@ -36,6 +36,15 @@ const menuView: any = {
 		{ role: "resetZoom" },
 		{ role: "zoomIn" },
 		{ role: "zoomOut" },
+		{ type: "separator" },
+		{
+			label: "Toggle Performance HUD",
+			accelerator: "CmdOrCtrl+Shift+P",
+			click: () => {
+				const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+				win?.webContents.send("profiler:toggle")
+			}
+		},
 		{ type: "separator" },
 		{ role: "togglefullscreen" },
 		{ role: "minimize" },
