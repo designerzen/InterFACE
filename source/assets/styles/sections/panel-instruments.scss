@@ -669,18 +669,23 @@
 		font-weight:900;
 	}
 
-	[data-instrument-family][open]{
-		background-color:var(--instrument-colour);
+	// The family colour grows from the summary's left bumper across the
+	// summary backing only. Everything inside keeps just the 6px bumper.
+	[data-instrument-family] > summary{
+		background-image:linear-gradient(var(--instrument-colour, var(--shade-orange, #ee7733)), var(--instrument-colour, var(--shade-orange, #ee7733)));
+		background-repeat:no-repeat;
+		background-position:left center;
+		background-size:0 100%;
+		transition:background-size 250ms ease, color 250ms ease;
+	}
 
-		> summary,
-		.instrument label{
-			background-color:var(--instrument-colour);
-			color:var(--instrument-foreground);
-		}
+	[data-instrument-family][open] > summary{
+		background-size:100% 100%;
+		color:var(--instrument-foreground);
+	}
 
-		.instrument label:is(:hover, :focus-within){
-			background-color:color-mix(in srgb, var(--instrument-colour) 85%, var(--instrument-foreground));
-		}
+	@media (prefers-reduced-motion: reduce){
+		[data-instrument-family] > summary{ transition:none; }
 	}
 
 	.person-options[open] > summary{
