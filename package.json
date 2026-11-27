@@ -2,7 +2,7 @@
 	"name": "PhotoSYNTH",
 	"packageManager": "pnpm@12.23.0",
 	"description": "Instant Musical Superpowers! Body controllable accessible musical instrument",
-	"version": "0.61.6",
+	"version": "0.61.7",
 	"time": 1786271335986,
 	"author": "designerzen <github@designerzen.com>",
 	"license": "AGPL-3.0-or-later",
