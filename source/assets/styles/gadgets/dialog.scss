@@ -350,13 +350,29 @@ dialog#pwa-updates[open] > form{
 		overscroll-behavior: contain;
 		padding-right: var(--pad);
 		text-align: start;
+		font-size: 0.9em;
+		scrollbar-width: thin;
 
-		:is(h4,h5){ margin: var(--pad) 0 calc(0.5 * var(--pad)); }
-		ul{ padding-left: calc(2 * var(--pad)); }
+		:is(h1,h2,h3,h4,h5,h6){
+			font-size: 1.1em;
+			margin: var(--pad) 0 calc(0.5 * var(--pad));
+		}
+		:is(h1,h2){ font-size: 1.3em; }
+		ul{ padding-left: calc(2 * var(--pad)); margin: 0; }
 		img, svg, header, nav, footer{ display: none; }
 	}
 
-	button{ align-self: stretch; }
+	.update-actions{
+		display: flex;
+		flex-direction: column;
+		gap: calc(0.5 * var(--pad));
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li{ display: flex; }
+		.button{ flex: 1 1 auto; }
+	}
 }
 
 // Camera upload fallback dialog when no hardware camera is found

@@ -187,8 +187,10 @@ dialog#pwa-updates(aria-labelledby="pwa-updates-title")
 		h5#pwa-updates-title Updates available!
 		#changelog
 
-		button.button-push.text-always#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade 
-		button.button-push.text-always.close(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update 
+		menu.update-actions
+			li: button.button.button-push.text-always#button-update(autofocus type="button" title="Upgrade to the latest version") Upgrade
+			li: button.button.button-push.text-always.dismiss-update(onclick="this.closest('dialog').close('close')" type="submit" title="Close dialog") Continue without update
+		button.close.button-close(onclick="this.closest('dialog').close('close')" type="submit" aria-label="Close dialog")
 	
 dialog#errors(aria-labelledby="error-title" aria-describedby="error-message error-solution")
 	form(method="dialog")
