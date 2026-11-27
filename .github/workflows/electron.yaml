@@ -2,6 +2,8 @@ name: Electron Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
@@ -10,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: github-pages
+  group: electron-release
   cancel-in-progress: false
 
 jobs:
@@ -26,29 +28,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve and validate release tag
+      - name: Test release version selection
+        run: node --test tests/electron-release-version.node.mjs
+
+      - name: Resolve release tag and version
         id: release
         shell: bash
-        run: |
-          version=$(node -p "require('./package.json').version")
-          tag="v$version"
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Expected a stable package version, got $version"
-            exit 1
-          fi
-          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF_NAME" != "$tag" ]]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package version $version"
-            exit 1
-          fi
-          if git show-ref --verify --quiet "refs/tags/$tag"; then
-            if [[ "$(git rev-parse "refs/tags/$tag^{commit}")" != "$(git rev-parse HEAD)" ]]; then
-              echo "::error::Tag $tag already points to a different commit. Bump package.json or run the workflow on that tag."
-              exit 1
-            fi
-          fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "Publishing $tag from $(git rev-parse HEAD)"
+        run: node actions/electron-release-version.mjs
 
   build:
     name: Build ${{ matrix.name }}
@@ -81,6 +67,12 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: true
+
+      - name: Apply release version to installers
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: node actions/electron-release-version.mjs --apply "$RELEASE_VERSION"
+        shell: bash
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -282,8 +274,11 @@ jobs:
 
   pages:
     name: Publish website and update feed
-    needs: release
+    needs: [prepare, release]
     runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -298,6 +293,12 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: true
+
+      - name: Apply release version to desktop web application
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: node actions/electron-release-version.mjs --apply "$RELEASE_VERSION"
+        shell: bash
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
