@@ -3,11 +3,16 @@ import {
 	PICADE_DEFAULT_FILTERS,
 } from './picade-leds.js'
 import { getPicadeMaxGamepadInfo } from './picade-max-interface.js'
+import { getElectronPicadeSerialPorts } from './picade-serial-electron.js'
 
 export const hasVisiblePicadeMaxGamepad = (gamepads = navigator.getGamepads?.() ?? []) =>
 	Array.from(gamepads).some(gamepad => gamepad?.connected && getPicadeMaxGamepadInfo(gamepad))
 
 export async function requestPicadeSerialPortFromUserGesture(serial = navigator.serial) {
+	const electronPorts = await getElectronPicadeSerialPorts(PICADE_DEFAULT_FILTERS)
+	if (electronPorts.length) {
+		return { status: 'paired', port: electronPorts[0] }
+	}
 	console.groupCollapsed?.('[Picade Max Serial] requestPicadeSerialPortFromUserGesture')
 	console.info('[Picade Max Serial] serial available', Boolean(serial), {
 		hasRequestPort: Boolean(serial?.requestPort),

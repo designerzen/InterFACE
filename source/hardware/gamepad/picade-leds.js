@@ -9,6 +9,7 @@ import {
 import {
 	PICADE_MAX_USB_IDS,
 } from './picade-max-interface.js'
+import { getElectronPicadeSerialPorts } from './picade-serial-electron.js'
 
 export const PICADE_DEFAULT_FILTERS = Object.freeze(
 	PICADE_MAX_USB_IDS.map(({ vendorId, productId }) => ({
@@ -135,6 +136,11 @@ export class PicadeLeds {
 	}
 
 	async connectPaired(filters = PICADE_DEFAULT_FILTERS) {
+		const electronPorts = await getElectronPicadeSerialPorts(filters)
+		if (electronPorts.length) {
+			await this.connectPort(electronPorts[0])
+			return true
+		}
 		const ports = await navigator.serial?.getPorts?.() ?? []
 		const port = ports.find(candidate => isPicadeSerialPort(candidate, filters))
 		if (!port) return false

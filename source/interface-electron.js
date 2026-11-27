@@ -1,6 +1,7 @@
 import { APPLICATION_EVENTS, createInterface } from './interface.js'
 import MIDIBridgeConnection from './audio/midi/midi-connection-electron-bridge.js'
 import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
+import { createElectronLanTimingClient } from './network/lan-timing-client.js'
 
 /**
  * Electron-specific interface composition.
@@ -12,4 +13,14 @@ import WebMIDIClass from './audio/midi/midi-connection-webmidi.js'
 export const getElectronMIDIConnectionClasses = () =>
 	globalThis.electron?.midi?.available ? [MIDIBridgeConnection] : [WebMIDIClass]
 
-export { APPLICATION_EVENTS, createInterface }
+export const getElectronCapabilities = () => ({
+	apiVersion: globalThis.electron?.apiVersion ?? 1,
+	nativeMIDI: Boolean(globalThis.electron?.midi?.available),
+	nativeSerial: Boolean(globalThis.electron?.hardware?.serial?.available),
+	nativeStorage: Boolean(globalThis.electron?.storage?.available),
+	nativeBackingMelodyAI: Boolean(globalThis.electron?.ai?.backingMelody?.available),
+	nativeLanTiming: Boolean(globalThis.electron?.network?.lan?.available),
+	assetProtocol: globalThis.electron?.assets?.protocol ?? null,
+})
+
+export { APPLICATION_EVENTS, createInterface, createElectronLanTimingClient }

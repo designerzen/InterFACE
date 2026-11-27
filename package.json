@@ -59,12 +59,48 @@
 			"sourceMap": true,
 			"scopeHoist": false
 		},
+		"electron-worker-hardware": {
+			"source": "source/electron/services/hardware-worker.ts",
+			"distDir": "./dist-electron/electron/services/",
+			"context": "node",
+			"includeNodeModules": true,
+			"publicUrl": "./",
+			"sourceMap": false,
+			"scopeHoist": false
+		},
+		"electron-worker-storage": {
+			"source": "source/electron/services/storage-worker.ts",
+			"distDir": "./dist-electron/electron/services/",
+			"context": "node",
+			"includeNodeModules": true,
+			"publicUrl": "./",
+			"sourceMap": false,
+			"scopeHoist": false
+		},
+		"electron-worker-ai": {
+			"source": "source/electron/services/ai-worker.ts",
+			"distDir": "./dist-electron/electron/services/",
+			"context": "node",
+			"includeNodeModules": true,
+			"publicUrl": "./",
+			"sourceMap": false,
+			"scopeHoist": false
+		},
+		"electron-worker-network": {
+			"source": "source/electron/services/lan-timing-worker.ts",
+			"distDir": "./dist-electron/electron/services/",
+			"context": "node",
+			"includeNodeModules": true,
+			"publicUrl": "./",
+			"sourceMap": false,
+			"scopeHoist": false
+		},
 		"electron-renderer": {
 			"source": "source/app.pug",
 			"includeNodeModules": true,
 			"distDir": "./dist-electron/main",
 			"publicUrl": "./",
-			"context": "electron-renderer",
+			"context": "browser",
 			"sourceMap": true
 		},
 		"web": {
@@ -158,10 +194,11 @@
 		"electron:secure": "electronegativity -i ./dist-electron/",
 		"electron:test": "electron --inspect=9229  --enable-logging dist-electron/electron/main.js",
 		"electron:build": "pnpm run electron:compile",
-		"electron:compile": "parcel build --target electron-preload --target electron-main --config ./.parcelnocopyrc",
-		"electron:renderer": "parcel build --target electron-renderer --no-content-hash",
-		"electron:serve": "parcel serve --target electron-renderer --no-content-hash -p 303",
-		"electron:dev": "pnpm run electron:compile && concurrently 'pnpm:electron:serve' 'pnpm:electron:test'",
+		"electron:bundle": "pnpm run electron:compile && pnpm run electron:renderer",
+		"electron:compile": "parcel build --cache-dir .parcel-cache/electron-main --target electron-preload --target electron-main --target electron-worker-hardware --target electron-worker-storage --target electron-worker-ai --target electron-worker-network --config ./.parcelnocopyrc",
+		"electron:renderer": "cross-env PARCEL_WORKERS=1 parcel build --cache-dir .parcel-cache/electron-renderer --target electron-renderer --no-content-hash",
+		"electron:serve": "cross-env PARCEL_WORKERS=1 parcel serve --cache-dir .parcel-cache/electron-renderer --target electron-renderer --config ./.parcelelectrondevrc -p 303",
+		"electron:dev": "node actions/electron-dev.mjs",
 		"electron:native-midi": "node actions/build-native-midi-addon.js",
 		"electron:make": "pnpm run electron:clean && pnpm run electron:build && pnpm run electron:native-midi && electron-forge make",
 		"electron:publish": "pnpm run electron:clean && pnpm run electron:build && pnpm run electron:native-midi && electron-forge publish",
